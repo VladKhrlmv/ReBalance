@@ -7,7 +7,7 @@ android {
     namespace = "com.example.rebalance.android"
     compileSdk = 32
     defaultConfig {
-        applicationId = "com.example.rebalance.android"
+        applicationId = "com.rebalance.android"
         minSdk = 28
         targetSdk = 32
         versionCode = 1

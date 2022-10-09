@@ -1,4 +1,4 @@
-package com.example.rebalance.android
+package com.rebalance.android
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
