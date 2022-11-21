@@ -1,5 +1,6 @@
-package com.example.rebalance
+package com.rebalance
 
+import com.rebalance.Greeting
 import org.junit.Assert.assertTrue
 import org.junit.Test
 

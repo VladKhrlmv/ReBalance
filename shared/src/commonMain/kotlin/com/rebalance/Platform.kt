@@ -1,4 +1,4 @@
-package com.example.rebalance
+package com.rebalance
 
 interface Platform {
     val name: String

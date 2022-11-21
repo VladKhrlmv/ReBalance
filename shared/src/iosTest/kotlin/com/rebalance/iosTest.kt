@@ -1,5 +1,6 @@
-package com.example.rebalance
+package com.rebalance
 
+import com.rebalance.Greeting
 import kotlin.test.Test
 import kotlin.test.assertTrue
 

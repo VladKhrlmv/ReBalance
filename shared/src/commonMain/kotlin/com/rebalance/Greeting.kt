@@ -1,4 +1,4 @@
-package com.example.rebalance
+package com.rebalance
 
 class Greeting {
     private val platform: Platform = getPlatform()

@@ -1,5 +1,6 @@
-package com.example.rebalance
+package com.rebalance
 
+import com.rebalance.Platform
 import platform.UIKit.UIDevice
 
 class IOSPlatform: Platform {
