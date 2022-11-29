@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.rebalance.ui.components.screens.AddSpendingScreen
 import com.rebalance.ui.components.screens.GroupScreen
 import com.rebalance.ui.components.screens.PersonalScreen
 
@@ -15,6 +16,9 @@ fun ScreenNavigation(navController: NavHostController) {
         }
         composable(ScreenNavigationItem.Group.route) {
             GroupScreen()
+        }
+        composable(ScreenNavigationItem.AddSpending.route) {
+            AddSpendingScreen()
         }
     }
 }
