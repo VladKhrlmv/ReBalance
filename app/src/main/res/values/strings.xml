@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">ReBalance</string>
+    <string name="plus_button_description">Add spending</string>
 </resources>
