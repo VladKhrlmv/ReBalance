@@ -3,13 +3,14 @@ package com.rebalance
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.compose.rememberNavController
+import com.rebalance.ui.components.BottomNavigationBar
+import com.rebalance.ui.components.screens.navigation.ScreenNavigation
 import com.rebalance.ui.theme.ReBalanceTheme
 
 class MainActivity : ComponentActivity() {
@@ -17,27 +18,21 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ReBalanceTheme {
-                // A surface container using the 'background' color from the theme
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colors.background
-                ) {
-                    Greeting("Android")
-                }
+                MainScreen()
             }
         }
     }
 }
 
 @Composable
-fun Greeting(name: String) {
-    Text(text = "Hello $name!")
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DefaultPreview() {
-    ReBalanceTheme {
-        Greeting("Android")
-    }
+fun MainScreen() {
+    val navController = rememberNavController()
+    Scaffold(
+        bottomBar = { BottomNavigationBar(navController) },
+        content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
+            Box(modifier = Modifier.padding(padding)) {
+                ScreenNavigation(navController = navController)
+            }
+        }
+    )
 }
