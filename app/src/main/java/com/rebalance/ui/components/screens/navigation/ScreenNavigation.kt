@@ -13,7 +13,7 @@ import com.rebalance.ui.components.screens.PersonalScreen
 
 @Composable
 fun ScreenNavigation(navController: NavHostController) {
-    NavHost(navController, startDestination = ScreenNavigationItem.Personal.route) {
+    NavHost(navController, startDestination = ScreenNavigationItem.SignIn.route) {
         composable(ScreenNavigationItem.Personal.route) {
             PersonalScreen()
         }
@@ -24,13 +24,13 @@ fun ScreenNavigation(navController: NavHostController) {
             AddSpendingScreen()
         }
         composable(ScreenNavigationItem.SignIn.route) {
-            SignInScreen()
+            SignInScreen(navController)
         }
-        composable(ScreenNavigationItem.SignIn.route) {
-            SignUpScreen()
+        composable(ScreenNavigationItem.SignUp.route) {
+            SignUpScreen(navController)
         }
-        composable(ScreenNavigationItem.SignIn.route) {
-            SignUpMailScreen()
+        composable(ScreenNavigationItem.SignUpMail.route) {
+            SignUpMailScreen(navController)
         }
     }
 }
