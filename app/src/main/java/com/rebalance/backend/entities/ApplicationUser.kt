@@ -14,6 +14,11 @@ class ApplicationUser {
         this.email = email
     }
 
+    constructor(username: String, email: String) {
+        this.username = username
+        this.email = email
+    }
+
     override fun toString(): String {
         return "ApplicationUser(id=$id, username='$username', email='$email')"
     }
