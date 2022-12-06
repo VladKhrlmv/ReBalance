@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -28,7 +29,14 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.rebalance.ui.components.BottomNavigationBar
+import com.rebalance.ui.components.PlusButton
 import com.rebalance.ui.components.TopAppBar
+import com.rebalance.ui.components.screens.navigation.ScreenNavigation
+import com.rebalance.ui.components.screens.navigation.ScreenNavigationItem
 import com.rebalance.ui.theme.ReBalanceTheme
 
 class SignInActivity : ComponentActivity() {
@@ -36,20 +44,33 @@ class SignInActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ReBalanceTheme {
-                SignUpScreen()
+                MainSignInScreen()
             }
         }
     }
 }
 
 @Composable
-fun SignInScreen() {
-//    val navController = rememberNavController()
+fun MainSignInScreen() {
+    val navController = rememberNavController()
+    Scaffold(
+        topBar = { TopAppBar() },
+        content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
+            Box(modifier = Modifier.padding(padding)) {
+                ScreenNavigation(navController = navController)
+            }
+        }
+    )
+}
+
+@Composable
+fun SignInScreen(navController: NavController) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
     Scaffold(
         topBar = { TopAppBar() },
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
-//                ScreenNavigation(navController = navController)
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -68,8 +89,40 @@ fun SignInScreen() {
 
                     CustomInput("Login")
                     CustomPasswordInput("Password")
-                    PrimaryButton("SIGN IN", 20.dp)
-                    SecondaryButton("SIGN UP", 5.dp)
+                    PrimaryButton("SIGN IN", 20.dp, onClick = {
+                        navController.navigate(ScreenNavigationItem.Personal.route) {
+                            // Pop up to the start destination of the graph to
+                            // avoid building up a large stack of destinations
+                            // on the back stack as users select items
+                            navController.graph.startDestinationRoute?.let { route ->
+                                popUpTo(route) {
+                                    saveState = true
+                                }
+                            }
+                            // Avoid multiple copies of the same destination when
+                            // reselecting the same item
+                            launchSingleTop = true
+                            // Restore state when reselecting a previously selected item
+                            restoreState = true
+                        }
+                    })
+                    SecondaryButton("SIGN UP", 5.dp, onClick = {
+                        navController.navigate(ScreenNavigationItem.SignUp.route) {
+                            // Pop up to the start destination of the graph to
+                            // avoid building up a large stack of destinations
+                            // on the back stack as users select items
+                            navController.graph.startDestinationRoute?.let { route ->
+                                popUpTo(route) {
+                                    saveState = true
+                                }
+                            }
+                            // Avoid multiple copies of the same destination when
+                            // reselecting the same item
+                            launchSingleTop = true
+                            // Restore state when reselecting a previously selected item
+                            restoreState = true
+                        }
+                    })
                 }
 
             }
@@ -78,13 +131,13 @@ fun SignInScreen() {
 }
 
 @Composable
-fun SignUpScreen() {
-//    val navController = rememberNavController()
+fun SignUpScreen(navController: NavController) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
     Scaffold(
         topBar = { TopAppBar() },
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
-//                ScreenNavigation(navController = navController)
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -101,10 +154,42 @@ fun SignUpScreen() {
                         fontSize = 35.sp
                     )
 
-                    ReferenceButton("Google", 20.dp, R.drawable.google50)
-                    ReferenceButton("Facebook", 20.dp, R.drawable.facebook48)
-                    ReferenceButton("Mail", 20.dp, R.drawable.mail)
-                    SecondaryButton("SIGN IN", 20.dp)
+                    ReferenceButton("Google", 20.dp, R.drawable.google50, onClick = {})
+                    ReferenceButton("Facebook", 20.dp, R.drawable.facebook48, onClick = {})
+                    ReferenceButton("Mail", 20.dp, R.drawable.mail, onClick = {
+                        navController.navigate(ScreenNavigationItem.SignUpMail.route) {
+                            // Pop up to the start destination of the graph to
+                            // avoid building up a large stack of destinations
+                            // on the back stack as users select items
+                            navController.graph.startDestinationRoute?.let { route ->
+                                popUpTo(route) {
+                                    saveState = true
+                                }
+                            }
+                            // Avoid multiple copies of the same destination when
+                            // reselecting the same item
+                            launchSingleTop = true
+                            // Restore state when reselecting a previously selected item
+                            restoreState = true
+                        }
+                    })
+                    SecondaryButton("SIGN IN", 20.dp, onClick = {
+                        navController.navigate(ScreenNavigationItem.SignIn.route) {
+                            // Pop up to the start destination of the graph to
+                            // avoid building up a large stack of destinations
+                            // on the back stack as users select items
+                            navController.graph.startDestinationRoute?.let { route ->
+                                popUpTo(route) {
+                                    saveState = true
+                                }
+                            }
+                            // Avoid multiple copies of the same destination when
+                            // reselecting the same item
+                            launchSingleTop = true
+                            // Restore state when reselecting a previously selected item
+                            restoreState = true
+                        }
+                    })
                 }
             }
         }
@@ -112,13 +197,13 @@ fun SignUpScreen() {
 }
 
 @Composable
-fun SignUpEmailScreen() {
-//    val navController = rememberNavController()
+fun SignUpMailScreen(navController: NavController) {
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route
     Scaffold(
         topBar = { TopAppBar() },
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
-//                ScreenNavigation(navController = navController)
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -139,8 +224,40 @@ fun SignUpEmailScreen() {
                     CustomInput("Login")
                     CustomPasswordInput("Password")
                     CustomPasswordInput("Repeat password")
-                    PrimaryButton("SIGN UP", 20.dp)
-                    SecondaryButton("SIGN IN", 5.dp)
+                    PrimaryButton("SIGN UP", 20.dp, onClick = {
+                        navController.navigate(ScreenNavigationItem.Personal.route) {
+                            // Pop up to the start destination of the graph to
+                            // avoid building up a large stack of destinations
+                            // on the back stack as users select items
+                            navController.graph.startDestinationRoute?.let { route ->
+                                popUpTo(route) {
+                                    saveState = true
+                                }
+                            }
+                            // Avoid multiple copies of the same destination when
+                            // reselecting the same item
+                            launchSingleTop = true
+                            // Restore state when reselecting a previously selected item
+                            restoreState = true
+                        }
+                    })
+                    SecondaryButton("SIGN IN", 5.dp, onClick = {
+                        navController.navigate(ScreenNavigationItem.SignIn.route) {
+                            // Pop up to the start destination of the graph to
+                            // avoid building up a large stack of destinations
+                            // on the back stack as users select items
+                            navController.graph.startDestinationRoute?.let { route ->
+                                popUpTo(route) {
+                                    saveState = true
+                                }
+                            }
+                            // Avoid multiple copies of the same destination when
+                            // reselecting the same item
+                            launchSingleTop = true
+                            // Restore state when reselecting a previously selected item
+                            restoreState = true
+                        }
+                    })
                 }
 
             }
@@ -186,10 +303,9 @@ fun CustomPasswordInput(label: String) {
 }
 
 @Composable
-fun PrimaryButton(label: String, paddingTop: Dp) {
-    Button(onClick = {
-        //your onclick code here
-    },
+fun PrimaryButton(label: String, paddingTop: Dp, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
         modifier = Modifier
             .padding(top = paddingTop)
             .width(180.dp)
@@ -204,8 +320,9 @@ fun PrimaryButton(label: String, paddingTop: Dp) {
 }
 
 @Composable
-fun SecondaryButton(label: String, paddingTop: Dp) {
-    TextButton(onClick = { /* Do something! */ },
+fun SecondaryButton(label: String, paddingTop: Dp, onClick: () -> Unit) {
+    TextButton(
+        onClick = onClick,
         modifier = Modifier
         .padding(top = paddingTop)) {
         Text(
@@ -216,10 +333,9 @@ fun SecondaryButton(label: String, paddingTop: Dp) {
 }
 
 @Composable
-fun ReferenceButton(label: String, paddingTop: Dp, image: Int) {
-    Button(onClick = {
-        //your onclick code here
-    },
+fun ReferenceButton(label: String, paddingTop: Dp, image: Int, onClick: () -> Unit) {
+    Button(
+        onClick = onClick,
         modifier = Modifier
             .padding(top = paddingTop)
             .width(250.dp)
@@ -244,13 +360,5 @@ fun ReferenceButton(label: String, paddingTop: Dp, image: Int) {
             )
         }
 
-    }
-}
-
-@Preview
-@Composable
-fun PreviewSignIn() {
-    ReBalanceTheme {
-        SignUpEmailScreen()
     }
 }
