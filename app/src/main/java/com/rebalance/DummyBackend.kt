@@ -1,60 +1,73 @@
 package com.rebalance
 
 import java.text.SimpleDateFormat
-import java.time.LocalDate
 import java.util.Date
 
 class DummyBackend {
-    fun getValues(type: DummyType): List<DummyTypeItem> {
-        val list = ArrayList<DummyTypeItem>()
+    fun getValues(scale: DummyScale): List<DummyItem> {
+        val list = ArrayList<DummyItem>()
 
-        if (type == DummyType.Day) {
+        if (scale == DummyScale.Day) {
             for (i in 0..30) {
-                list.add(DummyTypeItem("Day $i", SimpleDateFormat("yyyy-MM-dd").parse("2022-01-$i")))
+                list.add(DummyItem("Day $i", SimpleDateFormat("yyyy-MM-dd").parse("2022-01-$i")))
             }
         }
-        else if (type == DummyType.Week) {
+        else if (scale == DummyScale.Week) {
             for (i in 0..20) {
-                list.add(DummyTypeItem("Week $i", SimpleDateFormat("yyyy-MM-dd").parse("2022-01-$i")))
+                list.add(DummyItem("Week $i", SimpleDateFormat("yyyy-MM-dd").parse("2022-01-$i")))
             }
         }
-        else if (type == DummyType.Month) {
+        else if (scale == DummyScale.Month) {
             for (i in 0..12) {
-                list.add(DummyTypeItem("Month $i", SimpleDateFormat("yyyy-MM-dd").parse("2022-$i-01")))
+                list.add(DummyItem("Month $i", SimpleDateFormat("yyyy-MM-dd").parse("2022-$i-01")))
             }
         }
-        else if (type == DummyType.Year) {
+        else if (scale == DummyScale.Year) {
             for (i in 0..100) {
-                list.add(DummyTypeItem("Year $i", SimpleDateFormat("yyyy-MM-dd").parse("2$i-01-01")))
+                list.add(DummyItem("Year $i", SimpleDateFormat("yyyy-MM-dd").parse("2$i-01-01")))
             }
         }
 
         return list
     }
 
-    fun getPersonal(type: DummyType, date: LocalDate): List<DummyItem> {
-        val list = ArrayList<DummyItem>()
+    fun getPersonal(scale: DummyScale, date: Date): List<DummyItemValue> {
+        val list = ArrayList<DummyItemValue>()
 
-        for (i in 0..10) {
-            list.add(DummyItem("Item type: $type date: $date num: $i"))
+        for (i in 0..50) {
+            list.add(DummyItemValue("Item type: $scale date: $date num: $i"))
         }
 
         return list
+    }
+
+    fun getScale(): List<DummyScaleItem> {
+        return listOf(
+            DummyScaleItem(DummyScale.Day, "D"),
+            DummyScaleItem(DummyScale.Week, "W"),
+            DummyScaleItem(DummyScale.Month, "M"),
+            DummyScaleItem(DummyScale.Year, "Y")
+        )
     }
 }
 
-enum class DummyType {
+enum class DummyScale {
     Day,
     Week,
     Month,
     Year
 }
 
-data class DummyTypeItem (
+data class DummyScaleItem (
+    val type: DummyScale,
+    val name: String
+)
+
+data class DummyItem (
     val name: String,
     val date: Date
 )
 
-data class DummyItem (
+data class DummyItemValue (
     val name: String
 )
