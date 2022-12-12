@@ -11,3 +11,13 @@ val greenColor = Color(0xFF0F9D58)
 val blueColor = Color(0xFF2196F3)
 val yellowColor = Color(0xFFFFC107)
 val redColor = Color(0xFFF44336)
+val greyColor = Color(0xFFC0C0C0)
+val whiteColor = Color(0xFFFFFFFF)
+
+val categoryColor: HashMap<String, Color> = hashMapOf(
+    "Medicine" to redColor,
+    "Clothing" to blueColor,
+    "Food" to greenColor,
+    "Activities" to yellowColor,
+    "Another" to greyColor
+)
