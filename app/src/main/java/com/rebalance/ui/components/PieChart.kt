@@ -16,9 +16,11 @@ import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
+import com.github.mikephil.charting.formatter.ValueFormatter
 import com.rebalance.R
 import java.util.*
 import com.rebalance.ui.theme.*
+import java.text.DecimalFormat
 
 data class PieChartData (var category: String, var value: Double)
 
@@ -51,7 +53,6 @@ fun PieChart() {
                     this.legend.isEnabled = false
                     this.setEntryLabelColor(R.color.white)
                     this.transparentCircleRadius = 0F
-                    this.centerText = String.format("%.2f", pieChartData.sumOf { it.value })
                     this.setCenterTextSize(26f)
                     this.setCenterTextColor(redColor.toArgb())
                     this.setCenterTextTypeface(Typeface.DEFAULT_BOLD)
@@ -78,10 +79,15 @@ fun updatePieChartWithData(
     }
 
     val ds = PieDataSet(entries, "")
-
     ds.colors = data.map { categoryColor[it.category]?.toArgb() ?: greyColor.toArgb() }
     ds.yValuePosition = PieDataSet.ValuePosition.INSIDE_SLICE
     ds.xValuePosition = PieDataSet.ValuePosition.INSIDE_SLICE
+    ds.valueFormatter = object : ValueFormatter() {
+        val format = DecimalFormat("###,###,###.##")
+        override fun getFormattedValue(value: Float): String {
+            return format.format(value)
+        }
+    }
     ds.sliceSpace = 2F
     ds.setValueTextColors(data.map {
         categoryColor[it.category]?.red?.let { red ->
@@ -103,5 +109,6 @@ fun updatePieChartWithData(
     ds.valueTypeface = Typeface.DEFAULT_BOLD
     val d = PieData(ds)
     chart.data = d
+    chart.centerText = String.format("%.2f", data.sumOf { it.value })
     chart.invalidate()
 }
