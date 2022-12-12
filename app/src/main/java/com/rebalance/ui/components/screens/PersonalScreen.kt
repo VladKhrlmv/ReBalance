@@ -2,125 +2,89 @@ package com.rebalance.ui.components.screens
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.rebalance.R
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.lazy.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment.Companion.Center
+import androidx.compose.ui.Alignment.Companion.CenterVertically
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.rebalance.*
+import com.rebalance.R
 
 @Composable
-fun PersonalScreen() {
-    /*Column(
+fun PersonalScreen(
+    pieChart: Boolean,
+    personalViewModel: PersonalViewModel = viewModel()
+) {
+    // initialize scale variables
+    val scaleItems = DummyBackend().getScale() // list of scales
+    var selectedScaleIndex by remember { mutableStateOf(0) } // selected index of scale
+
+    // initialize tabs
+    val tabItems = personalViewModel.tabItems
+    var selectedTabIndex by remember { mutableStateOf(tabItems.size - 1) } // selected index of tab
+
+    val scaleButtonWidth = 50
+    val scaleButtonPadding = 8
+
+    Column(
         modifier = Modifier
             .fillMaxSize()
-            .wrapContentSize(Alignment.Center)
     ) {
-        Text(
-            text = "Personal View",
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            textAlign = TextAlign.Center,
-            fontSize = 25.sp
-        )
-    }*/
-
-    // working vertical internal navigation
-    /*Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-
-        // Creating a Scrollable Box
-        Box(modifier = Modifier.background(Color.LightGray).verticalScroll(rememberScrollState()).padding(32.dp)) {
-            Column {
-
-                // Create 6 Scrollable Boxes
-                repeat(6) {
-                    Box(modifier = Modifier.height(128.dp).verticalScroll(rememberScrollState())) {
-
-                        // Creating a Text in each Box
-                        Text(
-                            "Scroll here",
-                            modifier = Modifier
-                                .border(12.dp, Color.DarkGray)
-                                .padding(24.dp)
-                                .height(150.dp)
-                        )
-                    }
-                }
-            }
+        // top tabs
+        DisplayTabs(tabItems, selectedTabIndex) { tabIndex ->
+            selectedTabIndex = tabIndex
         }
-    }*/
 
-    Show()
-}
-
-@Composable
-fun Show() {
-    val listItems: List<ListItem> = listOf(
-        ListItem("Jayme", "Jayme"),
-        ListItem("Gil", "Gil"),
-        ListItem("Juice WRLD", "Juice WRLD"),
-        ListItem("Callan", "Callan"),
-        ListItem("Braxton", "Braxton"),
-        ListItem("Kyla", "Kyla"),
-        ListItem("Lil Mosey", "Lil Mosey"),
-        ListItem("Allan", "Allan"),
-        ListItem("Mike", "Mike"),
-        ListItem("Drew", "Drew"),
-        ListItem("Nia", "Nia"),
-        ListItem("Coi Relay", "Coi Relay")
-    )
-
-    var selectedTabIndex by remember { mutableStateOf(0) }
-
-//    Row(
-//        modifier = Modifier
-//            .fillMaxSize()
-//    ) {
-//        Column(
-//            modifier = Modifier
-//                .fillMaxSize()
-////            .wrapContentSize(Alignment.Center)
-//        ) {
-//            repeat(5) {
-//                Image(
-//                    painter = painterResource(id = R.drawable.ic_launcher_foreground),
-//                    contentDescription = "user icon",
-//                    modifier = Modifier
-////                        .padding(horizontal = 8.dp)
-//                )
-//            }
-//        }
-
-        Column(
+        // content
+        Box (
             modifier = Modifier
                 .fillMaxSize()
-//            .wrapContentSize(Alignment.Center)
-        ) {
-            DisplayListHorizontal(listItems, selectedTabIndex) { tabIndex ->
-                selectedTabIndex = tabIndex
+        ){
+            if (pieChart) {
+                DisplayPieChart(tabItems[selectedTabIndex].name)
+            }
+            else {
+                DisplayList(scaleButtonWidth, scaleButtonPadding, DummyBackend().getPersonal(
+                    scaleItems[selectedScaleIndex].type,
+                    tabItems[selectedTabIndex].date
+                ))
             }
 
-            ListItem(listItems[selectedTabIndex])
+            // scale buttons
+            DisplayScaleButtons(scaleItems, selectedScaleIndex, scaleButtonWidth, scaleButtonPadding) { scaleIndex, scaleItem ->
+                selectedScaleIndex = scaleIndex
+                personalViewModel.updateTabItems(scaleItem.type)
+                selectedTabIndex = tabItems.size - 1
+            }
         }
-//    }
+    }
 }
 
 @Composable
-fun DisplayListHorizontal(
-    tabs: List<ListItem>,
+fun DisplayTabs(
+    tabs: List<DummyItem>,
     selectedTabIndex: Int,
     onTabClick: (Int) -> Unit
 ) {
-    ScrollableTabRow(
+    ScrollableTabRow( // TODO: make it lazy
         selectedTabIndex = selectedTabIndex,
         edgePadding = 110.dp
     ) {
@@ -137,22 +101,146 @@ fun DisplayListHorizontal(
     }
 }
 
-// working 2D navigation
+
 @Composable
-fun DisplayList(list: List<ListItem>) {
-    LazyRow(modifier = Modifier.fillMaxHeight()) {
-        items(items = list, itemContent = { item ->
-            LazyColumn(modifier = Modifier.fillMaxHeight()) {
-                items(items = list, itemContent = { item ->
-                    ListItem(item = item)
-                })
+fun DisplayScaleButtons(
+    scaleItems: List<DummyScaleItem>,
+    selectedScaleIndex: Int,
+    scaleButtonWidth: Int,
+    scaleButtonPadding: Int,
+    onButtonClick: (Int, DummyScaleItem) -> Unit
+)
+{
+    Column( //TODO: move to function
+        modifier = Modifier
+            .fillMaxHeight(),
+        verticalArrangement = Arrangement.Center
+    ) {
+        scaleItems.forEachIndexed{ scaleIndex, scaleItem ->
+            TextButton(
+                modifier = Modifier
+                    .padding(scaleButtonPadding.dp, 5.dp, 0.dp, 5.dp)
+                    .width(scaleButtonWidth.dp)
+                    .height(50.dp)
+                    .drawWithContent {
+                        drawContent()
+
+                        if (selectedScaleIndex == scaleIndex) {
+                            val strokeWidth = Stroke.DefaultMiter * 2
+
+                            drawLine(
+                                brush = SolidColor(Color.Black),
+                                strokeWidth = strokeWidth,
+                                cap = StrokeCap.Square,
+                                start = Offset.Zero,
+                                end = Offset(0f, size.height)
+                            )
+                        }
+                    },
+                onClick = { onButtonClick(scaleIndex, scaleItem) },
+                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent)
+            ) {
+                Text(text = scaleItem.name)
             }
-        })
+        }
     }
 }
 
 @Composable
-fun ListItem(item: ListItem) {
+fun DisplayPieChart(
+    text: String
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize(),
+        contentAlignment = Center
+    ) {
+        Box( // TODO: change it to pie chart
+            modifier = Modifier
+                .width(200.dp)
+                .height(200.dp)
+                .clip(CircleShape)
+                .background(Color.Yellow),
+            contentAlignment = Center
+        ) {
+            Text(text = text)
+        }
+    }
+}
+
+@Composable
+fun DisplayList(
+    scaleButtonWidth: Int,
+    scaleButtonPadding: Int,
+    list: List<DummyItemValue>
+){
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding((scaleButtonWidth + scaleButtonPadding).dp, 0.dp, 0.dp, 0.dp),
+        contentAlignment = Center
+    ) {
+        LazyColumn ( // TODO: change it to lazy list of spendings
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(10.dp),
+            verticalArrangement = Arrangement.Top
+        ){
+            items(items = list, itemContent = { item ->
+                Text(
+                    text = "Item ${item.name}",
+                    modifier = Modifier
+                        .padding(bottom = 10.dp)
+                        .background(Color.Blue),
+                    fontSize = 19.sp
+                )
+            })
+        }
+    }
+}
+
+@Preview
+@Composable
+fun DefaultPreview() {
+    PersonalScreen(false)
+}
+
+
+
+
+
+
+// -------------------- sample code for lazy rows --------------------
+
+//@Preview
+//@Composable
+//fun LazyRowPreview(){
+//    LazyRowMain();
+//}
+
+@Composable
+fun LazyRowMain() {
+    LazyRowExample(list = DummyBackend().getValues(DummyScale.Year))
+}
+
+@Composable
+fun LazyRowExample(list: List<DummyItem>) {
+    // implement LazyRow
+    LazyRow(
+        contentPadding = PaddingValues(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier.fillMaxSize(1F)
+    ) {
+        // display items horizontally
+        items(items = list, itemContent = { item ->
+            ListItem(item = item)
+        })
+    }
+}
+
+
+@Composable
+fun ListItem(item: DummyItem) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -182,13 +270,4 @@ fun ListItem(item: ListItem) {
             )
         }
     }
-}
-
-data class ListItem(val name: String, val text: String)
-
-
-@Preview
-@Composable
-fun DefaultPreview() {
-    Show()
 }

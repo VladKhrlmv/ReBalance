@@ -3,10 +3,9 @@ package com.rebalance
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.rebalance.ui.components.BottomNavigationBar
@@ -28,6 +27,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
+    var pieChart by remember { mutableStateOf(false) }
     Scaffold(
         topBar = { com.rebalance.ui.components.TopAppBar() },
         bottomBar = { BottomNavigationBar(navController) },
@@ -36,7 +36,7 @@ fun MainScreen() {
         isFloatingActionButtonDocked = true,
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
             Box(modifier = Modifier.padding(padding)) {
-                ScreenNavigation(navController = navController)
+                ScreenNavigation(navController = navController, pieChart)
             }
         }
     )
