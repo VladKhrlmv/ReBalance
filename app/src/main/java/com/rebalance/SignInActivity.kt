@@ -68,7 +68,6 @@ fun SignInScreen(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     Scaffold(
-        topBar = { TopAppBar() },
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
                 Column(
@@ -135,7 +134,6 @@ fun SignUpScreen(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     Scaffold(
-        topBar = { TopAppBar() },
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
                 Column(
@@ -201,7 +199,6 @@ fun SignUpMailScreen(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     Scaffold(
-        topBar = { TopAppBar() },
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
                 Column(
