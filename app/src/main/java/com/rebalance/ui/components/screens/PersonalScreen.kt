@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.draw.clip
@@ -35,11 +36,11 @@ fun PersonalScreen(
 ) {
     // initialize scale variables
     val scaleItems = DummyBackend().getScale() // list of scales
-    var selectedScaleIndex by remember { mutableStateOf(0) } // selected index of scale
+    var selectedScaleIndex by rememberSaveable { mutableStateOf(0) } // selected index of scale
 
     // initialize tabs
     val tabItems = personalViewModel.tabItems
-    var selectedTabIndex by remember { mutableStateOf(tabItems.size - 1) } // selected index of tab
+    var selectedTabIndex by rememberSaveable { mutableStateOf(tabItems.size - 1) } // selected index of tab
 
     val scaleButtonWidth = 50
     val scaleButtonPadding = 8
