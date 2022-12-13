@@ -27,7 +27,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
-    var pieChart by remember { mutableStateOf(true) }
+    var pieChartActive by remember { mutableStateOf(true) }
     Scaffold(
         topBar = { com.rebalance.ui.components.TopAppBar() },
         bottomBar = { BottomNavigationBar(navController) },
@@ -36,7 +36,7 @@ fun MainScreen() {
         isFloatingActionButtonDocked = true,
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
             Box(modifier = Modifier.padding(padding)) {
-                ScreenNavigation(navController = navController, pieChart)
+                ScreenNavigation(navController = navController, pieChartActive)
             }
         }
     )

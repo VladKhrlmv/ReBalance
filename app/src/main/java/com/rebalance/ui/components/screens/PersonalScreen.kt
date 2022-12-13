@@ -31,7 +31,7 @@ import com.rebalance.R
 
 @Composable
 fun PersonalScreen(
-    pieChart: Boolean,
+    pieChartActive: Boolean,
     personalViewModel: PersonalViewModel = viewModel()
 ) {
     // initialize scale variables
@@ -61,7 +61,7 @@ fun PersonalScreen(
             modifier = Modifier
                 .fillMaxSize()
         ){
-            if (pieChart) {
+            if (pieChartActive) {
                 DisplayPieChart(tabItems[selectedTabIndex].name)
             }
             else {
