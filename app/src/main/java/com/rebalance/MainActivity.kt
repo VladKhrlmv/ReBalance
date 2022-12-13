@@ -27,7 +27,7 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
-    var pieChart by remember { mutableStateOf(false) }
+    var pieChart by remember { mutableStateOf(true) }
     Scaffold(
         topBar = { com.rebalance.ui.components.TopAppBar() },
         bottomBar = { BottomNavigationBar(navController) },

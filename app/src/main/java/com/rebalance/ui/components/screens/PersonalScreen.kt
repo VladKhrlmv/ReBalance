@@ -39,7 +39,9 @@ fun PersonalScreen(
     var selectedScaleIndex by rememberSaveable { mutableStateOf(0) } // selected index of scale
 
     // initialize tabs
-    val tabItems = personalViewModel.tabItems
+//    val tabItems = personalViewModel.tabItems
+    val tabItems = rememberSaveable { mutableListOf<DummyItem>() } // list of tabs
+    updateTabItems(tabItems, scaleItems[selectedScaleIndex].type)
     var selectedTabIndex by rememberSaveable { mutableStateOf(tabItems.size - 1) } // selected index of tab
 
     val scaleButtonWidth = 50
@@ -70,10 +72,11 @@ fun PersonalScreen(
             }
 
             // scale buttons
-            DisplayScaleButtons(scaleItems, selectedScaleIndex, scaleButtonWidth, scaleButtonPadding) { scaleIndex, scaleItem ->
+            DisplayScaleButtons(scaleItems, selectedScaleIndex, scaleButtonWidth, scaleButtonPadding) { scaleIndex ->
                 selectedScaleIndex = scaleIndex
-                personalViewModel.updateTabItems(scaleItem.type)
-                selectedTabIndex = tabItems.size - 1
+//                personalViewModel.updateTabItems(scaleItem.type)
+                updateTabItems(tabItems, scaleItems[selectedScaleIndex].type)
+                selectedTabIndex = (tabItems.size - 1)
             }
         }
     }
@@ -109,7 +112,7 @@ fun DisplayScaleButtons(
     selectedScaleIndex: Int,
     scaleButtonWidth: Int,
     scaleButtonPadding: Int,
-    onButtonClick: (Int, DummyScaleItem) -> Unit
+    onButtonClick: (Int) -> Unit
 )
 {
     Column( //TODO: move to function
@@ -138,7 +141,7 @@ fun DisplayScaleButtons(
                             )
                         }
                     },
-                onClick = { onButtonClick(scaleIndex, scaleItem) },
+                onClick = { onButtonClick(scaleIndex) },
                 colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent)
             ) {
                 Text(text = scaleItem.name)
@@ -198,6 +201,14 @@ fun DisplayList(
             })
         }
     }
+}
+
+fun updateTabItems(
+    tabItems: MutableList<DummyItem>,
+    type: DummyScale
+) {
+    tabItems.clear()
+    tabItems.addAll(DummyBackend().getValues(type))
 }
 
 @Preview
