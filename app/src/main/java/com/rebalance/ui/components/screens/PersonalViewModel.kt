@@ -6,18 +6,16 @@ import com.rebalance.DummyItem
 import com.rebalance.DummyScale
 
 class PersonalViewModel : ViewModel () {
-    private val _tabItems = init()
+    private val _tabItems: MutableList<DummyItem> = mutableListOf()
     val tabItems: List<DummyItem> = _tabItems
+
+    init {
+        _tabItems.addAll(DummyBackend().getValues(DummyScale.Day)) // TODO: get from arguments (or init in initializer)
+    }
 
     fun updateTabItems(scaleType: DummyScale) {
         _tabItems.clear()
         _tabItems.addAll(DummyBackend().getValues(scaleType))
-    }
-
-    fun init(): MutableList<DummyItem> {
-        val list = mutableListOf<DummyItem>()
-        list.addAll(DummyBackend().getValues(DummyScale.Day)) // TODO: get from arguments (or init in initializer)
-        return list
     }
 }
 
