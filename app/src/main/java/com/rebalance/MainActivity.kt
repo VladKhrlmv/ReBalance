@@ -8,6 +8,7 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavDestination
 import androidx.navigation.compose.rememberNavController
 import com.rebalance.ui.components.BottomNavigationBar
 import com.rebalance.ui.components.PlusButton

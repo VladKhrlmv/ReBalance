@@ -73,7 +73,10 @@ private fun DisplayVisual() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(
+                rememberScrollState(),
+                flingBehavior = null // TODO: disable
+            )
     ) {
         Box( // TODO: change to bar chart
             modifier = Modifier

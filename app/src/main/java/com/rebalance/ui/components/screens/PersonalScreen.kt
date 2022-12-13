@@ -31,8 +31,7 @@ import com.rebalance.R
 
 @Composable
 fun PersonalScreen(
-    pieChartActive: Boolean,
-    personalViewModel: PersonalViewModel = viewModel()
+    pieChartActive: Boolean
 ) {
     // initialize scale variables
     val scaleItems = DummyBackend().getScale() // list of scales
@@ -88,7 +87,7 @@ private fun DisplayTabs(
     selectedTabIndex: Int,
     onTabClick: (Int) -> Unit
 ) {
-    ScrollableTabRow( // TODO: make it lazy
+    ScrollableTabRow( // TODO: make it lazy (LazyRow with horizontal scroll and stitching)
         selectedTabIndex = selectedTabIndex,
         edgePadding = 110.dp
     ) {
