@@ -83,7 +83,7 @@ fun PersonalScreen(
 }
 
 @Composable
-fun DisplayTabs(
+private fun DisplayTabs(
     tabs: List<DummyItem>,
     selectedTabIndex: Int,
     onTabClick: (Int) -> Unit
@@ -107,7 +107,7 @@ fun DisplayTabs(
 
 
 @Composable
-fun DisplayScaleButtons(
+private fun DisplayScaleButtons(
     scaleItems: List<DummyScaleItem>,
     selectedScaleIndex: Int,
     scaleButtonWidth: Int,
@@ -151,7 +151,7 @@ fun DisplayScaleButtons(
 }
 
 @Composable
-fun DisplayPieChart(
+private fun DisplayPieChart(
     text: String
 ) {
     Box(
@@ -173,7 +173,7 @@ fun DisplayPieChart(
 }
 
 @Composable
-fun DisplayList(
+private fun DisplayList(
     scaleButtonWidth: Int,
     scaleButtonPadding: Int,
     list: List<DummyItemValue>
@@ -203,7 +203,7 @@ fun DisplayList(
     }
 }
 
-fun updateTabItems(
+private fun updateTabItems(
     tabItems: MutableList<DummyItem>,
     type: DummyScale
 ) {
@@ -213,7 +213,7 @@ fun updateTabItems(
 
 @Preview
 @Composable
-fun DefaultPreview() {
+private fun DefaultPreview() {
     PersonalScreen(false)
 }
 
