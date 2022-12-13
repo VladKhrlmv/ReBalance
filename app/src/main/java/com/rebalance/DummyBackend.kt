@@ -41,6 +41,16 @@ class DummyBackend {
         return list
     }
 
+    fun getGroup(): List<DummyItemValue> {
+        val list = ArrayList<DummyItemValue>()
+
+        for (i in 0..50) {
+            list.add(DummyItemValue("Item num: $i"))
+        }
+
+        return list
+    }
+
     fun getScale(): List<DummyScaleItem> {
         return listOf(
             DummyScaleItem(DummyScale.Day, "D"),
