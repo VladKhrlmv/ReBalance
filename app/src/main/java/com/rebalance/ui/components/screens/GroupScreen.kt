@@ -53,9 +53,8 @@ private fun DisplayTabs(
     selectedTabIndex: Int,
     onTabClick: (Int) -> Unit
 ) {
-    ScrollableTabRow( // TODO: make it lazy
-        selectedTabIndex = selectedTabIndex,
-//        edgePadding = 110.dp //TODO: fix positions
+    TabRow(
+        selectedTabIndex = selectedTabIndex
     ) {
         tabs.forEachIndexed { tabIndex, tab ->
             Tab(
@@ -64,7 +63,6 @@ private fun DisplayTabs(
                 text = { Text(tab) },
                 modifier = Modifier
                     .height(45.dp)
-//                    .width(180.dp)
             )
         }
     }
