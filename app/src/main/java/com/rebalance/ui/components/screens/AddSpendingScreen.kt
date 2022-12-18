@@ -8,13 +8,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -78,23 +75,38 @@ fun AddSpendingScreen() {
                 modifier = Modifier
                     .padding(10.dp)
             )
-            Box (contentAlignment = Alignment.Center) {
-                IconButton(onClick = { expandedDropdownCategory = true } ) {
-                    Row {
-                        Icon(
-                            imageVector = if (expandedDropdownCategory) Icons.Rounded.ArrowDropUp else Icons.Rounded.ArrowDropDown,
-                            contentDescription = "Open categories",
-                            modifier = Modifier
-                                .size(64.dp)
+        }
+        Row {
+            ExposedDropdownMenuBox(
+                expanded = expandedDropdownCategory,
+                onExpandedChange = {
+                    expandedDropdownCategory = !expandedDropdownCategory
+                },
+                modifier = Modifier.padding(10.dp)
+            ) {
+                TextField(
+                    value = selectedCategory,
+                    onValueChange = { },
+                    readOnly = true,
+                    label = {
+                        Text(text = "Category")
+                    },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(
+                            expanded = expandedDropdownCategory
                         )
-                    }
-                }
-                DropdownMenu(expanded = expandedDropdownCategory, onDismissRequest = { expandedDropdownCategory = false }) {
-                    DropdownMenuItem(onClick = { selectedCategory = "Sport" }) {
+                    },
+                    colors = ExposedDropdownMenuDefaults.textFieldColors()
+                )
+                ExposedDropdownMenu(
+                    expanded = expandedDropdownCategory,
+                    onDismissRequest = { expandedDropdownCategory = false }
+                ) {
+                    DropdownMenuItem(onClick = { selectedCategory = "Sport"; expandedDropdownCategory = false }) {
                         // icon can be placed before text
                         Text(text = "Sport")
                     }
-                    DropdownMenuItem(onClick = { selectedCategory = "Clothing" }) {
+                    DropdownMenuItem(onClick = { selectedCategory = "Clothing"; expandedDropdownCategory = false }) {
                         Text(text = "Clothing")
                     }
                 }
