@@ -1,6 +1,8 @@
 package com.rebalance.ui.components.screens
 
 import android.graphics.Typeface
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
@@ -15,8 +17,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.rebalance.ui.components.DatePickerField
 
 val costValueRegex = """^\d{0,12}[\.\,]{0,1}\d{0,2}${'$'}""".toRegex()
+
 
 @Composable
 fun AddSpendingScreen() {
@@ -93,7 +97,7 @@ fun AddSpendingScreen() {
 
         }
         Row {
-
+            DatePickerField()
         }
     }
 }
