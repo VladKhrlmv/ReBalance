@@ -1,5 +1,10 @@
 package com.rebalance.ui.components.screens
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.ui.Alignment
+import com.rebalance.ui.components.PieChart
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.Modifier
@@ -50,6 +55,8 @@ fun PersonalScreen(
         modifier = Modifier
             .fillMaxSize()
     ) {
+        // PieChart() //TODO: fix
+
         // top tabs
         DisplayTabs(tabItems, selectedTabIndex) { tabIndex ->
             selectedTabIndex = tabIndex

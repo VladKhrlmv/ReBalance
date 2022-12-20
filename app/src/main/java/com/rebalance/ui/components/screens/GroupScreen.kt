@@ -27,6 +27,14 @@ fun GroupScreen() {
         modifier = Modifier
             .fillMaxSize()
     ) {
+        /*Text(
+            text = "Group View",
+            modifier = Modifier.align(Alignment.CenterHorizontally),
+            textAlign = TextAlign.Center,
+            fontSize = 25.sp
+        )*/
+        // BarChart() // TODO: fix
+
         // top tabs
         DisplayTabs(tabItems, selectedTabIndex) { tabIndex ->
             selectedTabIndex = tabIndex
