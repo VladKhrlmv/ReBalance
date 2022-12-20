@@ -1,36 +1,32 @@
 package com.rebalance.ui.components.screens
 
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.wrapContentSize
-import androidx.compose.ui.Alignment
-import com.rebalance.ui.components.PieChart
-import androidx.compose.foundation.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterVertically
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import com.rebalance.*
 import com.rebalance.R
 
@@ -43,7 +39,6 @@ fun PersonalScreen(
     var selectedScaleIndex by rememberSaveable { mutableStateOf(0) } // selected index of scale
 
     // initialize tabs
-//    val tabItems = personalViewModel.tabItems
     val tabItems = rememberSaveable { mutableListOf<DummyItem>() } // list of tabs
     updateTabItems(tabItems, scaleItems[selectedScaleIndex].type)
     var selectedTabIndex by rememberSaveable { mutableStateOf(tabItems.size - 1) } // selected index of tab
@@ -52,8 +47,7 @@ fun PersonalScreen(
     val scaleButtonPadding = 8
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
+        modifier = Modifier.fillMaxSize()
     ) {
         // PieChart() //TODO: fix
 
@@ -63,22 +57,23 @@ fun PersonalScreen(
         }
 
         // content
-        Box (
-            modifier = Modifier
-                .fillMaxSize()
-        ){
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
             if (pieChartActive) {
                 DisplayPieChart(tabItems[selectedTabIndex].name)
-            }
-            else {
-                DisplayList(scaleButtonWidth, scaleButtonPadding, DummyBackend().getPersonal(
-                    scaleItems[selectedScaleIndex].type,
-                    tabItems[selectedTabIndex].date
-                ))
+            } else {
+                DisplayList(
+                    scaleButtonWidth, scaleButtonPadding, DummyBackend().getPersonal(
+                        scaleItems[selectedScaleIndex].type, tabItems[selectedTabIndex].date
+                    )
+                )
             }
 
             // scale buttons
-            DisplayScaleButtons(scaleItems, selectedScaleIndex, scaleButtonWidth, scaleButtonPadding) { scaleIndex ->
+            DisplayScaleButtons(
+                scaleItems, selectedScaleIndex, scaleButtonWidth, scaleButtonPadding
+            ) { scaleIndex ->
                 selectedScaleIndex = scaleIndex
 //                personalViewModel.updateTabItems(scaleItem.type)
                 updateTabItems(tabItems, scaleItems[selectedScaleIndex].type)
@@ -119,14 +114,11 @@ private fun DisplayScaleButtons(
     scaleButtonWidth: Int,
     scaleButtonPadding: Int,
     onButtonClick: (Int) -> Unit
-)
-{
+) {
     Column( //TODO: move to function
-        modifier = Modifier
-            .fillMaxHeight(),
-        verticalArrangement = Arrangement.Center
+        modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center
     ) {
-        scaleItems.forEachIndexed{ scaleIndex, scaleItem ->
+        scaleItems.forEachIndexed { scaleIndex, scaleItem ->
             TextButton(
                 modifier = Modifier
                     .padding(scaleButtonPadding.dp, 5.dp, 0.dp, 5.dp)
@@ -161,17 +153,14 @@ private fun DisplayPieChart(
     text: String
 ) {
     Box(
-        modifier = Modifier
-            .fillMaxSize(),
-        contentAlignment = Center
+        modifier = Modifier.fillMaxSize(), contentAlignment = Center
     ) {
         Box( // TODO: change it to pie chart
             modifier = Modifier
                 .width(200.dp)
                 .height(200.dp)
                 .clip(CircleShape)
-                .background(Color.Yellow),
-            contentAlignment = Center
+                .background(Color.Yellow), contentAlignment = Center
         ) {
             Text(text = text)
         }
@@ -183,19 +172,18 @@ private fun DisplayList(
     scaleButtonWidth: Int,
     scaleButtonPadding: Int,
     list: List<DummyItemValue>
-){
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
             .padding((scaleButtonWidth + scaleButtonPadding).dp, 0.dp, 0.dp, 0.dp),
         contentAlignment = Center
     ) {
-        LazyColumn ( // TODO: change it to lazy list of spendings
+        LazyColumn( // TODO: change it to lazy list of spendings
             modifier = Modifier
                 .fillMaxSize()
-                .padding(10.dp),
-            verticalArrangement = Arrangement.Top
-        ){
+                .padding(10.dp), verticalArrangement = Arrangement.Top
+        ) {
             items(items = list, itemContent = { item ->
                 Text(
                     text = "Item ${item.name}",
@@ -222,10 +210,6 @@ private fun updateTabItems(
 private fun DefaultPreview() {
     PersonalScreen(false)
 }
-
-
-
-
 
 
 // -------------------- sample code for lazy rows --------------------

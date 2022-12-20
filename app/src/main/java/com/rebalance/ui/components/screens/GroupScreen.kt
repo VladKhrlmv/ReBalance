@@ -1,21 +1,28 @@
 package com.rebalance.ui.components.screens
 
-import androidx.compose.foundation.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.Tab
+import androidx.compose.material.TabRow
+import androidx.compose.material.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
-
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rebalance.*
+import com.rebalance.DummyBackend
+import com.rebalance.DummyItemValue
 
 @Composable
 fun GroupScreen() {
@@ -27,12 +34,6 @@ fun GroupScreen() {
         modifier = Modifier
             .fillMaxSize()
     ) {
-        /*Text(
-            text = "Group View",
-            modifier = Modifier.align(Alignment.CenterHorizontally),
-            textAlign = TextAlign.Center,
-            fontSize = 25.sp
-        )*/
         // BarChart() // TODO: fix
 
         // top tabs
@@ -41,14 +42,13 @@ fun GroupScreen() {
         }
 
         // content
-        Box (
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-        ){
+        ) {
             if (selectedTabIndex == 0) { // if visual tab
                 DisplayVisual()
-            }
-            else { // if list tab
+            } else { // if list tab
                 DisplayList(DummyBackend().getGroup())
             }
         }
@@ -104,12 +104,12 @@ private fun DisplayVisual() {
                 .padding(20.dp, 20.dp, 0.dp, 20.dp)
         )
 
-        Column ( // TODO: change to list of dropdowns
+        Column( // TODO: change to list of dropdowns
             modifier = Modifier
                 .fillMaxSize()
                 .padding(10.dp),
             verticalArrangement = Arrangement.Top
-        ){
+        ) {
             repeat(10) { item ->
                 Text(
                     text = "Item $item",
@@ -126,18 +126,18 @@ private fun DisplayVisual() {
 @Composable
 private fun DisplayList(
     list: List<DummyItemValue>
-){
+) {
     Box(
         modifier = Modifier
             .fillMaxSize(),
         contentAlignment = Center
     ) {
-        LazyColumn ( // TODO: change it to lazy list of spendings
+        LazyColumn( // TODO: change it to lazy list of spendings
             modifier = Modifier
                 .fillMaxSize()
                 .padding(10.dp),
             verticalArrangement = Arrangement.Top
-        ){
+        ) {
             items(items = list, itemContent = { item ->
                 Text(
                     text = "Item ${item.name}",

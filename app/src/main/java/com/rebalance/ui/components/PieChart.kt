@@ -5,12 +5,12 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.github.mikephil.charting.charts.PieChart
 import com.github.mikephil.charting.data.PieData
@@ -18,11 +18,12 @@ import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.rebalance.R
-import java.util.*
-import com.rebalance.ui.theme.*
+import com.rebalance.ui.theme.categoryColor
+import com.rebalance.ui.theme.greyColor
+import com.rebalance.ui.theme.redColor
 import java.text.DecimalFormat
 
-data class PieChartData (var category: String, var value: Double)
+data class PieChartData(var category: String, var value: Double)
 
 val getPieChartData = listOf(
     PieChartData("Medicine", 34.68),
@@ -75,7 +76,7 @@ fun updatePieChartWithData(
 
     for (i in data.indices) {
         val item = data[i]
-        entries.add(PieEntry(item.value.toFloat() ?: 0F, item.category ?: ""))
+        entries.add(PieEntry(item.value.toFloat(), item.category))
     }
 
     val ds = PieDataSet(entries, "")
@@ -95,7 +96,7 @@ fun updatePieChartWithData(
                 categoryColor[it.category]?.green?.let { green ->
                     categoryColor[it.category]?.alpha?.let { alpha ->
                         Color(
-                            red =  1f - red,
+                            red = 1f - red,
                             green = 1f - green,
                             blue = 1f - blue,
                             alpha = alpha
