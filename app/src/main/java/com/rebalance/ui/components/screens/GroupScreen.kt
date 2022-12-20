@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
+import com.rebalance.ui.components.BarChart
 
 @Composable
 fun GroupScreen() {
@@ -17,11 +18,12 @@ fun GroupScreen() {
             .fillMaxSize()
             .wrapContentSize(Alignment.Center)
     ) {
-        Text(
+        /*Text(
             text = "Group View",
             modifier = Modifier.align(Alignment.CenterHorizontally),
             textAlign = TextAlign.Center,
             fontSize = 25.sp
-        )
+        )*/
+        BarChart()
     }
 }
