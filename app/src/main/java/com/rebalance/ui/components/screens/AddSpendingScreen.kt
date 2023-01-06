@@ -1,5 +1,6 @@
 package com.rebalance.ui.components.screens
 
+import android.R
 import android.graphics.Typeface
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
@@ -19,26 +20,26 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rebalance.ui.components.DatePickerField
 
-val costValueRegex = """^\d{0,12}[\.\,]{0,1}\d{0,2}${'$'}""".toRegex()
+val costValueRegex = """^\d{0,12}[\.\,]?\d{0,2}${'$'}""".toRegex()
 
-var groupMembersDict = mapOf(
-    "Group 1" to listOf(
-        "Group 1 Member 1",
-        "Group 1 Member 2",
-        "Group 1 Member 3",
-        "Group 1 Member 4"
+var tempGroupMembersDict = mutableMapOf(
+    "Group 1" to mutableMapOf(
+        "Group 1 Member 1" to mutableStateOf(false),
+        "Group 1 Member 2" to mutableStateOf(false),
+        "Group 1 Member 3" to mutableStateOf(false),
+        "Group 1 Member 4" to mutableStateOf(false)
     ),
-    "Group 2" to listOf(
-        "Group 2 Member 1",
-        "Group 2 Member 2",
-        "Group 2 Member 3"
+    "Group 2" to mutableMapOf(
+        "Group 2 Member 1" to mutableStateOf(false),
+        "Group 2 Member 2" to mutableStateOf(false),
+        "Group 2 Member 3" to mutableStateOf(false)
     ),
-    "Group 3" to listOf(
-        "Group 3 Member 1",
-        "Group 3 Member 2",
-        "Group 3 Member 3",
-        "Group 3 Member 4",
-        "Group 3 Member 5"
+    "Group 3" to mutableMapOf(
+        "Group 3 Member 1" to mutableStateOf(false),
+        "Group 3 Member 2" to mutableStateOf(false),
+        "Group 3 Member 3" to mutableStateOf(false),
+        "Group 3 Member 4" to mutableStateOf(false),
+        "Group 3 Member 5" to mutableStateOf(false)
     )
 )
 
@@ -52,7 +53,7 @@ fun AddSpendingScreen() {
     var isGroupExpense by remember { mutableStateOf(false) }
     var expandedDropdownGroups by remember { mutableStateOf(false) }
     var groupName by remember { mutableStateOf("") }
-    var selectedMembers: MutableList<String> = mutableListOf()
+    val groupMembersDict by remember { mutableStateOf(tempGroupMembersDict) }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -185,7 +186,6 @@ fun AddSpendingScreen() {
                         groupMembersDict.keys.forEach { group ->
                             DropdownMenuItem(onClick = {
                                 groupName = group;
-                                selectedMembers.clear();
                                 expandedDropdownGroups = false
                             }) {
                                 Text(text = group)
@@ -202,25 +202,22 @@ fun AddSpendingScreen() {
                     .fillMaxWidth()
                     .height(200.dp)
             ) {
-                var listToPass = if (groupName.isNotBlank()) groupMembersDict[groupName] else listOf()
+                var listToPass = if (groupName.isNotBlank()) groupMembersDict[groupName]?.keys?.toList() else listOf()
                 items (items = listToPass!!, itemContent = { member ->
                     Row {
-                        Checkbox(
-                            checked = false,
-                            onCheckedChange = {
-                                if (it) {
-                                    selectedMembers.add(member)
-                                }
-                                else {
-                                    selectedMembers.remove(member)
-                                }
-                            }
-                        )
-                        Text(
-                            text = member,
-                            modifier = Modifier
-                                .padding(vertical = 12.dp)
-                        )
+                        groupMembersDict[groupName]?.get(member)?.let { checked ->
+                            Checkbox(
+                                checked = checked.value,
+                                onCheckedChange = { groupMembersDict[groupName]?.set(member,
+                                    mutableStateOf(!checked.value)
+                                ) },
+                            )
+                            Text(
+                                text = member + ' ' + groupMembersDict[groupName]?.get(member)?.value,
+                                modifier = Modifier
+                                    .padding(vertical = 12.dp)
+                            )
+                        }
                     }
                 })
             }
