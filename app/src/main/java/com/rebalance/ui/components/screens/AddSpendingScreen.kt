@@ -20,7 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rebalance.ui.components.DatePickerField
 
-val costValueRegex = """^\d{0,12}[\.\,]?\d{0,2}${'$'}""".toRegex()
+val costValueRegex = """^\d{0,12}[.,]?\d{0,2}${'$'}""".toRegex()
 
 var tempGroupMembersDict = mapOf(
     "Group 1" to listOf(
@@ -55,117 +55,149 @@ fun AddSpendingScreen() {
     var expandedDropdownGroups by remember { mutableStateOf(false) }
     var groupName by remember { mutableStateOf("") }
     val groupMembersDict = tempGroupMembersDict
-    var membersSelection = mutableStateMapOf<String, Boolean>() // TODO Use remember by statement
+    val membersSelection = mutableStateMapOf<String, Boolean>()
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .wrapContentSize(Alignment.TopStart)
             .padding(10.dp)
     ) {
-        Text(
-            text = "Add spending",
+        Box(
             modifier = Modifier
-                .align(Alignment.Start)
-                .padding(10.dp),
-            fontFamily = FontFamily(Typeface.DEFAULT),
-            fontSize = 32.sp
-        )
-        Row {
-            TextField(
-                value = spendingName,
-                onValueChange = { newSpendingName -> spendingName = newSpendingName },
-                placeholder = { Text(text = "Title") },
+                .fillMaxWidth()
+        ) {
+            Text(
+                text = "Add spending",
+                modifier = Modifier
+                    .wrapContentWidth(Alignment.Start)
+                    .padding(10.dp),
+                fontFamily = FontFamily(Typeface.DEFAULT),
+                fontSize = 32.sp,
+            )
+            Button(
+                onClick = {  },
                 modifier = Modifier
                     .padding(10.dp)
-            )
-        }
-        Row {
-            ExposedDropdownMenuBox(
-                expanded = expandedDropdownCategory,
-                onExpandedChange = {
-                    expandedDropdownCategory = !expandedDropdownCategory
-                },
-                modifier = Modifier.padding(10.dp)
+                    .align(Alignment.CenterEnd)
             ) {
-                TextField(
-                    value = selectedCategory,
-                    onValueChange = { },
-                    readOnly = true,
-                    label = {
-                        Text(text = "Category")
-                    },
-                    trailingIcon = {
-                        ExposedDropdownMenuDefaults.TrailingIcon(
-                            expanded = expandedDropdownCategory
-                        )
-                    },
-                    colors = ExposedDropdownMenuDefaults.textFieldColors()
-                )
-                ExposedDropdownMenu(
-                    expanded = expandedDropdownCategory,
-                    onDismissRequest = { expandedDropdownCategory = false }
-                ) {
-                    DropdownMenuItem(onClick = { selectedCategory = "Sport"; expandedDropdownCategory = false }) {
-                        // icon can be placed before text
-                        Text(text = "Sport")
-                    }
-                    DropdownMenuItem(onClick = { selectedCategory = "Clothing"; expandedDropdownCategory = false }) {
-                        Text(text = "Clothing")
-                    }
+                Text("Save")
+            }
+        }
+        TextField(
+            value = spendingName,
+            onValueChange = { newSpendingName -> spendingName = newSpendingName },
+            placeholder = { Text(text = "Title") },
+            modifier = Modifier
+                .padding(10.dp)
+                .fillMaxWidth()
+        )
+        ExposedDropdownMenuBox(
+            expanded = expandedDropdownCategory,
+            onExpandedChange = {
+                expandedDropdownCategory = !expandedDropdownCategory
+            },
+            modifier = Modifier
+                .padding(10.dp)
+                .fillMaxWidth()
+        ) {
+            TextField(
+                value = selectedCategory,
+                onValueChange = { },
+                readOnly = true,
+                label = {
+                    Text(text = "Category")
+                },
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(
+                        expanded = expandedDropdownCategory
+                    )
+                },
+                colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                modifier = Modifier
+                    .fillMaxWidth()
+            )
+            ExposedDropdownMenu(
+                expanded = expandedDropdownCategory,
+                onDismissRequest = { expandedDropdownCategory = false }
+            ) {
+                DropdownMenuItem(onClick = {
+                    selectedCategory = "Sport"; expandedDropdownCategory = false
+                }) {
+                    // icon can be placed before text
+                    Text(text = "Sport")
+                }
+                DropdownMenuItem(onClick = {
+                    selectedCategory = "Clothing"; expandedDropdownCategory = false
+                }) {
+                    Text(text = "Clothing")
                 }
             }
         }
-        Row {
-            TextField(
-                value = costValue,
-                onValueChange = { newCostValue ->
-                    if (costValueRegex.matches(newCostValue.text)) {
-                        costValue = newCostValue
+        TextField(
+            value = costValue,
+            onValueChange = { newCostValue ->
+                if (costValueRegex.matches(newCostValue.text)) {
+                    costValue = newCostValue
+                }
+            },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            placeholder = { Text(text = "0.00") },
+            modifier = Modifier
+                .padding(10.dp)
+                .fillMaxWidth()
+                .onFocusChanged {
+                    if (!it.isFocused) {
+                        val tempCostValue = costValue.text
+                            .replace(",", ".")
+                            .replace("""^\.""".toRegex(), "0.")
+                            .replace("""\.$""".toRegex(), ".00")
+                        costValue = TextFieldValue(tempCostValue)
                     }
-                },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                placeholder = { Text(text = "0.00") },
+                }
+        )
+        Row(
+            modifier = Modifier
+                .padding(10.dp)
+                .fillMaxWidth()
+        ) {
+            DatePickerField(
                 modifier = Modifier
-                    .padding(10.dp)
-                    .onFocusChanged {
-                        if (!it.isFocused) {
-                            var tempCostValue = costValue.text
-                                .replace(",", ".")
-                                .replace("""^\.""".toRegex(), "0.")
-                                .replace("""\.$""".toRegex(), ".00");
-                            costValue = TextFieldValue(tempCostValue)
-                        }
-                    }
+                    .width(180.dp)
             )
-
-        }
-        Row {
-            DatePickerField() // TODO do something with date
-        }
-        Row {
             Checkbox(
                 checked = isGroupExpense,
                 onCheckedChange = {
                     isGroupExpense = it
-                }
+                },
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
             )
             Text(
                 text = "Group expense",
                 modifier = Modifier
-                    .padding(vertical = 12.dp)
+                    .align(Alignment.CenterVertically)
+                    .fillMaxWidth()
                     .clickable {
-                        isGroupExpense = !isGroupExpense;
+                        isGroupExpense = !isGroupExpense
                     }
             )
         }
-        AnimatedVisibility(visible = isGroupExpense) {
-            Row {
+        AnimatedVisibility(
+            visible = isGroupExpense,
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
                 ExposedDropdownMenuBox(
                     expanded = expandedDropdownGroups,
                     onExpandedChange = {
                         expandedDropdownGroups = !expandedDropdownGroups
                     },
-                    modifier = Modifier.padding(10.dp)
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .fillMaxWidth()
                 ) {
                     TextField(
                         value = groupName,
@@ -179,22 +211,29 @@ fun AddSpendingScreen() {
                                 expanded = expandedDropdownGroups
                             )
                         },
-                        colors = ExposedDropdownMenuDefaults.textFieldColors()
+                        colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                        modifier = Modifier
+                            .fillMaxWidth()
                     )
                     ExposedDropdownMenu(
                         expanded = expandedDropdownGroups,
                         onDismissRequest = { expandedDropdownGroups = false },
+                        modifier = Modifier
+                            .fillMaxWidth()
                     ) {
                         groupMembersDict.keys.forEach { group ->
-                            DropdownMenuItem(onClick = {
-                                groupName = group;
-                                membersSelection.clear();
-                                groupMembersDict[groupName]?.forEach { member ->
-                                    membersSelection.put(member, false);
-                                }
-                                println(membersSelection.keys.toList())
-                                expandedDropdownGroups = false
-                            }) {
+                            DropdownMenuItem(
+                                onClick = {
+                                    groupName = group
+                                    membersSelection.clear()
+                                    groupMembersDict[groupName]?.forEach { member ->
+                                        membersSelection[member] = false
+                                    }
+                                    expandedDropdownGroups = false
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                            ) {
                                 Text(text = group)
                             }
                         }
@@ -202,28 +241,38 @@ fun AddSpendingScreen() {
                 }
             }
         }
-        AnimatedVisibility(visible = isGroupExpense) {
+        AnimatedVisibility(
+            visible = isGroupExpense,
+            modifier = Modifier
+                .fillMaxWidth()
+        ) {
             LazyColumn(
                 modifier = Modifier
                     .verticalScroll(rememberScrollState())
                     .fillMaxWidth()
                     .height(200.dp)
             ) {
-                items (items = membersSelection.keys.toList(), itemContent = { member ->
-                    Row {
+                items(items = membersSelection.keys.toList(), itemContent = { member ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                    ) {
                         membersSelection[member]?.let {
                             Checkbox(
                                 checked = it,
                                 onCheckedChange = {
-                                    membersSelection[member] = it;
+                                    membersSelection[member] = it
                                 },
                             )
+                            Text(
+                                text = member,
+                                modifier = Modifier
+                                    .padding(vertical = 12.dp)
+                                    .clickable {
+                                        membersSelection[member] = !membersSelection[member]!!
+                                    }
+                            )
                         }
-                        Text(
-                            text = member,
-                            modifier = Modifier
-                                .padding(vertical = 12.dp)
-                        )
                     }
 
                 })

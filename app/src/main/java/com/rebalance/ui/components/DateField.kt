@@ -4,7 +4,6 @@ import android.app.DatePickerDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
@@ -13,13 +12,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import android.widget.DatePicker
 import java.util.Calendar
 import java.util.Date
 
 @Composable
-fun DatePickerField() {
+fun DatePickerField(modifier: Modifier) {
     val mContext = LocalContext.current
 
     val mYear: Int
@@ -38,11 +36,11 @@ fun DatePickerField() {
 
     val mDatePickerDialog = DatePickerDialog(
         mContext,
-        { _: DatePicker, mYear: Int, mMonth: Int, mDayOfMonth: Int ->
-            mDate.value = "$mDayOfMonth/${mMonth+1}/$mYear"
+        { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
+            mDate.value = "$dayOfMonth/${month+1}/$year"
         }, mYear, mMonth, mDay
     )
-    Column(modifier = Modifier.padding(10.dp)) {
+    Column(modifier = modifier) {
         Box {
             TextField(
                 value = mDate.value,
