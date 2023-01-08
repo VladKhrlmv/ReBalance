@@ -1,6 +1,6 @@
 package com.rebalance.ui.components.screens
 
-import android.R
+import android.annotation.SuppressLint
 import android.graphics.Typeface
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
@@ -22,27 +22,28 @@ import com.rebalance.ui.components.DatePickerField
 
 val costValueRegex = """^\d{0,12}[\.\,]?\d{0,2}${'$'}""".toRegex()
 
-var tempGroupMembersDict = mutableMapOf(
-    "Group 1" to mutableMapOf(
-        "Group 1 Member 1" to mutableStateOf(false),
-        "Group 1 Member 2" to mutableStateOf(false),
-        "Group 1 Member 3" to mutableStateOf(false),
-        "Group 1 Member 4" to mutableStateOf(false)
+var tempGroupMembersDict = mapOf(
+    "Group 1" to listOf(
+        "Group 1 Member 1",
+        "Group 1 Member 2",
+        "Group 1 Member 3",
+        "Group 1 Member 4"
     ),
-    "Group 2" to mutableMapOf(
-        "Group 2 Member 1" to mutableStateOf(false),
-        "Group 2 Member 2" to mutableStateOf(false),
-        "Group 2 Member 3" to mutableStateOf(false)
+    "Group 2" to listOf(
+        "Group 2 Member 1",
+        "Group 2 Member 2",
+        "Group 2 Member 3"
     ),
-    "Group 3" to mutableMapOf(
-        "Group 3 Member 1" to mutableStateOf(false),
-        "Group 3 Member 2" to mutableStateOf(false),
-        "Group 3 Member 3" to mutableStateOf(false),
-        "Group 3 Member 4" to mutableStateOf(false),
-        "Group 3 Member 5" to mutableStateOf(false)
+    "Group 3" to listOf(
+        "Group 3 Member 1",
+        "Group 3 Member 2",
+        "Group 3 Member 3",
+        "Group 3 Member 4",
+        "Group 3 Member 5"
     )
 )
 
+@SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AddSpendingScreen() {
@@ -53,7 +54,8 @@ fun AddSpendingScreen() {
     var isGroupExpense by remember { mutableStateOf(false) }
     var expandedDropdownGroups by remember { mutableStateOf(false) }
     var groupName by remember { mutableStateOf("") }
-    val groupMembersDict by remember { mutableStateOf(tempGroupMembersDict) }
+    val groupMembersDict = tempGroupMembersDict
+    var membersSelection = mutableStateMapOf<String, Boolean>() // TODO Use remember by statement
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -186,6 +188,11 @@ fun AddSpendingScreen() {
                         groupMembersDict.keys.forEach { group ->
                             DropdownMenuItem(onClick = {
                                 groupName = group;
+                                membersSelection.clear();
+                                groupMembersDict[groupName]?.forEach { member ->
+                                    membersSelection.put(member, false);
+                                }
+                                println(membersSelection.keys.toList())
                                 expandedDropdownGroups = false
                             }) {
                                 Text(text = group)
@@ -202,23 +209,23 @@ fun AddSpendingScreen() {
                     .fillMaxWidth()
                     .height(200.dp)
             ) {
-                var listToPass = if (groupName.isNotBlank()) groupMembersDict[groupName]?.keys?.toList() else listOf()
-                items (items = listToPass!!, itemContent = { member ->
+                items (items = membersSelection.keys.toList(), itemContent = { member ->
                     Row {
-                        groupMembersDict[groupName]?.get(member)?.let { checked ->
+                        membersSelection[member]?.let {
                             Checkbox(
-                                checked = checked.value,
-                                onCheckedChange = { groupMembersDict[groupName]?.set(member,
-                                    mutableStateOf(!checked.value)
-                                ) },
-                            )
-                            Text(
-                                text = member + ' ' + groupMembersDict[groupName]?.get(member)?.value,
-                                modifier = Modifier
-                                    .padding(vertical = 12.dp)
+                                checked = it,
+                                onCheckedChange = {
+                                    membersSelection[member] = it;
+                                },
                             )
                         }
+                        Text(
+                            text = member,
+                            modifier = Modifier
+                                .padding(vertical = 12.dp)
+                        )
                     }
+
                 })
             }
         }
