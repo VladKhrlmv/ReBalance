@@ -59,6 +59,29 @@ class DummyBackend {
             DummyScaleItem(DummyScale.Year, "Y")
         )
     }
+
+    fun getGroups(): MutableSet<DummyGroup> {
+        return mutableSetOf(
+            DummyGroup("Group 1", listOf(
+                DummyGroupMember("Member 1"),
+                DummyGroupMember("Member 2"),
+                DummyGroupMember("Member 3"),
+                DummyGroupMember("Member 4")
+            )),
+            DummyGroup("Group 2", listOf(
+                DummyGroupMember("Member 1"),
+                DummyGroupMember("Member 2"),
+                DummyGroupMember("Member 3")
+            )),
+            DummyGroup("Group 3", listOf(
+                DummyGroupMember("Member 1"),
+                DummyGroupMember("Member 2"),
+                DummyGroupMember("Member 3"),
+                DummyGroupMember("Member 4"),
+                DummyGroupMember("Member 5")
+            )),
+        )
+    }
 }
 
 enum class DummyScale {
@@ -80,4 +103,13 @@ data class DummyItem (
 
 data class DummyItemValue (
     val name: String
+)
+
+data class DummyGroupMember(
+    var name: String
+)
+
+data class DummyGroup (
+    var name: String,
+    var memberList: List<DummyGroupMember>
 )
