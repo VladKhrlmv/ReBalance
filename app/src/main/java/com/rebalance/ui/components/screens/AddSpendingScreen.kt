@@ -18,30 +18,12 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.rebalance.DummyBackend
+import com.rebalance.DummyGroup
+import com.rebalance.DummyGroupMember
 import com.rebalance.ui.components.DatePickerField
 
 val costValueRegex = """^\d{0,12}[.,]?\d{0,2}${'$'}""".toRegex()
-
-var tempGroupMembersDict = mapOf(
-    "Group 1" to listOf(
-        "Group 1 Member 1",
-        "Group 1 Member 2",
-        "Group 1 Member 3",
-        "Group 1 Member 4"
-    ),
-    "Group 2" to listOf(
-        "Group 2 Member 1",
-        "Group 2 Member 2",
-        "Group 2 Member 3"
-    ),
-    "Group 3" to listOf(
-        "Group 3 Member 1",
-        "Group 3 Member 2",
-        "Group 3 Member 3",
-        "Group 3 Member 4",
-        "Group 3 Member 5"
-    )
-)
 
 @SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalMaterialApi::class)
@@ -54,8 +36,8 @@ fun AddSpendingScreen() {
     var isGroupExpense by remember { mutableStateOf(false) }
     var expandedDropdownGroups by remember { mutableStateOf(false) }
     var groupName by remember { mutableStateOf("") }
-    val groupMembersDict = tempGroupMembersDict
-    val membersSelection = mutableStateMapOf<String, Boolean>()
+    var groupSet by remember { mutableStateOf(mutableSetOf<DummyGroup>()) }
+    val membersSelection = remember { mutableStateMapOf<DummyGroupMember, Boolean>() }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -84,7 +66,13 @@ fun AddSpendingScreen() {
                     Text("Cancel")
                 }
                 Button(
-                    onClick = {  },
+                    onClick = {
+                        println("Spending name ${spendingName.text}\n" +
+                                "Category $selectedCategory\n" +
+                                "Cost ${costValue.text}\n" +
+                                "Group name $groupName\n" +
+                                "Members ${membersSelection.filter { (key, value) -> value }}")
+                    },
                     modifier = Modifier
                         .padding(1.dp)
                 ) {
@@ -177,6 +165,7 @@ fun AddSpendingScreen() {
                 checked = isGroupExpense,
                 onCheckedChange = {
                     isGroupExpense = it
+                    groupSet = DummyBackend().getGroups()
                 },
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
@@ -188,6 +177,7 @@ fun AddSpendingScreen() {
                     .fillMaxWidth()
                     .clickable {
                         isGroupExpense = !isGroupExpense
+                        groupSet = DummyBackend().getGroups()
                     }
             )
         }
@@ -231,12 +221,12 @@ fun AddSpendingScreen() {
                         modifier = Modifier
                             .fillMaxWidth()
                     ) {
-                        groupMembersDict.keys.forEach { group ->
+                        groupSet.forEach { group ->
                             DropdownMenuItem(
                                 onClick = {
-                                    groupName = group
+                                    groupName = group.name
                                     membersSelection.clear()
-                                    groupMembersDict[groupName]?.forEach { member ->
+                                    group.memberList.forEach { member ->
                                         membersSelection[member] = false
                                     }
                                     expandedDropdownGroups = false
@@ -244,7 +234,7 @@ fun AddSpendingScreen() {
                                 modifier = Modifier
                                     .fillMaxWidth()
                             ) {
-                                Text(text = group)
+                                Text(text = group.name)
                             }
                         }
                     }
@@ -275,7 +265,7 @@ fun AddSpendingScreen() {
                                 },
                             )
                             Text(
-                                text = member,
+                                text = member.name,
                                 modifier = Modifier
                                     .padding(vertical = 12.dp)
                                     .clickable {
