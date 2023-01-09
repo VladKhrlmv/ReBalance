@@ -1,24 +1,31 @@
 package com.rebalance.backend.entities
 
+import android.os.Build
+import androidx.annotation.RequiresApi
+import java.time.LocalDate
+
 class Expense {
 
     private var id: Long = -1
     private var amount: Int = 0;
+    @RequiresApi(Build.VERSION_CODES.O)
+    private var dateStamp: LocalDate = LocalDate.now()
     private var description: String = ""
     private var globalId: Long = -1
 
     public constructor()
 
-    constructor(id: Long, amount: Int, description: String, globalId: Long) {
+    @RequiresApi(Build.VERSION_CODES.O)
+    public constructor(id: Long, amount: Int, dateStamp: LocalDate, description: String, globalId: Long) {
         this.id = id
         this.amount = amount
+        this.dateStamp = dateStamp
         this.description = description
         this.globalId = globalId
     }
 
-    override fun toString(): String {
-        return "Expense(id=$id, amount=$amount, description='$description', globalId=$globalId)"
-    }
+
+
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -70,5 +77,14 @@ class Expense {
         this.globalId = globalId
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    override fun toString(): String {
+        return "Expense(id=$id, amount=$amount, dateStamp=$dateStamp, description='$description', globalId=$globalId)"
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    public fun getDateStamp(): LocalDate {
+        return dateStamp
+    }
 
 }
