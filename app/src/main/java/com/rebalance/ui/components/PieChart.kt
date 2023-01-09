@@ -1,8 +1,10 @@
 package com.rebalance.ui.components
 
 import android.graphics.Typeface
+import android.os.Build
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
@@ -17,21 +19,43 @@ import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
+import com.google.gson.Gson
 import com.rebalance.R
+import com.rebalance.backend.GlobalVars
+import com.rebalance.backend.api.jsonArrayToExpenses
+import com.rebalance.backend.api.sendGet
+import com.rebalance.backend.api.sendPost
+import com.rebalance.backend.entities.Expense
 import com.rebalance.ui.theme.categoryColor
 import com.rebalance.ui.theme.greyColor
 import com.rebalance.ui.theme.redColor
 import java.text.DecimalFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 data class PieChartData(var category: String, var value: Double)
 
-val getPieChartData = listOf(
-    PieChartData("Medicine", 34.68),
-    PieChartData("Clothing", 16.60),
-    PieChartData("Food", 16.15),
-    PieChartData("Activities", 15.62),
-)
+@RequiresApi(Build.VERSION_CODES.N)
+fun getPieChartData(): ArrayList<PieChartData> {
+    var entries = ArrayList<PieChartData>()
+    var jsonBodyGet = sendGet(
+        "http://${GlobalVars().getIp()}/groups/2/expenses"
+    )
+    var listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
+    println(jsonBodyGet)
+    listExpense.forEach { entry ->
+        entries.add(
+            PieChartData(
+                entry.getCategory(),
+                entry.getAmount().toDouble()
+            )
+        )
+    }
+    //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
+    return entries
+}
 
+@RequiresApi(Build.VERSION_CODES.N)
 @Composable
 fun PieChart() {
     Column(
@@ -41,7 +65,7 @@ fun PieChart() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Crossfade(targetState = getPieChartData) { pieChartData ->
+        Crossfade(targetState = getPieChartData()) { pieChartData ->
             AndroidView(factory = { context ->
                 PieChart(context).apply {
                     layoutParams = LinearLayout.LayoutParams(
@@ -68,6 +92,7 @@ fun PieChart() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.N)
 fun updatePieChartWithData(
     chart: PieChart,
     data: List<PieChartData>

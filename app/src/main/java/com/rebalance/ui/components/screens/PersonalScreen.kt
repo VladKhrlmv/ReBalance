@@ -1,5 +1,7 @@
 package com.rebalance.ui.components.screens
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -29,7 +31,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rebalance.*
 import com.rebalance.R
+import com.rebalance.ui.components.PieChart
 
+@RequiresApi(Build.VERSION_CODES.N)
 @Composable
 fun PersonalScreen(
     pieChartActive: Boolean
@@ -148,23 +152,25 @@ private fun DisplayScaleButtons(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.N)
 @Composable
 private fun DisplayPieChart(
     text: String
 ) {
-    Box(
-        modifier = Modifier.fillMaxSize(), contentAlignment = Center
-    ) {
-        Box( // TODO: change it to pie chart
-            modifier = Modifier
-                .width(200.dp)
-                .height(200.dp)
-                .clip(CircleShape)
-                .background(Color.Yellow), contentAlignment = Center
-        ) {
-            Text(text = text)
-        }
-    }
+//    Box(
+//        modifier = Modifier.fillMaxSize(), contentAlignment = Center
+//    ) {
+//        Box( // TODO: change it to pie chart
+//            modifier = Modifier
+//                .width(200.dp)
+//                .height(200.dp)
+//                .clip(CircleShape)
+//                .background(Color.Yellow), contentAlignment = Center
+//        ) {
+//            Text(text = text)
+//        }
+//    }
+    PieChart()
 }
 
 @Composable
@@ -205,6 +211,7 @@ private fun updateTabItems(
     tabItems.addAll(DummyBackend().getValues(type))
 }
 
+@RequiresApi(Build.VERSION_CODES.N)
 @Preview
 @Composable
 private fun DefaultPreview() {
