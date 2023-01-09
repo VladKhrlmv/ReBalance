@@ -68,18 +68,28 @@ fun AddSpendingScreen() {
             Text(
                 text = "Add spending",
                 modifier = Modifier
-                    .wrapContentWidth(Alignment.Start)
                     .padding(10.dp),
                 fontFamily = FontFamily(Typeface.DEFAULT),
                 fontSize = 32.sp,
             )
-            Button(
-                onClick = {  },
+            Row(
                 modifier = Modifier
-                    .padding(10.dp)
                     .align(Alignment.CenterEnd)
-            ) {
-                Text("Save")
+            ){
+                Button(
+                    onClick = {  },
+                    modifier = Modifier
+                        .padding(1.dp)
+                ) {
+                    Text("Cancel")
+                }
+                Button(
+                    onClick = {  },
+                    modifier = Modifier
+                        .padding(1.dp)
+                ) {
+                    Text("Save")
+                }
             }
         }
         TextField(
@@ -260,8 +270,8 @@ fun AddSpendingScreen() {
                         membersSelection[member]?.let {
                             Checkbox(
                                 checked = it,
-                                onCheckedChange = {
-                                    membersSelection[member] = it
+                                onCheckedChange = { newValue ->
+                                    membersSelection[member] = newValue
                                 },
                             )
                             Text(
