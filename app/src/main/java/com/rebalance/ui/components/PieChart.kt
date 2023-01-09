@@ -38,19 +38,25 @@ data class PieChartData(var category: String, var value: Double)
 @RequiresApi(Build.VERSION_CODES.N)
 fun getPieChartData(): ArrayList<PieChartData> {
     var entries = ArrayList<PieChartData>()
-    var jsonBodyGet = sendGet(
-        "http://${GlobalVars().getIp()}/groups/2/expenses"
-    )
-    var listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
-    println(jsonBodyGet)
-    listExpense.forEach { entry ->
-        entries.add(
-            PieChartData(
-                entry.getCategory(),
-                entry.getAmount().toDouble()
+    Thread {
+        try {
+            var jsonBodyGet = sendGet(
+                "http://${GlobalVars().getIp()}/groups/2/expenses"
             )
-        )
-    }
+            var listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
+            println(jsonBodyGet)
+            listExpense.forEach { entry ->
+                entries.add(
+                    PieChartData(
+                        entry.getCategory(),
+                        entry.getAmount().toDouble()
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            print(e.stackTrace)
+        }
+    }.start()
     //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
     return entries
 }
