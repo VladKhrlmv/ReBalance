@@ -23,8 +23,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rebalance.DummyBackend
-import com.rebalance.DummyItemValue
+import com.rebalance.backend.entities.Expense
+import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.components.BarChart
 
 @RequiresApi(Build.VERSION_CODES.N)
@@ -53,7 +53,7 @@ fun GroupScreen() {
             if (selectedTabIndex == 0) { // if visual tab
                 DisplayVisual()
             } else { // if list tab
-                DisplayList(DummyBackend().getGroup())
+                DisplayList(BackendService().getGroup())
             }
         }
     }
@@ -129,7 +129,7 @@ private fun DisplayVisual() {
 
 @Composable
 private fun DisplayList(
-    list: List<DummyItemValue>
+    list: List<Expense>
 ) {
     Box(
         modifier = Modifier
@@ -144,7 +144,7 @@ private fun DisplayList(
         ) {
             items(items = list, itemContent = { item ->
                 Text(
-                    text = "Item ${item.name}",
+                    text = "Item ${item.getDescription()}",
                     modifier = Modifier
                         .padding(bottom = 10.dp)
                         .background(Color.Blue),
