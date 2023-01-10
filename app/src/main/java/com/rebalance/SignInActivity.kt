@@ -2,6 +2,7 @@ package com.rebalance
 
 import android.os.Bundle
 import android.os.StrictMode
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
@@ -18,6 +19,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -26,6 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -70,8 +73,9 @@ fun MainSignInScreen() {
 fun SignInScreen(navController: NavController) {
     val login = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
-    var showError = false
-    var errorMessage = ""
+    val showError = remember { mutableStateOf(false) }
+    val errorMessage = remember { mutableStateOf("") }
+    val context = LocalContext.current
     Scaffold(
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
@@ -102,7 +106,7 @@ fun SignInScreen(navController: NavController) {
                             var user = login("http://${GlobalVars().getIp()}/users/login", login.value, password.value)
                             println("logged in")
 
-                            showError = false
+//                            throw FailedLoginException("Invalid password for email")
 
                             navController.navigate(ScreenNavigationItem.Personal.route) {
                                 // Pop up to the start destination of the graph to
@@ -121,8 +125,8 @@ fun SignInScreen(navController: NavController) {
                             }
                         } catch (error: FailedLoginException) {
                             println("Caught a FailedLoginException! You should see the error message on the screen")
-                            showError = true
-                            errorMessage = error.message.toString()
+                            showError.value = true
+                            errorMessage.value = error.message.toString()
                         }
                     })
                     SecondaryButton("SIGN UP", 5.dp, onClick = {
@@ -142,11 +146,15 @@ fun SignInScreen(navController: NavController) {
                             restoreState = true
                         }
                     })
-                    if (showError) Row(modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp)) {
-                        Text(text = errorMessage, color = Color.Red)
+
+                    if (showError.value) ContextCompat.getMainExecutor(context).execute {
+                        Toast.makeText(
+                            context,
+                            errorMessage.value,
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
+                    showError.value = false
                 }
 
             }
@@ -227,6 +235,9 @@ fun SignUpMailScreen(navController: NavController) {
     val username = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
     val repeatPassword = remember { mutableStateOf("") }
+    val showError = remember { mutableStateOf(false) }
+    val errorMessage = remember { mutableStateOf("") }
+    val context = LocalContext.current
     Scaffold(
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
@@ -252,6 +263,8 @@ fun SignUpMailScreen(navController: NavController) {
                     CustomPasswordInput("Repeat password", repeatPassword)
                     PrimaryButton("SIGN UP", 20.dp, onClick = {
                         try {
+//                            throw ServerException("Something went wrong, please try later")
+
                             System.out.println("trying to register...")
                             var loginandpassword = register("http://${GlobalVars().getIp()}/users", email.value, username.value)
                             System.out.println("registered!")
@@ -274,6 +287,8 @@ fun SignUpMailScreen(navController: NavController) {
                             }
                         } catch (error: ServerException) {
                             println("Caught a ServerException!")
+                            showError.value = true
+                            errorMessage.value = error.message.toString()
                         }
 
                     })
@@ -294,6 +309,14 @@ fun SignUpMailScreen(navController: NavController) {
                             restoreState = true
                         }
                     })
+                    if (showError.value) ContextCompat.getMainExecutor(context).execute {
+                        Toast.makeText(
+                            context,
+                            errorMessage.value,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    showError.value = false
                 }
 
             }
