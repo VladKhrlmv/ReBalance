@@ -3,9 +3,11 @@ package com.rebalance.backend.service
 import android.os.StrictMode
 import com.rebalance.backend.GlobalVars
 import com.rebalance.backend.api.jsonArrayToApplicationUsers
+import com.rebalance.backend.api.jsonArrayToExpenseGroups
 import com.rebalance.backend.api.jsonArrayToExpenses
 import com.rebalance.backend.api.sendGet
 import com.rebalance.backend.entities.Expense
+import com.rebalance.backend.entities.ExpenseGroup
 import java.time.LocalDate
 import kotlin.collections.ArrayList
 
@@ -84,28 +86,18 @@ class BackendService {
 
     //region Add spending screen
     //TODO: change to entities
-    fun getGroups(): MutableSet<DummyGroup> {
-        //TODO: get using requests
-        return mutableSetOf(
-            DummyGroup("Group 1", listOf(
-                DummyGroupMember("Member 1"),
-                DummyGroupMember("Member 2"),
-                DummyGroupMember("Member 3"),
-                DummyGroupMember("Member 4")
-            )),
-            DummyGroup("Group 2", listOf(
-                DummyGroupMember("Member 1"),
-                DummyGroupMember("Member 2"),
-                DummyGroupMember("Member 3")
-            )),
-            DummyGroup("Group 3", listOf(
-                DummyGroupMember("Member 1"),
-                DummyGroupMember("Member 2"),
-                DummyGroupMember("Member 3"),
-                DummyGroupMember("Member 4"),
-                DummyGroupMember("Member 5")
-            )),
+    fun getGroups(): List<ExpenseGroup> {
+        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+        StrictMode.setThreadPolicy(policy)
+
+        val jsonBodyGroups = sendGet(
+            "http://${GlobalVars().getIp()}/users/${GlobalVars().user.getId()}/groups"
         )
+        val groups: List<ExpenseGroup> = jsonArrayToExpenseGroups(jsonBodyGroups)
+        println(groups)
+
+        //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
+        return groups
     }
     //endregion
 
@@ -189,23 +181,9 @@ data class ExpenseItem (
 }
 //endregion
 
-//region Add spending screen
-//TODO: change to ApplicationUser
-data class DummyGroupMember(
-    var name: String
-)
-
-//TODO: change to ExpenseGroup
-data class DummyGroup (
-    var name: String,
-    var memberList: List<DummyGroupMember>
-)
-//endregion
-
 //region Group screen
 data class BarChartData (
     var debtor: String,
     var value: Double
 )
-
 //endregion

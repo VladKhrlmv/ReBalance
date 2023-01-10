@@ -88,7 +88,7 @@ private fun DisplayVisual(
                 flingBehavior = null // TODO: disable
             )
     ) {
-        Box( // TODO: change to bar chart
+        Box(
             modifier = Modifier
                 .width(200.dp)
                 .height(400.dp)

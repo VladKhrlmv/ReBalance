@@ -2,8 +2,7 @@ package com.rebalance.ui.components.screens
 
 import android.annotation.SuppressLint
 import android.graphics.Typeface
-import android.os.Build
-import androidx.annotation.RequiresApi
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -21,13 +20,14 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rebalance.backend.service.BackendService
-import com.rebalance.backend.service.DummyGroup
-import com.rebalance.backend.service.DummyGroupMember
+import androidx.core.content.ContextCompat
 import com.google.gson.Gson
 import com.rebalance.backend.GlobalVars
 import com.rebalance.backend.api.sendPost
+import com.rebalance.backend.entities.ApplicationUser
 import com.rebalance.backend.entities.Expense
+import com.rebalance.backend.entities.ExpenseGroup
+import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.components.DatePickerField
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -44,13 +44,15 @@ fun AddSpendingScreen() {
     var isGroupExpense by remember { mutableStateOf(false) }
     var expandedDropdownGroups by remember { mutableStateOf(false) }
     var groupName by remember { mutableStateOf("") }
-    var groupSet by remember { mutableStateOf(mutableSetOf<DummyGroup>()) }
-    val membersSelection = remember { mutableStateMapOf<DummyGroupMember, Boolean>() }
+    var groupId by remember { mutableStateOf(0L) }
+    var groupList by remember { mutableStateOf(listOf<ExpenseGroup>()) }
+    val membersSelection = remember { mutableStateMapOf<ApplicationUser, Boolean>() }
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(10.dp)
     ) {
+        val context = LocalContext.current
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -83,8 +85,25 @@ fun AddSpendingScreen() {
                         Thread {
                             try {
                                 if (isGroupExpense) {
-                                    var jsonBodyPOST = sendPost(
-                                        "http://${GlobalVars().getIp()}/expenses/user/${GlobalVars().user.getId()}/group/1",
+                                    val activeMembers =
+                                        membersSelection.filterValues { flag -> flag }
+                                    for (member in activeMembers) {
+                                        val jsonBodyPOST = sendPost(
+                                            "http://${GlobalVars().getIp()}/expenses/user/${member.key.getId()}/group/${groupId}",
+                                            Gson().toJson(
+                                                Expense(
+                                                    (costValue.text.toDouble() / activeMembers.size * 100 * -1).toInt(),
+                                                    LocalDate.now()
+                                                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                                                    selectedCategory.text,
+                                                    spendingName.text
+                                                )
+                                            )
+                                        )
+                                        println(jsonBodyPOST)
+                                    }
+                                    val jsonBodyPOST = sendPost(
+                                        "http://${GlobalVars().getIp()}/expenses/user/${GlobalVars().user.getId()}/group/${groupId}",
                                         Gson().toJson(
                                             Expense(
                                                 (costValue.text.toFloat() * 100).toInt(),
@@ -97,8 +116,10 @@ fun AddSpendingScreen() {
                                     )
                                     println(jsonBodyPOST)
                                 } else {
-                                    var jsonBodyPOST = sendPost(
-                                        "http://${GlobalVars().getIp()}/expenses/user/${GlobalVars().user.getId()}/group/2",
+                                    val jsonBodyPOST = sendPost(
+                                        "http://${GlobalVars().getIp()}/expenses/user/${GlobalVars().user.getId()}/group/${
+                                            GlobalVars().getPersonalGroup().getId()
+                                        }",
                                         Gson().toJson(
                                             Expense(
                                                 (costValue.text.toFloat() * 100).toInt(),
@@ -111,17 +132,31 @@ fun AddSpendingScreen() {
                                     )
                                     println(jsonBodyPOST)
                                 }
+                                ContextCompat.getMainExecutor(context).execute {
+                                    Toast.makeText(
+                                        context,
+                                        "Expense saved!",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                             } catch (e: Exception) {
                                 print(e.stackTrace)
+                                ContextCompat.getMainExecutor(context).execute {
+                                    Toast.makeText(
+                                        context,
+                                        "Unexpected error occurred",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                             }
                         }.start()
-                        val currTime: Long = System.currentTimeMillis();
-                        while(System.currentTimeMillis() < currTime + 50){
-                        }
-                        spendingName = TextFieldValue("")
-                        costValue = TextFieldValue("")
-                        selectedCategory = TextFieldValue("")
-                        isGroupExpense = false
+                        //todo sleep
+//                        val currTime: Long = System.currentTimeMillis()
+//                        }
+//                        spendingName = TextFieldValue("")
+//                        costValue = TextFieldValue("")
+//                        selectedCategory = TextFieldValue("")
+//                        isGroupExpense = false
                     },
                     modifier = Modifier
                         .padding(1.dp)
@@ -183,7 +218,7 @@ fun AddSpendingScreen() {
                 checked = isGroupExpense,
                 onCheckedChange = {
                     isGroupExpense = it
-                    groupSet = BackendService().getGroups()
+                    groupList = BackendService().getGroups()
                 },
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
@@ -195,7 +230,7 @@ fun AddSpendingScreen() {
                     .fillMaxWidth()
                     .clickable {
                         isGroupExpense = !isGroupExpense
-                        groupSet = BackendService().getGroups()
+                        groupList = BackendService().getGroups()
                     }
             )
         }
@@ -239,12 +274,13 @@ fun AddSpendingScreen() {
                         modifier = Modifier
                             .fillMaxWidth()
                     ) {
-                        groupSet.forEach { group ->
+                        groupList.forEach { group ->
                             DropdownMenuItem(
                                 onClick = {
-                                    groupName = group.name
+                                    groupName = group.getName()
+                                    groupId = group.getId()
                                     membersSelection.clear()
-                                    group.memberList.forEach { member ->
+                                    group.getUsers().forEach { member ->
                                         membersSelection[member] = false
                                     }
                                     expandedDropdownGroups = false
@@ -252,7 +288,7 @@ fun AddSpendingScreen() {
                                 modifier = Modifier
                                     .fillMaxWidth()
                             ) {
-                                Text(text = group.name)
+                                Text(text = group.getName())
                             }
                         }
                     }
@@ -283,7 +319,7 @@ fun AddSpendingScreen() {
                                 },
                             )
                             Text(
-                                text = member.name,
+                                text = member.getUsername(),
                                 modifier = Modifier
                                     .padding(vertical = 12.dp)
                                     .clickable {
