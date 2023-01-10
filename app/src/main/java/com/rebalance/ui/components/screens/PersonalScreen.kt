@@ -1,13 +1,9 @@
 package com.rebalance.ui.components.screens
 
-import android.os.Build
-import androidx.annotation.RequiresApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -16,7 +12,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -26,15 +21,12 @@ import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rebalance.*
-import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.service.BackendService
+import com.rebalance.backend.service.ExpenseItem
 import com.rebalance.backend.service.ScaleItem
 import com.rebalance.backend.service.ScaledDateItem
-import com.rebalance.R
 import com.rebalance.ui.components.PieChart
 
-@RequiresApi(Build.VERSION_CODES.N)
 @Composable
 fun PersonalScreen(
     pieChartActive: Boolean
@@ -65,13 +57,14 @@ fun PersonalScreen(
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
+            val data = BackendService().getPersonal(
+                scaleItems[selectedScaleIndex].type, tabItems[selectedTabIndex].date
+            )
             if (pieChartActive) {
-                DisplayPieChart(tabItems[selectedTabIndex].name)
+                DisplayPieChart(data)
             } else {
                 DisplayList(
-                    scaleButtonWidth, scaleButtonPadding, BackendService().getPersonal(
-                        scaleItems[selectedScaleIndex].type, tabItems[selectedTabIndex].date, false
-                    )
+                    scaleButtonWidth, scaleButtonPadding, data
                 )
             }
 
@@ -153,10 +146,9 @@ private fun DisplayScaleButtons(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.N)
 @Composable
 private fun DisplayPieChart(
-    text: String
+    data: List<ExpenseItem>
 ) {
     Box(
         modifier = Modifier
@@ -165,7 +157,7 @@ private fun DisplayPieChart(
             .height(200.dp),
         contentAlignment = Center
     ) {
-        PieChart()
+        PieChart(data)
     }
 }
 
@@ -173,7 +165,7 @@ private fun DisplayPieChart(
 private fun DisplayList(
     scaleButtonWidth: Int,
     scaleButtonPadding: Int,
-    list: List<Expense>
+    data: List<ExpenseItem>
 ) {
     Box(
         modifier = Modifier
@@ -186,9 +178,9 @@ private fun DisplayList(
                 .fillMaxSize()
                 .padding(10.dp), verticalArrangement = Arrangement.Top
         ) {
-            items(items = list, itemContent = { item ->
+            items(items = data, itemContent = { item ->
                 Text(
-                    text = "Item ${item.getDescription()}",
+                    text = "Item ${item.category} with ${item.amount}",
                     modifier = Modifier
                         .padding(bottom = 10.dp)
                         .background(Color.Blue),
@@ -207,7 +199,6 @@ private fun updateTabItems(
     tabItems.addAll(BackendService().getScaledDateItems(type))
 }
 
-@RequiresApi(Build.VERSION_CODES.N)
 @Preview
 @Composable
 private fun DefaultPreview() {
