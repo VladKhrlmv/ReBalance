@@ -109,16 +109,14 @@ class BackendService {
     //endregion
 
     //region Group screen
-    fun getGroup(): List<Expense> {
-        val list = ArrayList<Expense>()
+    fun getGroupList(): List<Expense> {
+        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+        StrictMode.setThreadPolicy(policy)
 
-        //TODO: get using requests
-        //TODO: sum up by category if specified
-        for (i in 10..29) {
-            /*list.add(Expense(i.toLong(), i*i, LocalDate.parse("2022-01-$i"), "Item $i", -1))*/
-        }
-
-        return list
+        val jsonBodyGet = sendGet(
+            "http://${GlobalVars().getIp()}/groups/2/expenses"
+        )
+        return jsonArrayToExpenses(jsonBodyGet)
     }
     //endregion
 }
