@@ -37,6 +37,7 @@ import com.rebalance.backend.GlobalVars
 import com.rebalance.backend.api.*
 import com.rebalance.backend.entities.ExpenseGroup
 import com.rebalance.backend.exceptions.FailedLoginException
+import com.rebalance.backend.exceptions.PasswordMissmatchException
 import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.ui.components.screens.navigation.ScreenNavigation
 import com.rebalance.ui.components.screens.navigation.ScreenNavigationItem
@@ -105,24 +106,23 @@ fun SignInScreen(navController: NavController) {
                             println("trying to login...")
                             val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
                             StrictMode.setThreadPolicy(policy)
-                            var user = login(
+                            val user = login(
                                 "http://${GlobalVars.serverIp}/users/login",
                                 login.value,
                                 password.value
                             )
-                            var userByNickname =
-                                jsonToApplicationUser(sendGet("http://${GlobalVars.Companion.serverIp}/users/email/${login.value}"))
-                            println(userByNickname)
-                            GlobalVars.user = userByNickname
-                            var groupsJson =
-                                sendGet("http://${GlobalVars.Companion.serverIp}/users/${userByNickname.getId()}/groups")
-                            var groups = jsonArrayToExpenseGroups(groupsJson)
+                            println(user)
+                            GlobalVars.user = user
+                            val groupsJson =
+                                sendGet("http://${GlobalVars.serverIp}/users/${user.getId()}/groups")
+                            val groups = jsonArrayToExpenseGroups(groupsJson)
                             for (group in groups) {
                                 if (group.getName() == "per${login.value}") {
                                     GlobalVars.group = group
                                 }
                             }
-                            println("logged in")
+                            println("logged in as ${GlobalVars.user}")
+                            println("personal group is: ${GlobalVars.group}")
 
 //                            throw FailedLoginException("Invalid password for email")
 
@@ -278,26 +278,30 @@ fun SignUpMailScreen(navController: NavController) {
 
                     CustomInput("E-mail", email)
                     CustomInput("Username", username)
-//                    CustomPasswordInput("Password", password)
-//                    CustomPasswordInput("Repeat password", repeatPassword)
+                    CustomPasswordInput("Password", password)
+                    CustomPasswordInput("Repeat password", repeatPassword)
                     PrimaryButton("SIGN UP", 20.dp, onClick = {
                         try {
+                            if (password.value != repeatPassword.value) {
+                                throw PasswordMissmatchException("Passwords do not match")
+                            }
 //                            throw ServerException("Something went wrong, please try later")
                             val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
                             StrictMode.setThreadPolicy(policy)
-                            System.out.println("trying to register...")
-                            var loginandpassword = register(
-                                "http://${GlobalVars.Companion.serverIp}/users",
+                            println("trying to register...")
+                            val loginAndPassword = register(
+                                "http://${GlobalVars.serverIp}/users",
                                 email.value,
-                                username.value
+                                username.value,
+                                password.value
                             )
-                            pass.value = loginandpassword.getPassword()
+                            pass.value = loginAndPassword.getPassword()
                             println("registered!")
-                            var userByNickname =
-                                jsonToApplicationUser(sendGet("http://${GlobalVars.Companion.serverIp}/users/email/${email.value}"))
+                            val userByNickname =
+                                jsonToApplicationUser(sendGet("http://${GlobalVars.serverIp}/users/email/${email.value}"))
                             println(userByNickname)
-                            var groupCreationResult = sendPost(
-                                "http://${GlobalVars.Companion.serverIp}/users/${userByNickname.getId()}/groups",
+                            val groupCreationResult = sendPost(
+                                "http://${GlobalVars.serverIp}/users/${userByNickname.getId()}/groups",
                                 Gson().toJson(ExpenseGroup("per${email.value}", "USD"))
                             )
                             println(groupCreationResult)

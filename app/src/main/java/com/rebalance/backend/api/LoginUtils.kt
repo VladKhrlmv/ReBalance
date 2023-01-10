@@ -37,7 +37,7 @@ fun login(toWhere: String, email: String, password: String) : ApplicationUser {
     return jsonToApplicationUser(res)
 }
 
-fun register(toWhere: String, email: String, username: String) : LoginAndPassword {
+fun register(toWhere: String, email: String, username: String, password: String) : LoginAndPassword {
     var res = ""
     val url = URL(toWhere)
     val requestBody = Gson().toJson(ApplicationUser(username, email))
