@@ -137,9 +137,10 @@ class BackendService {
         StrictMode.setThreadPolicy(policy)
 
         val jsonBodyGet = sendGet(
-            "http://${GlobalVars().getIp()}/groups/2/expenses"
+            "http://${GlobalVars().getIp()}/groups/1/expenses"
         )
-        return jsonArrayToExpenses(jsonBodyGet)
+
+        return jsonArrayToExpenses(jsonBodyGet).filter { it.getAmount() > 0 }
     }
     //endregion
 }
