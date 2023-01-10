@@ -8,6 +8,8 @@ class ExpenseGroup {
 
     private var currency: String = ""
 
+    private var users: Set<ApplicationUser> = HashSet()
+
     public constructor()
 
     constructor(id: Long, name: String, currency: String) {
@@ -15,6 +17,14 @@ class ExpenseGroup {
         this.name = name
         this.currency = currency
     }
+
+    constructor(id: Long, name: String, currency: String, usersSet: Set<ApplicationUser>) {
+        this.id = id
+        this.name = name
+        this.currency = currency
+        this.users = usersSet
+    }
+
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -59,5 +69,11 @@ class ExpenseGroup {
         return this.currency
     }
 
+    public fun getUsers(): Set<ApplicationUser> {
+        return this.users
+    }
 
+    public fun setUsers(users: Set<ApplicationUser>) {
+        this.users = users
+    }
 }

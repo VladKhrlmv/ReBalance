@@ -1,5 +1,13 @@
 package com.rebalance
 
+import android.os.Build
+import android.os.StrictMode
+import androidx.annotation.RequiresApi
+import com.rebalance.backend.GlobalVars
+import com.rebalance.backend.api.jsonArrayToExpenseGroups
+import com.rebalance.backend.api.sendGet
+import com.rebalance.backend.entities.ExpenseGroup
+import com.rebalance.ui.components.PieChartData
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -60,27 +68,19 @@ class DummyBackend {
         )
     }
 
-    fun getGroups(): MutableSet<DummyGroup> {
-        return mutableSetOf(
-            DummyGroup("Group 1", listOf(
-                DummyGroupMember("Member 1"),
-                DummyGroupMember("Member 2"),
-                DummyGroupMember("Member 3"),
-                DummyGroupMember("Member 4")
-            )),
-            DummyGroup("Group 2", listOf(
-                DummyGroupMember("Member 1"),
-                DummyGroupMember("Member 2"),
-                DummyGroupMember("Member 3")
-            )),
-            DummyGroup("Group 3", listOf(
-                DummyGroupMember("Member 1"),
-                DummyGroupMember("Member 2"),
-                DummyGroupMember("Member 3"),
-                DummyGroupMember("Member 4"),
-                DummyGroupMember("Member 5")
-            )),
+    @RequiresApi(Build.VERSION_CODES.N)
+    fun getGroups(): List<ExpenseGroup> {
+        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+        StrictMode.setThreadPolicy(policy)
+
+        var jsonBodyGroups = sendGet(
+            "http://${GlobalVars().getIp()}/users/${GlobalVars().user.getId()}/groups"
         )
+        var groups: List<ExpenseGroup> = jsonArrayToExpenseGroups(jsonBodyGroups)
+        println(groups)
+
+        //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
+        return groups
     }
 }
 
