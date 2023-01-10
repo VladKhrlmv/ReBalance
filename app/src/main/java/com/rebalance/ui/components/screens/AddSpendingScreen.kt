@@ -22,6 +22,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import com.google.gson.Gson
 import com.rebalance.DummyBackend
 import com.rebalance.backend.GlobalVars
@@ -54,6 +55,7 @@ fun AddSpendingScreen() {
             .fillMaxSize()
             .padding(10.dp)
     ) {
+        val context = LocalContext.current
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -133,9 +135,22 @@ fun AddSpendingScreen() {
                                     )
                                     println(jsonBodyPOST)
                                 }
-                                // Toast.makeText(LocalContext)
+                                ContextCompat.getMainExecutor(context).execute {
+                                    Toast.makeText(
+                                        context,
+                                        "Expense saved!",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                             } catch (e: Exception) {
                                 print(e.stackTrace)
+                                ContextCompat.getMainExecutor(context).execute {
+                                    Toast.makeText(
+                                        context,
+                                        "Unexpected error occurred",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                             }
                         }.start()
                         //todo sleep
