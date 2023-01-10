@@ -1,6 +1,7 @@
 package com.rebalance
 
 import android.os.Bundle
+import android.os.StrictMode
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
@@ -20,10 +21,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,9 +34,6 @@ import com.rebalance.backend.api.login
 import com.rebalance.backend.api.register
 import com.rebalance.backend.exceptions.FailedLoginException
 import com.rebalance.backend.exceptions.ServerException
-import com.rebalance.ui.components.BottomNavigationBar
-import com.rebalance.ui.components.PlusButton
-import com.rebalance.ui.components.TopAppBar
 import com.rebalance.ui.components.screens.navigation.ScreenNavigation
 import com.rebalance.ui.components.screens.navigation.ScreenNavigationItem
 import com.rebalance.ui.theme.ReBalanceTheme
@@ -100,9 +96,11 @@ fun SignInScreen(navController: NavController) {
                     PrimaryButton("SIGN IN", 20.dp, onClick = {
                         try {
                             // TODO: Save the user
-                            System.out.println("trying to login...")
-                            var user = login("http://${GlobalVars().getIp()}/user/login/${login.value}", login.value, password.value)
-                            System.out.println("logged in")
+                            println("trying to login...")
+                            val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+                            StrictMode.setThreadPolicy(policy)
+                            var user = login("http://${GlobalVars().getIp()}/users/login", login.value, password.value)
+                            println("logged in")
 
                             showError = false
 
@@ -226,7 +224,7 @@ fun SignUpMailScreen(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
     val email = remember { mutableStateOf("") }
-    val login = remember { mutableStateOf("") }
+    val username = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
     val repeatPassword = remember { mutableStateOf("") }
     Scaffold(
@@ -249,13 +247,13 @@ fun SignUpMailScreen(navController: NavController) {
                     )
 
                     CustomInput("E-mail", email)
-                    CustomInput("Login", login)
+                    CustomInput("Username", username)
                     CustomPasswordInput("Password", password)
                     CustomPasswordInput("Repeat password", repeatPassword)
                     PrimaryButton("SIGN UP", 20.dp, onClick = {
                         try {
                             System.out.println("trying to register...")
-                            var loginandpassword = register("http://${GlobalVars().getIp()}/user/login/${login.value}", email.value, login.value)
+                            var loginandpassword = register("http://${GlobalVars().getIp()}/users", email.value, username.value)
                             System.out.println("registered!")
 
 

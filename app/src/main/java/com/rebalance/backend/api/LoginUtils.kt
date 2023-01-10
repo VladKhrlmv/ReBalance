@@ -12,7 +12,6 @@ import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
 
-@RequiresApi(Build.VERSION_CODES.N)
 // TODO: change toWhere
 fun login(toWhere: String, email: String, password: String) : ApplicationUser {
     val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
@@ -28,7 +27,7 @@ fun login(toWhere: String, email: String, password: String) : ApplicationUser {
         outputStreamWriter.write(requestBody)
         outputStreamWriter.flush()
         println("Sent 'POST' request to URL : $url, with body : $requestBody; Response Code : $responseCode")
-        if(responseCode == 401){
+        if(responseCode == 401 || responseCode == 409 || responseCode == 400){
             throw FailedLoginException("Invalid password for email: $email")
         }
         inputStream.bufferedReader().use {
@@ -38,7 +37,6 @@ fun login(toWhere: String, email: String, password: String) : ApplicationUser {
     return jsonToApplicationUser(res)
 }
 
-@RequiresApi(Build.VERSION_CODES.N)
 fun register(toWhere: String, email: String, username: String) : LoginAndPassword {
     var res = ""
     val url = URL(toWhere)
