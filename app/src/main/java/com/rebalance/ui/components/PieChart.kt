@@ -1,8 +1,12 @@
 package com.rebalance.ui.components
 
 import android.graphics.Typeface
+import android.os.Build
+import android.os.StrictMode
+import android.os.StrictMode.ThreadPolicy
 import android.view.ViewGroup
 import android.widget.LinearLayout
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
@@ -18,20 +22,45 @@ import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.rebalance.R
+import com.rebalance.backend.GlobalVars
+import com.rebalance.backend.api.jsonArrayToExpenses
+import com.rebalance.backend.api.sendGet
+import com.rebalance.backend.entities.Expense
 import com.rebalance.ui.theme.categoryColor
 import com.rebalance.ui.theme.greyColor
 import com.rebalance.ui.theme.redColor
 import java.text.DecimalFormat
 
+
 data class PieChartData(var category: String, var value: Double)
 
-val getPieChartData = listOf(
-    PieChartData("Medicine", 34.68),
-    PieChartData("Clothing", 16.60),
-    PieChartData("Food", 16.15),
-    PieChartData("Activities", 15.62),
-)
+@RequiresApi(Build.VERSION_CODES.N)
+fun getPieChartData(): ArrayList<PieChartData> {
+    val policy = ThreadPolicy.Builder().permitAll().build()
+    StrictMode.setThreadPolicy(policy)
+    var entries = ArrayList<PieChartData>()
 
+    var jsonBodyGet = sendGet(
+        "http://${GlobalVars().getIp()}/groups/2/expenses"
+    )
+    var listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
+    println(listExpense)
+    var categoryMap: HashMap<String, Int> = HashMap()
+    listExpense.forEach { entry ->
+        if (categoryMap.containsKey(entry.getCategory())) {
+            categoryMap[entry.getCategory()] = categoryMap.getValue(entry.getCategory()) + entry.getAmount()
+        } else {
+            categoryMap[entry.getCategory()] = entry.getAmount()
+        }
+    }
+    for (entry in categoryMap.entries.iterator()) {
+        entries.add(PieChartData(entry.key, entry.value.toDouble()))
+    }
+    //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
+    return entries
+}
+
+@RequiresApi(Build.VERSION_CODES.N)
 @Composable
 fun PieChart() {
     Column(
@@ -41,7 +70,7 @@ fun PieChart() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Crossfade(targetState = getPieChartData) { pieChartData ->
+        Crossfade(targetState = getPieChartData()) { pieChartData ->
             AndroidView(factory = { context ->
                 PieChart(context).apply {
                     layoutParams = LinearLayout.LayoutParams(
@@ -68,6 +97,7 @@ fun PieChart() {
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.N)
 fun updatePieChartWithData(
     chart: PieChart,
     data: List<PieChartData>
@@ -80,7 +110,7 @@ fun updatePieChartWithData(
     }
 
     val ds = PieDataSet(entries, "")
-    ds.colors = data.map { categoryColor[it.category]?.toArgb() ?: greyColor.toArgb() }
+//    ds.colors = data.map { categoryColor[it.category]?.toArgb() ?: greyColor.toArgb() }
     ds.yValuePosition = PieDataSet.ValuePosition.INSIDE_SLICE
     ds.xValuePosition = PieDataSet.ValuePosition.INSIDE_SLICE
     ds.valueFormatter = object : ValueFormatter() {
@@ -90,22 +120,22 @@ fun updatePieChartWithData(
         }
     }
     ds.sliceSpace = 2F
-    ds.setValueTextColors(data.map {
-        categoryColor[it.category]?.red?.let { red ->
-            categoryColor[it.category]?.blue?.let { blue ->
-                categoryColor[it.category]?.green?.let { green ->
-                    categoryColor[it.category]?.alpha?.let { alpha ->
-                        Color(
-                            red = 1f - red,
-                            green = 1f - green,
-                            blue = 1f - blue,
-                            alpha = alpha
-                        ).toArgb()
-                    }
-                }
-            }
-        }
-    })
+//    ds.setValueTextColors(data.map {
+//        categoryColor[it.category]?.red?.let { red ->
+//            categoryColor[it.category]?.blue?.let { blue ->
+//                categoryColor[it.category]?.green?.let { green ->
+//                    categoryColor[it.category]?.alpha?.let { alpha ->
+//                        Color(
+//                            red = 1f - red,
+//                            green = 1f - green,
+//                            blue = 1f - blue,
+//                            alpha = alpha
+//                        ).toArgb()
+//                    }
+//                }
+//            }
+//        }
+//    })
     ds.valueTextSize = 18f
     ds.valueTypeface = Typeface.DEFAULT_BOLD
     val d = PieData(ds)

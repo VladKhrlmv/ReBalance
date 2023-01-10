@@ -1,30 +1,41 @@
 package com.rebalance.backend.entities
 
 import android.os.Build
-import androidx.annotation.RequiresApi
-import java.time.LocalDate
 
 class Expense {
 
     private var id: Long = -1
     private var amount: Int = 0;
-    @RequiresApi(Build.VERSION_CODES.O)
-    private var dateStamp: LocalDate = LocalDate.now()
+
+    private var dateStamp: String = "2000-01-01"
+    private var category: String = "default"
     private var description: String = ""
     private var globalId: Long = -1
 
     public constructor()
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    public constructor(id: Long, amount: Int, dateStamp: LocalDate, description: String, globalId: Long) {
+    constructor(
+        id: Long,
+        amount: Int,
+        dateStamp: String,
+        category: String,
+        description: String,
+        globalId: Long
+    ) {
         this.id = id
         this.amount = amount
         this.dateStamp = dateStamp
+        this.category = category
         this.description = description
         this.globalId = globalId
     }
 
-
+    constructor(amount: Int, dateStamp: String, category: String, description: String) {
+        this.amount = amount
+        this.dateStamp = dateStamp
+        this.category = category
+        this.description = description
+    }
 
 
     override fun equals(other: Any?): Boolean {
@@ -77,14 +88,21 @@ class Expense {
         this.globalId = globalId
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    override fun toString(): String {
-        return "Expense(id=$id, amount=$amount, dateStamp=$dateStamp, description='$description', globalId=$globalId)"
+
+    public fun getDateStamp(): String {
+        return dateStamp
     }
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    public fun getDateStamp(): LocalDate {
-        return dateStamp
+    override fun toString(): String {
+        return "Expense(id=$id, amount=$amount, dateStamp='$dateStamp', category='$category', description='$description', globalId=$globalId)"
+    }
+
+    public fun getCategory(): String {
+        return category
+    }
+
+    public fun setCategory() {
+        this.category = category
     }
 
 }

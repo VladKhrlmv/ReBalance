@@ -2,6 +2,8 @@ package com.rebalance.ui.components.screens
 
 import android.annotation.SuppressLint
 import android.graphics.Typeface
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -18,13 +20,20 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.gson.Gson
 import com.rebalance.DummyBackend
 import com.rebalance.DummyGroup
 import com.rebalance.DummyGroupMember
+import com.rebalance.backend.GlobalVars
+import com.rebalance.backend.api.sendPost
+import com.rebalance.backend.entities.Expense
 import com.rebalance.ui.components.DatePickerField
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 val costValueRegex = """^\d{0,12}[.,]?\d{0,2}${'$'}""".toRegex()
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -57,9 +66,9 @@ fun AddSpendingScreen() {
             Row(
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
-            ){
+            ) {
                 Button(
-                    onClick = {  },
+                    onClick = { },
                     modifier = Modifier
                         .padding(1.dp)
                 ) {
@@ -67,11 +76,24 @@ fun AddSpendingScreen() {
                 }
                 Button(
                     onClick = {
-                        println("Spending name ${spendingName.text}\n" +
-                                "Category $selectedCategory\n" +
-                                "Cost ${costValue.text}\n" +
-                                "Group name $groupName\n" +
-                                "Members ${membersSelection.filter { (key, value) -> value }}")
+                        Thread {
+                            try {
+                                var jsonBodyPOST = sendPost(
+                                    "http://${GlobalVars().getIp()}/expenses/user/${GlobalVars().user.getId()}/group/1",
+                                    Gson().toJson(
+                                        Expense(
+                                            costValue.text.toInt(),
+                                            LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                                            selectedCategory,
+                                            spendingName.text
+                                        )
+                                    )
+                                )
+                                println(jsonBodyPOST)
+                            } catch (e: Exception) {
+                                print(e.stackTrace)
+                            }
+                        }.start()
                     },
                     modifier = Modifier
                         .padding(1.dp)
