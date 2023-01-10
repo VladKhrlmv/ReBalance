@@ -117,7 +117,7 @@ fun SignInScreen(navController: NavController) {
                                 sendGet("http://${GlobalVars.serverIp}/users/${user.getId()}/groups")
                             val groups = jsonArrayToExpenseGroups(groupsJson)
                             for (group in groups) {
-                                if (group.getName() == "per${login.value}") {
+                                if (group.getName() == "per${user.getEmail()}") {
                                     GlobalVars.group = group
                                 }
                             }
@@ -296,7 +296,6 @@ fun SignUpMailScreen(navController: NavController) {
                                 password.value
                             )
                             pass.value = loginAndPassword.getPassword()
-                            println("registered!")
                             val userByNickname =
                                 jsonToApplicationUser(sendGet("http://${GlobalVars.serverIp}/users/email/${email.value}"))
                             println(userByNickname)
@@ -305,7 +304,10 @@ fun SignUpMailScreen(navController: NavController) {
                                 Gson().toJson(ExpenseGroup("per${email.value}", "USD"))
                             )
                             println(groupCreationResult)
-
+                            GlobalVars.user = userByNickname
+                            GlobalVars.group = jsonToExpenseGroup(groupCreationResult)
+                            println("registered as ${GlobalVars.user}")
+                            println("personal group: ${GlobalVars.group}")
                             navController.navigate(ScreenNavigationItem.Personal.route) {
                                 // Pop up to the start destination of the graph to
                                 // avoid building up a large stack of destinations

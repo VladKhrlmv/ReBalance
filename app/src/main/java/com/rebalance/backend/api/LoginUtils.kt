@@ -13,7 +13,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 // TODO: change toWhere
-fun login(toWhere: String, email: String, password: String) : ApplicationUser {
+fun login(toWhere: String, email: String, password: String): ApplicationUser {
     val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
     StrictMode.setThreadPolicy(policy)
     var res = ""
@@ -27,7 +27,7 @@ fun login(toWhere: String, email: String, password: String) : ApplicationUser {
         outputStreamWriter.write(requestBody)
         outputStreamWriter.flush()
         println("Sent 'POST' request to URL : $url, with body : $requestBody; Response Code : $responseCode")
-        if(responseCode == 401 || responseCode == 409 || responseCode == 400){
+        if (responseCode == 401 || responseCode == 409 || responseCode == 400) {
             throw FailedLoginException("Invalid password for email: $email")
         }
         inputStream.bufferedReader().use {
@@ -37,10 +37,10 @@ fun login(toWhere: String, email: String, password: String) : ApplicationUser {
     return jsonToApplicationUser(res)
 }
 
-fun register(toWhere: String, email: String, username: String, password: String) : LoginAndPassword {
+fun register(toWhere: String, email: String, username: String, password: String): LoginAndPassword {
     var res = ""
     val url = URL(toWhere)
-    val requestBody = Gson().toJson(ApplicationUser(username, email))
+    val requestBody = Gson().toJson(ApplicationUser(username, email, password))
     with(url.openConnection() as HttpURLConnection) {
         requestMethod = "POST"
         doInput = true
@@ -49,7 +49,7 @@ fun register(toWhere: String, email: String, username: String, password: String)
         outputStreamWriter.write(requestBody)
         outputStreamWriter.flush()
         println("Sent 'POST' request to URL : $url, with body : $requestBody; Response Code : $responseCode")
-        if(responseCode == 409 || responseCode == 400){
+        if (responseCode == 409 || responseCode == 400) {
             throw ServerException(responseMessage)
         }
         inputStream.bufferedReader().use {
