@@ -1,12 +1,8 @@
 package com.rebalance.ui.components
 
 import android.graphics.Typeface
-import android.os.Build
-import android.os.StrictMode
-import android.os.StrictMode.ThreadPolicy
 import android.view.ViewGroup
 import android.widget.LinearLayout
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
@@ -22,13 +18,8 @@ import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.rebalance.R
-import com.rebalance.backend.GlobalVars
-import com.rebalance.backend.api.jsonArrayToExpenses
-import com.rebalance.backend.api.sendGet
-import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.service.ExpenseItem
 import com.rebalance.ui.theme.categoryColor
-import com.rebalance.ui.theme.greyColor
 import com.rebalance.ui.theme.redColor
 import java.text.DecimalFormat
 
@@ -76,7 +67,7 @@ fun updatePieChartWithData(
 
     for (i in data.indices) {
         val item = data[i]
-        entries.add(PieEntry(item.amount.toFloat(), item.category))
+        entries.add(PieEntry(item.amount.toFloat(), item.text))
     }
 
     val ds = PieDataSet(entries, "")

@@ -65,7 +65,7 @@ class BackendService {
         val categoryMap: HashMap<String, ExpenseItem> = HashMap()
         listExpense.forEach { entry ->
             if (categoryMap.containsKey(entry.getCategory())) {
-                var item = categoryMap.getValue(entry.getCategory())
+                val item = categoryMap.getValue(entry.getCategory())
                 item.amount = item.amount + entry.getAmount()
                 item.expenses.add(entry)
                 categoryMap[entry.getCategory()] = item
@@ -152,7 +152,7 @@ data class DummyGroup (
 
 //region Personal and Group screen
 data class ExpenseItem (
-    var category: String,
+    var text: String,
     var amount: Double,
     var expenses: ArrayList<Expense>
 ) {
@@ -164,13 +164,13 @@ data class ExpenseItem (
 
         other as ExpenseItem
 
-        if (category != other.category) return false
+        if (text != other.text) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        return category.hashCode()
+        return text.hashCode()
     }
 }
 //endregion
