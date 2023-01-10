@@ -23,40 +23,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import java.util.Date
 
-
-class PersonalCategory(name: String, items: List<CategoryItem>, total: Float) {
-    var name = name
-    var items= items
-    var total = total
-}
-class CategoryItem(date: String, price: Float) {
-    var date = date
-    var price = price
-}
-
-// items: List<PersonalCategory>
-
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun ExpandableList() {
-    val items = listOf<PersonalCategory>(PersonalCategory("first", listOf<CategoryItem>(CategoryItem("1/1/2000", 12.3f), CategoryItem("1/1/2000", 12.3f), CategoryItem("1/1/2000", 12.3f)), 36.9f),
-        PersonalCategory("second", listOf<CategoryItem>(CategoryItem("1/1/2000", 12.3f)), 12.3f),
-        PersonalCategory("third", listOf<CategoryItem>(CategoryItem("1/1/2000", 12.3f)), 12.3f),
-        PersonalCategory("fourth", listOf<CategoryItem>(CategoryItem("1/1/2000", 12.3f)), 12.3f))
+fun ExpandableList(items: List<ExpenseItem>) {
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
     )  {
-        for (category in items) {
+        for (item in items) {
             val expanded = remember{ mutableStateOf(false) }
             ListItem(
-                text = { Text(category.name) },
+                text = { Text(item.category) },
                 icon = {
                     CardArrow(expanded.value)
                 },
                 trailing = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = category.total.toString() + " PLN", fontSize = 14.sp, color = Color.hsl(358f, 0.63f, 0.49f))
+                    Text(text = item.amount.toString() + " PLN", fontSize = 14.sp, color = Color.hsl(358f, 0.63f, 0.49f))
                     CardArrow(expanded.value)}
                            },
                 modifier = Modifier
@@ -85,10 +68,10 @@ fun ExpandableList() {
                         Column(Modifier
                             .padding(16.dp)
                             .fillMaxWidth()) {
-                            for (item in category.items) {
+                            for (expense in item.expenses) {
                                 Row(modifier = Modifier.wrapContentSize().fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text(item.date.toString(), style = MaterialTheme.typography.subtitle1)
-                                    Text(item.price.toString(), style = MaterialTheme.typography.subtitle1)
+                                    Text(expense.dateStamp.toString(), style = MaterialTheme.typography.subtitle1)
+                                    Text(expense.amount.toString(), style = MaterialTheme.typography.subtitle1)
                                 }
                             }
                         }
