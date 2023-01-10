@@ -27,13 +27,15 @@ import com.rebalance.DummyGroupMember
 import com.rebalance.backend.GlobalVars
 import com.rebalance.backend.api.sendPost
 import com.rebalance.backend.entities.Expense
+import com.rebalance.backend.service.BackendService
+import com.rebalance.backend.service.DummyGroup
+import com.rebalance.backend.service.DummyGroupMember
 import com.rebalance.ui.components.DatePickerField
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 val costValueRegex = """^\d{0,12}[.,]?\d{0,2}${'$'}""".toRegex()
 
-@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -187,7 +189,7 @@ fun AddSpendingScreen() {
                 checked = isGroupExpense,
                 onCheckedChange = {
                     isGroupExpense = it
-                    groupSet = DummyBackend().getGroups()
+                    groupSet = BackendService().getGroups()
                 },
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
@@ -199,7 +201,7 @@ fun AddSpendingScreen() {
                     .fillMaxWidth()
                     .clickable {
                         isGroupExpense = !isGroupExpense
-                        groupSet = DummyBackend().getGroups()
+                        groupSet = BackendService().getGroups()
                     }
             )
         }
