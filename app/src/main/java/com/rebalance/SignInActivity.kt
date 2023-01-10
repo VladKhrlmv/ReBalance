@@ -102,26 +102,24 @@ fun SignInScreen(navController: NavController) {
                     CustomPasswordInput("Password", password)
                     PrimaryButton("SIGN IN", 20.dp, onClick = {
                         try {
-                            // TODO: Save the user
                             println("trying to login...")
                             val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
                             StrictMode.setThreadPolicy(policy)
                             var user = login(
-                                "http://${GlobalVars().getIp()}/users/login",
+                                "http://${GlobalVars.serverIp}/users/login",
                                 login.value,
                                 password.value
                             )
-                            //todo save to global vars
                             var userByNickname =
-                                jsonToApplicationUser(sendGet("http://${GlobalVars().getIp()}/users/email/${login.value}"))
+                                jsonToApplicationUser(sendGet("http://${GlobalVars.Companion.serverIp}/users/email/${login.value}"))
                             println(userByNickname)
-                            //todo get personal group
+                            GlobalVars.user = userByNickname
                             var groupsJson =
-                                sendGet("http://${GlobalVars().getIp()}/users/${userByNickname.getId()}/groups")
+                                sendGet("http://${GlobalVars.Companion.serverIp}/users/${userByNickname.getId()}/groups")
                             var groups = jsonArrayToExpenseGroups(groupsJson)
                             for (group in groups) {
                                 if (group.getName() == "per${login.value}") {
-                                    //todo save to global vars
+                                    GlobalVars.group = group
                                 }
                             }
                             println("logged in")
@@ -289,18 +287,17 @@ fun SignUpMailScreen(navController: NavController) {
                             StrictMode.setThreadPolicy(policy)
                             System.out.println("trying to register...")
                             var loginandpassword = register(
-                                "http://${GlobalVars().getIp()}/users",
+                                "http://${GlobalVars.Companion.serverIp}/users",
                                 email.value,
                                 username.value
                             )
                             pass.value = loginandpassword.getPassword()
                             println("registered!")
                             var userByNickname =
-                                jsonToApplicationUser(sendGet("http://${GlobalVars().getIp()}/users/email/${email.value}"))
+                                jsonToApplicationUser(sendGet("http://${GlobalVars.Companion.serverIp}/users/email/${email.value}"))
                             println(userByNickname)
-                            //todo create private group for the user
                             var groupCreationResult = sendPost(
-                                "http://${GlobalVars().getIp()}/users/${userByNickname.getId()}/groups",
+                                "http://${GlobalVars.Companion.serverIp}/users/${userByNickname.getId()}/groups",
                                 Gson().toJson(ExpenseGroup("per${email.value}", "USD"))
                             )
                             println(groupCreationResult)

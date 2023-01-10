@@ -38,7 +38,7 @@ fun getBarChartData(): ArrayList<BarChartData> {
     var entries = ArrayList<BarChartData>()
 
     var jsonBodyGetUsersFromGroup = sendGet(
-        "http://${GlobalVars().getIp()}/groups/1/users"
+        "http://${GlobalVars.Companion.serverIp}/groups/1/users"
     )
     var userExpenseMap: HashMap<String, Int> = HashMap()
 
@@ -46,7 +46,7 @@ fun getBarChartData(): ArrayList<BarChartData> {
     println(userList)
     for(user in userList){
         var jsonBodyGet = sendGet(
-            "http://${GlobalVars().getIp()}/groups/1/users/${user.getId()}/expenses"
+            "http://${GlobalVars.Companion.serverIp}/groups/1/users/${user.getId()}/expenses"
         )
         var listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
         var sumForUser: Int = 0

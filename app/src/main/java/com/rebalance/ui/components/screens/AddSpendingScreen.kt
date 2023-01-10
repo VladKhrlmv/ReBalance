@@ -85,7 +85,7 @@ fun AddSpendingScreen() {
                             try {
                                 if (isGroupExpense) {
                                     var jsonBodyPOST = sendPost(
-                                        "http://${GlobalVars().getIp()}/expenses/user/${GlobalVars().user.getId()}/group/1",
+                                        "http://${GlobalVars.serverIp}/expenses/user/${GlobalVars.user.getId()}/group/1",
                                         Gson().toJson(
                                             Expense(
                                                 (costValue.text.toFloat() * 100).toInt(),
@@ -99,7 +99,7 @@ fun AddSpendingScreen() {
                                     println(jsonBodyPOST)
                                 } else {
                                     var jsonBodyPOST = sendPost(
-                                        "http://${GlobalVars().getIp()}/expenses/user/${GlobalVars().user.getId()}/group/2",
+                                        "http://${GlobalVars.serverIp}/expenses/user/${GlobalVars.user.getId()}/group/2",
                                         Gson().toJson(
                                             Expense(
                                                 (costValue.text.toFloat() * 100).toInt(),

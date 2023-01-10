@@ -41,7 +41,7 @@ fun getPieChartData(): ArrayList<PieChartData> {
     var entries = ArrayList<PieChartData>()
 
     var jsonBodyGet = sendGet(
-        "http://${GlobalVars().getIp()}/groups/2/expenses"
+        "http://${GlobalVars.Companion.serverIp}/groups/2/expenses"
     )
     var listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
     println(listExpense)
