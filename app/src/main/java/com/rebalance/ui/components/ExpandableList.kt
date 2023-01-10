@@ -30,7 +30,7 @@ fun ExpandableList(items: List<ExpenseItem>) {
         for (item in items) {
             val expanded = remember{ mutableStateOf(false) }
             ListItem(
-                text = { Text(item.category) },
+                text = { Text(item.text) },
                 icon = { //TODO: change to category icon
                     CardArrow(expanded.value)
                 },
