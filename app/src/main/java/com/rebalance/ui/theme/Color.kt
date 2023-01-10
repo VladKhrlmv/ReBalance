@@ -15,10 +15,14 @@ val greyColor = Color(0xFFC0C0C0)
 val whiteColor = Color(0xFFFFFFFF)
 val blackColor = Color(0xFF000000)
 
-val categoryColor: HashMap<String, Color> = hashMapOf(
-    "Medicine" to redColor,
-    "Clothing" to blueColor,
-    "Food" to greenColor,
-    "Activities" to yellowColor,
-    "Another" to greyColor
+val categoryColor: Set<Color> = setOf(
+    redColor,
+    greenColor,
+    blueColor,
+    yellowColor,
+    greenColor,
+    Teal200,
+    Purple200,
+    Purple500,
+    Purple700
 )

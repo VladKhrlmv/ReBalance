@@ -111,7 +111,7 @@ fun updatePieChartWithData(
     }
 
     val ds = PieDataSet(entries, "")
-//    ds.colors = data.map { categoryColor[it.category]?.toArgb() ?: greyColor.toArgb() }
+    ds.colors = categoryColor.map { it.toArgb() }
     ds.yValuePosition = PieDataSet.ValuePosition.INSIDE_SLICE
     ds.xValuePosition = PieDataSet.ValuePosition.INSIDE_SLICE
     ds.valueFormatter = object : ValueFormatter() {
@@ -121,22 +121,22 @@ fun updatePieChartWithData(
         }
     }
     ds.sliceSpace = 2F
-//    ds.setValueTextColors(data.map {
-//        categoryColor[it.category]?.red?.let { red ->
-//            categoryColor[it.category]?.blue?.let { blue ->
-//                categoryColor[it.category]?.green?.let { green ->
-//                    categoryColor[it.category]?.alpha?.let { alpha ->
-//                        Color(
-//                            red = 1f - red,
-//                            green = 1f - green,
-//                            blue = 1f - blue,
-//                            alpha = alpha
-//                        ).toArgb()
-//                    }
-//                }
-//            }
-//        }
-//    })
+    ds.setValueTextColors(categoryColor.map {
+        it.red.let { red ->
+            it.blue.let { blue ->
+                it.green.let { green ->
+                    it.alpha.let { alpha ->
+                        Color(
+                            red = 1f - red,
+                            green = 1f - green,
+                            blue = 1f - blue,
+                            alpha = alpha
+                        ).toArgb()
+                    }
+                }
+            }
+        }
+    })
     ds.valueTextSize = 18f
     ds.valueTypeface = Typeface.DEFAULT_BOLD
     val d = PieData(ds)

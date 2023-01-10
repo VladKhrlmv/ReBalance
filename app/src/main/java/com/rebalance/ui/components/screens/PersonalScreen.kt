@@ -157,20 +157,15 @@ private fun DisplayScaleButtons(
 private fun DisplayPieChart(
     text: String
 ) {
-//    Box(
-//        modifier = Modifier.fillMaxSize(), contentAlignment = Center
-//    ) {
-//        Box( // TODO: change it to pie chart
-//            modifier = Modifier
-//                .width(200.dp)
-//                .height(200.dp)
-//                .clip(CircleShape)
-//                .background(Color.Yellow), contentAlignment = Center
-//        ) {
-//            Text(text = text)
-//        }
-//    }
-    PieChart()
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .width(200.dp)
+            .height(200.dp),
+        contentAlignment = Center
+    ) {
+        PieChart()
+    }
 }
 
 @Composable
