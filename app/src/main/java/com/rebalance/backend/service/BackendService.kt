@@ -139,7 +139,7 @@ class BackendService {
         StrictMode.setThreadPolicy(policy)
 
         val jsonBodyGet = sendGet(
-            //todo change to group choose
+            //todo change to group choice
             "http://${GlobalVars.serverIp}/groups/1/expenses"
         )
 
