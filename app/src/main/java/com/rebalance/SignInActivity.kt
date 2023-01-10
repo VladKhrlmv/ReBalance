@@ -12,10 +12,8 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,6 +30,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.rebalance.backend.GlobalVars
+import com.rebalance.backend.api.login
+import com.rebalance.backend.exceptions.FailedLoginException
+import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.ui.components.BottomNavigationBar
 import com.rebalance.ui.components.PlusButton
 import com.rebalance.ui.components.TopAppBar
@@ -52,12 +54,16 @@ class SignInActivity : ComponentActivity() {
 
 @Composable
 fun MainSignInScreen() {
+    var pieChartActive by rememberSaveable { mutableStateOf(true) }
     val navController = rememberNavController()
     Scaffold(
-        topBar = { TopAppBar() },
+        // TODO: Make piechart parameter optional
+        topBar = { com.rebalance.ui.components.TopAppBar(pieChartActive, onPieChartActiveChange = {
+            pieChartActive = !pieChartActive
+        }) },
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
             Box(modifier = Modifier.padding(padding)) {
-                ScreenNavigation(navController = navController)
+                ScreenNavigation(navController, pieChartActive)
             }
         }
     )
@@ -65,8 +71,10 @@ fun MainSignInScreen() {
 
 @Composable
 fun SignInScreen(navController: NavController) {
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
+    val login = remember { mutableStateOf("") }
+    val password = remember { mutableStateOf("") }
+    var showError = false
+    var errorMessage = ""
     Scaffold(
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
@@ -86,23 +94,36 @@ fun SignInScreen(navController: NavController) {
                         fontSize = 35.sp
                     )
 
-                    CustomInput("Login")
-                    CustomPasswordInput("Password")
+                    CustomInput("Login", login)
+                    CustomPasswordInput("Password", password)
                     PrimaryButton("SIGN IN", 20.dp, onClick = {
-                        navController.navigate(ScreenNavigationItem.Personal.route) {
-                            // Pop up to the start destination of the graph to
-                            // avoid building up a large stack of destinations
-                            // on the back stack as users select items
-                            navController.graph.startDestinationRoute?.let { route ->
-                                popUpTo(route) {
-                                    saveState = true
+                        try {
+                            // TODO: Save the user
+                            System.out.println("trying to login...")
+                            var user = login("http://${GlobalVars().getIp()}/user/login/${login.value}", login.value, password.value)
+                            System.out.println("logged in")
+
+                            showError = false
+
+                            navController.navigate(ScreenNavigationItem.Personal.route) {
+                                // Pop up to the start destination of the graph to
+                                // avoid building up a large stack of destinations
+                                // on the back stack as users select items
+                                navController.graph.startDestinationRoute?.let { route ->
+                                    popUpTo(route) {
+                                        saveState = true
+                                    }
                                 }
+                                // Avoid multiple copies of the same destination when
+                                // reselecting the same item
+                                launchSingleTop = true
+                                // Restore state when reselecting a previously selected item
+                                restoreState = true
                             }
-                            // Avoid multiple copies of the same destination when
-                            // reselecting the same item
-                            launchSingleTop = true
-                            // Restore state when reselecting a previously selected item
-                            restoreState = true
+                        } catch (error: FailedLoginException) {
+                            println("Caught a FailedLoginException! You should see the error message on the screen")
+                            showError = true
+                            errorMessage = error.message.toString()
                         }
                     })
                     SecondaryButton("SIGN UP", 5.dp, onClick = {
@@ -122,6 +143,11 @@ fun SignInScreen(navController: NavController) {
                             restoreState = true
                         }
                     })
+                    if (showError) Row(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp)) {
+                        Text(text = errorMessage, color = Color.Red)
+                    }
                 }
 
             }
@@ -198,6 +224,10 @@ fun SignUpScreen(navController: NavController) {
 fun SignUpMailScreen(navController: NavController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    val email = remember { mutableStateOf("") }
+    val login = remember { mutableStateOf("") }
+    val password = remember { mutableStateOf("") }
+    val repeatPassword = remember { mutableStateOf("") }
     Scaffold(
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
@@ -217,26 +247,36 @@ fun SignUpMailScreen(navController: NavController) {
                         fontSize = 35.sp
                     )
 
-                    CustomInput("E-mail")
-                    CustomInput("Login")
-                    CustomPasswordInput("Password")
-                    CustomPasswordInput("Repeat password")
+                    CustomInput("E-mail", email)
+                    CustomInput("Login", login)
+                    CustomPasswordInput("Password", password)
+                    CustomPasswordInput("Repeat password", repeatPassword)
                     PrimaryButton("SIGN UP", 20.dp, onClick = {
-                        navController.navigate(ScreenNavigationItem.Personal.route) {
-                            // Pop up to the start destination of the graph to
-                            // avoid building up a large stack of destinations
-                            // on the back stack as users select items
-                            navController.graph.startDestinationRoute?.let { route ->
-                                popUpTo(route) {
-                                    saveState = true
+                        try {
+                            System.out.println("trying to register...")
+                            var user = login("http://${GlobalVars().getIp()}/user/login/${login.value}", login.value, password.value)
+                            System.out.println("registered!")
+
+
+                            navController.navigate(ScreenNavigationItem.Personal.route) {
+                                // Pop up to the start destination of the graph to
+                                // avoid building up a large stack of destinations
+                                // on the back stack as users select items
+                                navController.graph.startDestinationRoute?.let { route ->
+                                    popUpTo(route) {
+                                        saveState = true
+                                    }
                                 }
+                                // Avoid multiple copies of the same destination when
+                                // reselecting the same item
+                                launchSingleTop = true
+                                // Restore state when reselecting a previously selected item
+                                restoreState = true
                             }
-                            // Avoid multiple copies of the same destination when
-                            // reselecting the same item
-                            launchSingleTop = true
-                            // Restore state when reselecting a previously selected item
-                            restoreState = true
+                        } catch (error: ServerException) {
+                            println("Caught a ServerException!")
                         }
+
                     })
                     SecondaryButton("SIGN IN", 5.dp, onClick = {
                         navController.navigate(ScreenNavigationItem.SignIn.route) {
@@ -263,8 +303,7 @@ fun SignUpMailScreen(navController: NavController) {
 }
 
 @Composable
-fun CustomInput(label: String) {
-    val textState = remember { mutableStateOf(TextFieldValue()) }
+fun CustomInput(label: String, textState: MutableState<String>) {
     TextField(
         value = textState.value,
         onValueChange = { textState.value = it },
@@ -274,9 +313,8 @@ fun CustomInput(label: String) {
 }
 
 @Composable
-fun CustomPasswordInput(label: String) {
-    val textState = remember { mutableStateOf(TextFieldValue()) }
-    val passwordVisible = remember { mutableStateOf(true) }
+fun CustomPasswordInput(label: String, textState: MutableState<String>) {
+    val passwordVisible = remember { mutableStateOf(false) }
     TextField(
         value = textState.value,
         onValueChange = { textState.value = it },

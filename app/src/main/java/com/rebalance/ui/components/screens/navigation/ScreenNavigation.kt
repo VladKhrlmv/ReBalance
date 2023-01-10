@@ -16,7 +16,7 @@ fun ScreenNavigation(
     navController: NavHostController,
     pieChart: Boolean
 ) {
-    NavHost(navController, startDestination = ScreenNavigationItem.Personal.route) {
+    NavHost(navController, startDestination = ScreenNavigationItem.SignIn.route) {
         composable(ScreenNavigationItem.Personal.route) {
             PersonalScreen(pieChart)
         }

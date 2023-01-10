@@ -1,6 +1,7 @@
 package com.rebalance.backend.api
 
 import android.os.Build
+import android.os.StrictMode
 import androidx.annotation.RequiresApi
 import com.google.gson.Gson
 import com.rebalance.backend.entities.ApplicationUser
@@ -12,7 +13,10 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 @RequiresApi(Build.VERSION_CODES.N)
+// TODO: change toWhere
 fun login(toWhere: String, email: String, password: String) : ApplicationUser {
+    val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+    StrictMode.setThreadPolicy(policy)
     var res = ""
     val url = URL(toWhere)
     val requestBody = Gson().toJson(LoginAndPassword(email, password))
