@@ -25,15 +25,9 @@ import com.rebalance.backend.service.BackendService
 import com.rebalance.backend.service.DummyGroup
 import com.rebalance.backend.service.DummyGroupMember
 import com.google.gson.Gson
-import com.rebalance.DummyBackend
-import com.rebalance.DummyGroup
-import com.rebalance.DummyGroupMember
 import com.rebalance.backend.GlobalVars
 import com.rebalance.backend.api.sendPost
 import com.rebalance.backend.entities.Expense
-import com.rebalance.backend.service.BackendService
-import com.rebalance.backend.service.DummyGroup
-import com.rebalance.backend.service.DummyGroupMember
 import com.rebalance.ui.components.DatePickerField
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
