@@ -1,11 +1,8 @@
 package com.rebalance.ui.components
 
 import android.graphics.Typeface
-import android.os.Build
-import android.os.StrictMode
 import android.view.ViewGroup
 import android.widget.LinearLayout
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
@@ -19,50 +16,13 @@ import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.rebalance.R
-import com.rebalance.backend.GlobalVars
-import com.rebalance.backend.api.jsonArrayToApplicationUsers
-import com.rebalance.backend.api.jsonArrayToExpenses
-import com.rebalance.backend.api.sendGet
-import com.rebalance.backend.entities.Expense
+import com.rebalance.backend.service.BackendService
+import com.rebalance.backend.service.BarChartData
 import com.rebalance.ui.theme.blackColor
 import com.rebalance.ui.theme.greenColor
 import com.rebalance.ui.theme.redColor
 import java.text.DecimalFormat
 
-data class BarChartData(var debtor: String, var value: Double)
-
-@RequiresApi(Build.VERSION_CODES.N)
-fun getBarChartData(): ArrayList<BarChartData> {
-    val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-    StrictMode.setThreadPolicy(policy)
-    var entries = ArrayList<BarChartData>()
-
-    var jsonBodyGetUsersFromGroup = sendGet(
-        "http://${GlobalVars().getIp()}/groups/1/users"
-    )
-    var userExpenseMap: HashMap<String, Int> = HashMap()
-
-    var userList = jsonArrayToApplicationUsers(jsonBodyGetUsersFromGroup)
-    println(userList)
-    for(user in userList){
-        var jsonBodyGet = sendGet(
-            "http://${GlobalVars().getIp()}/groups/1/users/${user.getId()}/expenses"
-        )
-        var listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
-        var sumForUser: Int = 0
-        for(expense in listExpense){
-            sumForUser += expense.getAmount()
-        }
-        userExpenseMap[user.getUsername()] = sumForUser
-    }
-    for (entry in userExpenseMap.entries.iterator()) {
-        entries.add(BarChartData(entry.key, entry.value.toDouble() / 100))
-    }
-    //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
-    return entries
-}
-
-@RequiresApi(Build.VERSION_CODES.N)
 @Composable
 fun BarChart() {
     Column(
@@ -72,7 +32,7 @@ fun BarChart() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
-        Crossfade(targetState = getBarChartData()) { barChartData ->
+        Crossfade(targetState = BackendService().getGroupVisualBarChart()) { barChartData ->
             AndroidView(factory = { context ->
                 HorizontalBarChart(context).apply {
                     layoutParams = LinearLayout.LayoutParams(

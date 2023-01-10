@@ -2,6 +2,7 @@ package com.rebalance.backend.service
 
 import android.os.StrictMode
 import com.rebalance.backend.GlobalVars
+import com.rebalance.backend.api.jsonArrayToApplicationUsers
 import com.rebalance.backend.api.jsonArrayToExpenses
 import com.rebalance.backend.api.sendGet
 import com.rebalance.backend.entities.Expense
@@ -109,6 +110,36 @@ class BackendService {
     //endregion
 
     //region Group screen
+    fun getGroupVisualBarChart(): List<BarChartData> {
+        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+        StrictMode.setThreadPolicy(policy)
+        val entries = ArrayList<BarChartData>()
+
+        val jsonBodyGetUsersFromGroup = sendGet(
+            "http://${GlobalVars().getIp()}/groups/1/users"
+        )
+        val userExpenseMap: HashMap<String, Int> = HashMap()
+
+        val userList = jsonArrayToApplicationUsers(jsonBodyGetUsersFromGroup)
+        println(userList)
+        for(user in userList){
+            val jsonBodyGet = sendGet(
+                "http://${GlobalVars().getIp()}/groups/1/users/${user.getId()}/expenses"
+            )
+            val listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
+            var sumForUser: Int = 0
+            for(expense in listExpense){
+                sumForUser += expense.getAmount()
+            }
+            userExpenseMap[user.getUsername()] = sumForUser
+        }
+        for (entry in userExpenseMap.entries.iterator()) {
+            entries.add(BarChartData(entry.key, entry.value.toDouble() / 100))
+        }
+        //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
+        return entries
+    }
+
     fun getGroupList(): List<Expense> {
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
@@ -121,7 +152,7 @@ class BackendService {
     //endregion
 }
 
-//region Personal screen scale
+//region Personal screen
 /** Item used for changing scales on personal screen (vertical navigation) **/
 data class ScaleItem (
     val type: String,
@@ -133,22 +164,7 @@ data class ScaledDateItem (
     val name: String,
     val date: LocalDate
 )
-//endregion
 
-//region Add spending screen
-//TODO: change to ApplicationUser
-data class DummyGroupMember(
-    var name: String
-)
-
-//TODO: change to ExpenseGroup
-data class DummyGroup (
-    var name: String,
-    var memberList: List<DummyGroupMember>
-)
-//endregion
-
-//region Personal and Group screen
 data class ExpenseItem (
     var text: String,
     var amount: Double,
@@ -171,4 +187,25 @@ data class ExpenseItem (
         return text.hashCode()
     }
 }
+//endregion
+
+//region Add spending screen
+//TODO: change to ApplicationUser
+data class DummyGroupMember(
+    var name: String
+)
+
+//TODO: change to ExpenseGroup
+data class DummyGroup (
+    var name: String,
+    var memberList: List<DummyGroupMember>
+)
+//endregion
+
+//region Group screen
+data class BarChartData (
+    var debtor: String,
+    var value: Double
+)
+
 //endregion
