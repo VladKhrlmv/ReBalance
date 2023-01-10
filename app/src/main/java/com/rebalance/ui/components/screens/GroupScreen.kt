@@ -105,20 +105,34 @@ private fun DisplayVisual(
                 .padding(20.dp, 20.dp, 0.dp, 20.dp)
         )
 
-        Column( // TODO: change to list of dropdowns
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(10.dp),
             verticalArrangement = Arrangement.Top
         ) {
-            repeat(10) { item ->
-                Text(
-                    text = "Item $item",
+            for (item in data) {
+                Row(
                     modifier = Modifier
-                        .padding(bottom = 10.dp)
-                        .background(Color.Blue),
-                    fontSize = 19.sp
-                )
+                        .padding(10.dp)
+                        .background(Color.LightGray)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = item.debtor,
+                        fontSize = 14.sp,
+                        modifier = Modifier
+                            .padding(10.dp)
+                    )
+                    Text(
+                        text = item.value.toString() + "PLN",
+                        fontSize = 14.sp,
+                        color = Color.hsl(358f, 0.63f, 0.49f),
+                        modifier = Modifier
+                            .padding(10.dp)
+                    )
+                }
             }
         }
     }
@@ -133,7 +147,7 @@ private fun DisplayList(
             .fillMaxSize(),
         contentAlignment = Center
     ) {
-        LazyColumn( // TODO: change it to lazy list of spendings
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(10.dp),
