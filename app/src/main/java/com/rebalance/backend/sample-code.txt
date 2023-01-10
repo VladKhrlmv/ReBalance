@@ -1,0 +1,48 @@
+Thread {
+    try {
+        // cannot connect to 127.0.0.1 or localhost because separate VM is launched
+        // need to connect to machine's ip address in the given network
+        println(login("http://192.168.0.108:8080/users/login", LoginAndPassword("user.1@gmail.com", "XCMF7")))
+    } catch (e: Exception) {
+        print(e.stackTrace)
+    }
+    runOnUiThread {
+    }
+}.start()
+
+
+
+Thread {
+var jsonBodyGET = ""
+var jsonBodyPOST = ""
+var jsonBodyPUT = ""
+var resOfDelete = ""
+try {
+    // cannot connect to 127.0.0.1 or localhost because separate VM is launched
+    // need to connect to machine's ip address in the given network
+    jsonBodyGET = sendGet("http://192.168.0.108:8080/users")
+    var userToJson = ApplicationUser(
+        99,
+        "Username from kotlin",
+        "email.from.kotlin@gmail.com"
+    )
+    jsonBodyPOST = sendPost(
+        "http://192.168.0.108:8080/users",
+        Gson().toJson(userToJson)
+    )
+    var groupToJson = ExpenseGroup()
+    groupToJson.setCurrency("CUSTOM")
+    groupToJson.setName("From kotlin")
+    groupToJson.setId(-1)
+    jsonBodyPUT = sendPut("http://192.168.0.108:8080/groups/1", Gson().toJson(groupToJson))
+    resOfDelete = sendDelete("http://192.168.0.108:8080/users/email/email.from.kotlin@gmail.com")
+} catch (e: Exception) {
+    print(e.stackTrace)
+}
+runOnUiThread {
+    println(jsonArrayToApplicationUsers(jsonBodyGET))
+    println(jsonToApplicationUser(jsonBodyPOST))
+    println(jsonToExpenseGroup(jsonBodyPUT))
+    println(resOfDelete)
+}
+}.start()
