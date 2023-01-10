@@ -89,7 +89,7 @@ fun AddSpendingScreen() {
                                         membersSelection.filterValues { flag -> flag }
                                     for (member in activeMembers) {
                                         val jsonBodyPOST = sendPost(
-                                            "http://${GlobalVars().getIp()}/expenses/user/${member.key.getId()}/group/${groupId}",
+                                            "http://${GlobalVars.Companion.serverIp}/expenses/user/${member.key.getId()}/group/${groupId}",
                                             Gson().toJson(
                                                 Expense(
                                                     (costValue.text.toDouble() / activeMembers.size * 100 * -1).toInt(),
@@ -103,7 +103,7 @@ fun AddSpendingScreen() {
                                         println(jsonBodyPOST)
                                     }
                                     val jsonBodyPOST = sendPost(
-                                        "http://${GlobalVars().getIp()}/expenses/user/${GlobalVars().user.getId()}/group/${groupId}",
+                                        "http://${GlobalVars.Companion.serverIp}/expenses/user/${GlobalVars.user.getId()}/group/${groupId}",
                                         Gson().toJson(
                                             Expense(
                                                 (costValue.text.toFloat() * 100).toInt(),
@@ -117,8 +117,8 @@ fun AddSpendingScreen() {
                                     println(jsonBodyPOST)
                                 } else {
                                     val jsonBodyPOST = sendPost(
-                                        "http://${GlobalVars().getIp()}/expenses/user/${GlobalVars().user.getId()}/group/${
-                                            GlobalVars().getPersonalGroup().getId()
+                                        "http://${GlobalVars.Companion.serverIp}/expenses/user/${GlobalVars.user.getId()}/group/${
+                                            GlobalVars.group.getId()
                                         }",
                                         Gson().toJson(
                                             Expense(

@@ -62,7 +62,7 @@ class BackendService {
         val list = ArrayList<ExpenseItem>()
 
         val jsonBodyGet = sendGet(
-            "http://${GlobalVars().getIp()}/groups/2/expenses"
+            "http://${GlobalVars.serverIp}/groups/2/expenses"
         )
         val listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
         val categoryMap: HashMap<String, ExpenseItem> = HashMap()
@@ -91,7 +91,7 @@ class BackendService {
         StrictMode.setThreadPolicy(policy)
 
         val jsonBodyGroups = sendGet(
-            "http://${GlobalVars().getIp()}/users/${GlobalVars().user.getId()}/groups"
+            "http://${GlobalVars.serverIp}/users/${GlobalVars.user.getId()}/groups"
         )
         val groups: List<ExpenseGroup> = jsonArrayToExpenseGroups(jsonBodyGroups)
         println(groups)
@@ -108,7 +108,7 @@ class BackendService {
         val entries = ArrayList<BarChartData>()
 
         val jsonBodyGetUsersFromGroup = sendGet(
-            "http://${GlobalVars().getIp()}/groups/1/users"
+            "http://${GlobalVars.serverIp}/groups/1/users"
         )
         val userExpenseMap: HashMap<String, Int> = HashMap()
 
@@ -116,7 +116,7 @@ class BackendService {
         println(userList)
         for(user in userList){
             val jsonBodyGet = sendGet(
-                "http://${GlobalVars().getIp()}/groups/1/users/${user.getId()}/expenses"
+                "http://${GlobalVars.serverIp}/groups/1/users/${user.getId()}/expenses"
             )
             val listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
             var sumForUser: Int = 0
@@ -137,7 +137,7 @@ class BackendService {
         StrictMode.setThreadPolicy(policy)
 
         val jsonBodyGet = sendGet(
-            "http://${GlobalVars().getIp()}/groups/1/expenses"
+            "http://${GlobalVars.serverIp}/groups/1/expenses"
         )
 
         return jsonArrayToExpenses(jsonBodyGet).filter { it.getAmount() > 0 }
