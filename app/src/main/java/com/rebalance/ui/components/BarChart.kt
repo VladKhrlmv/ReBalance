@@ -16,6 +16,7 @@ import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.rebalance.R
+import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.service.BackendService
 import com.rebalance.backend.service.BarChartData
 import com.rebalance.ui.theme.blackColor
@@ -24,7 +25,9 @@ import com.rebalance.ui.theme.redColor
 import java.text.DecimalFormat
 
 @Composable
-fun BarChart() {
+fun BarChart(
+    data: List<BarChartData>
+) {
     Column(
         modifier = Modifier
             .padding(18.dp)
@@ -32,7 +35,7 @@ fun BarChart() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
-        Crossfade(targetState = BackendService().getGroupVisualBarChart()) { barChartData ->
+        Crossfade(targetState = data) { barChartData ->
             AndroidView(factory = { context ->
                 HorizontalBarChart(context).apply {
                     layoutParams = LinearLayout.LayoutParams(

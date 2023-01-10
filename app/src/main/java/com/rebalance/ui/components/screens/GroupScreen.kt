@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.service.BackendService
+import com.rebalance.backend.service.BarChartData
 import com.rebalance.ui.components.BarChart
 
 @Composable
@@ -35,8 +36,6 @@ fun GroupScreen() {
         modifier = Modifier
             .fillMaxSize()
     ) {
-        // BarChart() // TODO: fix
-
         // top tabs
         DisplayTabs(tabItems, selectedTabIndex) { tabIndex ->
             selectedTabIndex = tabIndex
@@ -48,7 +47,7 @@ fun GroupScreen() {
                 .fillMaxSize()
         ) {
             if (selectedTabIndex == 0) { // if visual tab
-                DisplayVisual()
+                DisplayVisual(BackendService().getGroupVisualBarChart())
             } else { // if list tab
                 DisplayList(BackendService().getGroupList())
             }
@@ -78,7 +77,9 @@ private fun DisplayTabs(
 }
 
 @Composable
-private fun DisplayVisual() {
+private fun DisplayVisual(
+    data: List<BarChartData>
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -94,7 +95,7 @@ private fun DisplayVisual() {
                 .align(Alignment.CenterHorizontally),
             contentAlignment = Center
         ) {
-            BarChart()
+            BarChart(data)
         }
 
         Text(
@@ -125,7 +126,7 @@ private fun DisplayVisual() {
 
 @Composable
 private fun DisplayList(
-    list: List<Expense>
+    data: List<Expense>
 ) {
     Box(
         modifier = Modifier
@@ -138,7 +139,7 @@ private fun DisplayList(
                 .padding(10.dp),
             verticalArrangement = Arrangement.Top
         ) {
-            items(items = list, itemContent = { item ->
+            items(items = data, itemContent = { item ->
                 Row(
                     modifier = Modifier
                         .padding(10.dp)
