@@ -1,5 +1,9 @@
 package com.rebalance.backend.service
 
+import android.os.StrictMode
+import com.rebalance.backend.GlobalVars
+import com.rebalance.backend.api.jsonArrayToExpenses
+import com.rebalance.backend.api.sendGet
 import com.rebalance.backend.entities.Expense
 import java.time.LocalDate
 import kotlin.collections.ArrayList
@@ -47,14 +51,30 @@ class BackendService {
         return list
     }
 
-    /** Returns list of expenses **/
-    fun getPersonal(scale: String, date: LocalDate, sumUp: Boolean): List<Expense> {
-        val list = ArrayList<Expense>()
+    /** Returns list of expenses grouped by category **/
+    fun getPersonal(scale: String, date: LocalDate): List<ExpenseItem> {
+        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+        StrictMode.setThreadPolicy(policy)
 
-        //TODO: get using requests
-        //TODO: sum up by category if specified
-        for (i in 0..50) {
-            list.add(Expense(i.toLong(), i*i, date, scale, -1))
+        val list = ArrayList<ExpenseItem>()
+
+        val jsonBodyGet = sendGet(
+            "http://${GlobalVars().getIp()}/groups/2/expenses"
+        )
+        val listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
+        val categoryMap: HashMap<String, ExpenseItem> = HashMap()
+        listExpense.forEach { entry ->
+            if (categoryMap.containsKey(entry.getCategory())) {
+                var item = categoryMap.getValue(entry.getCategory())
+                item.amount = item.amount + entry.getAmount()
+                item.expenses.add(entry)
+                categoryMap[entry.getCategory()] = item
+            } else {
+                categoryMap[entry.getCategory()] = ExpenseItem(entry)
+            }
+        }
+        for (entry in categoryMap.values) {
+            list.add(entry)
         }
 
         return list
@@ -95,7 +115,7 @@ class BackendService {
         //TODO: get using requests
         //TODO: sum up by category if specified
         for (i in 10..29) {
-            list.add(Expense(i.toLong(), i*i, LocalDate.parse("2022-01-$i"), "Item $i", -1))
+            /*list.add(Expense(i.toLong(), i*i, LocalDate.parse("2022-01-$i"), "Item $i", -1))*/
         }
 
         return list
@@ -103,6 +123,7 @@ class BackendService {
     //endregion
 }
 
+//region Personal screen scale
 /** Item used for changing scales on personal screen (vertical navigation) **/
 data class ScaleItem (
     val type: String,
@@ -114,7 +135,9 @@ data class ScaledDateItem (
     val name: String,
     val date: LocalDate
 )
+//endregion
 
+//region Add spending screen
 //TODO: change to ApplicationUser
 data class DummyGroupMember(
     var name: String
@@ -125,3 +148,29 @@ data class DummyGroup (
     var name: String,
     var memberList: List<DummyGroupMember>
 )
+//endregion
+
+//region Personal and Group screen
+data class ExpenseItem (
+    var category: String,
+    var amount: Double,
+    var expenses: ArrayList<Expense>
+) {
+    constructor(expense: Expense) : this(expense.getCategory(), expense.getAmount().toDouble(), arrayListOf(expense))
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as ExpenseItem
+
+        if (category != other.category) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return category.hashCode()
+    }
+}
+//endregion
