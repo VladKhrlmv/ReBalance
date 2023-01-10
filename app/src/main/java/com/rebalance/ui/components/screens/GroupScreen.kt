@@ -1,5 +1,7 @@
 package com.rebalance.ui.components.screens
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,7 +25,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rebalance.DummyBackend
 import com.rebalance.DummyItemValue
+import com.rebalance.ui.components.BarChart
 
+@RequiresApi(Build.VERSION_CODES.N)
 @Composable
 fun GroupScreen() {
     // initialize tabs
@@ -76,6 +80,7 @@ private fun DisplayTabs(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.N)
 @Composable
 private fun DisplayVisual() {
     Column(
@@ -90,11 +95,10 @@ private fun DisplayVisual() {
             modifier = Modifier
                 .width(200.dp)
                 .height(400.dp)
-                .background(Color.Yellow)
                 .align(Alignment.CenterHorizontally),
             contentAlignment = Center
         ) {
-            Text(text = "Bars")
+            BarChart()
         }
 
         Text(
@@ -151,6 +155,7 @@ private fun DisplayList(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.N)
 @Preview
 @Composable
 private fun DefaultPreview() {
