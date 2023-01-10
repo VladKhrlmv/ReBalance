@@ -15,6 +15,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -39,8 +40,7 @@ val costValueRegex = """^\d{0,12}[.,]?\d{0,2}${'$'}""".toRegex()
 @Composable
 fun AddSpendingScreen() {
     var spendingName by remember { mutableStateOf(TextFieldValue()) }
-    var expandedDropdownCategory by remember { mutableStateOf(false) }
-    var selectedCategory by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf(TextFieldValue()) }
     var costValue by remember { mutableStateOf(TextFieldValue()) }
     var isGroupExpense by remember { mutableStateOf(false) }
     var expandedDropdownGroups by remember { mutableStateOf(false) }
@@ -68,7 +68,12 @@ fun AddSpendingScreen() {
                     .align(Alignment.CenterEnd)
             ) {
                 Button(
-                    onClick = { },
+                    onClick = {
+                        spendingName = TextFieldValue("")
+                        costValue = TextFieldValue("")
+                        selectedCategory = TextFieldValue("")
+                        isGroupExpense = false
+                    },
                     modifier = Modifier
                         .padding(1.dp)
                 ) {
@@ -78,22 +83,46 @@ fun AddSpendingScreen() {
                     onClick = {
                         Thread {
                             try {
-                                var jsonBodyPOST = sendPost(
-                                    "http://${GlobalVars().getIp()}/expenses/user/${GlobalVars().user.getId()}/group/1",
-                                    Gson().toJson(
-                                        Expense(
-                                            costValue.text.toInt(),
-                                            LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
-                                            selectedCategory,
-                                            spendingName.text
+                                if (isGroupExpense) {
+                                    var jsonBodyPOST = sendPost(
+                                        "http://${GlobalVars().getIp()}/expenses/user/${GlobalVars().user.getId()}/group/1",
+                                        Gson().toJson(
+                                            Expense(
+                                                (costValue.text.toFloat() * 100).toInt(),
+                                                LocalDate.now()
+                                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                                                selectedCategory.text,
+                                                spendingName.text
+                                            )
                                         )
                                     )
-                                )
-                                println(jsonBodyPOST)
+                                    println(jsonBodyPOST)
+                                } else {
+                                    var jsonBodyPOST = sendPost(
+                                        "http://${GlobalVars().getIp()}/expenses/user/${GlobalVars().user.getId()}/group/2",
+                                        Gson().toJson(
+                                            Expense(
+                                                (costValue.text.toFloat() * 100).toInt(),
+                                                LocalDate.now()
+                                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                                                selectedCategory.text,
+                                                spendingName.text
+                                            )
+                                        )
+                                    )
+                                    println(jsonBodyPOST)
+                                }
                             } catch (e: Exception) {
                                 print(e.stackTrace)
                             }
                         }.start()
+                        val currTime: Long = System.currentTimeMillis();
+                        while(System.currentTimeMillis() < currTime + 50){
+                        }
+                        spendingName = TextFieldValue("")
+                        costValue = TextFieldValue("")
+                        selectedCategory = TextFieldValue("")
+                        isGroupExpense = false
                     },
                     modifier = Modifier
                         .padding(1.dp)
@@ -110,48 +139,16 @@ fun AddSpendingScreen() {
                 .padding(10.dp)
                 .fillMaxWidth()
         )
-        ExposedDropdownMenuBox(
-            expanded = expandedDropdownCategory,
-            onExpandedChange = {
-                expandedDropdownCategory = !expandedDropdownCategory
+        TextField(
+            value = selectedCategory,
+            onValueChange = { selectedCategory = it },
+            label = {
+                Text(text = "Category")
             },
             modifier = Modifier
-                .padding(10.dp)
                 .fillMaxWidth()
-        ) {
-            TextField(
-                value = selectedCategory,
-                onValueChange = { },
-                readOnly = true,
-                label = {
-                    Text(text = "Category")
-                },
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(
-                        expanded = expandedDropdownCategory
-                    )
-                },
-                colors = ExposedDropdownMenuDefaults.textFieldColors(),
-                modifier = Modifier
-                    .fillMaxWidth()
-            )
-            ExposedDropdownMenu(
-                expanded = expandedDropdownCategory,
-                onDismissRequest = { expandedDropdownCategory = false }
-            ) {
-                DropdownMenuItem(onClick = {
-                    selectedCategory = "Sport"; expandedDropdownCategory = false
-                }) {
-                    // icon can be placed before text
-                    Text(text = "Sport")
-                }
-                DropdownMenuItem(onClick = {
-                    selectedCategory = "Clothing"; expandedDropdownCategory = false
-                }) {
-                    Text(text = "Clothing")
-                }
-            }
-        }
+                .padding(10.dp)
+        )
         TextField(
             value = costValue,
             onValueChange = { newCostValue ->

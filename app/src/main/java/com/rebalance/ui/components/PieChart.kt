@@ -48,13 +48,14 @@ fun getPieChartData(): ArrayList<PieChartData> {
     var categoryMap: HashMap<String, Int> = HashMap()
     listExpense.forEach { entry ->
         if (categoryMap.containsKey(entry.getCategory())) {
-            categoryMap[entry.getCategory()] = categoryMap.getValue(entry.getCategory()) + entry.getAmount()
+            categoryMap[entry.getCategory()] =
+                categoryMap.getValue(entry.getCategory()) + entry.getAmount()
         } else {
             categoryMap[entry.getCategory()] = entry.getAmount()
         }
     }
     for (entry in categoryMap.entries.iterator()) {
-        entries.add(PieChartData(entry.key, entry.value.toDouble()))
+        entries.add(PieChartData(entry.key, entry.value.toDouble() / 100))
     }
     //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
     return entries
