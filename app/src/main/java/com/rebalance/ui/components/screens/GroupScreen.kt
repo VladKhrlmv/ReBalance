@@ -126,7 +126,7 @@ private fun DisplayVisual(
                             .padding(10.dp)
                     )
                     Text(
-                        text = item.value.toString() + "PLN",
+                        text = item.value.toString() + " PLN",
                         fontSize = 14.sp,
                         color = Color.hsl(358f, 0.63f, 0.49f),
                         modifier = Modifier
@@ -168,7 +168,7 @@ private fun DisplayList(
                             .padding(10.dp)
                     )
                     Text(
-                        text = item.getAmount().toString() + "PLN",
+                        text = (item.getAmount()/100).toString() + " PLN",
                         fontSize = 14.sp,
                         color = Color.hsl(358f, 0.63f, 0.49f),
                         modifier = Modifier
