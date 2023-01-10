@@ -44,8 +44,6 @@ fun PersonalScreen(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        // PieChart() //TODO: fix
-
         // top tabs
         DisplayTabs(tabItems, selectedTabIndex) { tabIndex ->
             selectedTabIndex = tabIndex
