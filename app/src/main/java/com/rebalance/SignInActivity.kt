@@ -107,20 +107,20 @@ fun SignInScreen(navController: NavController) {
                             val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
                             StrictMode.setThreadPolicy(policy)
                             var user = login(
-                                "http://${GlobalVars().getIp()}/users/",
+                                "http://${GlobalVars().getIp()}/users/login",
                                 login.value,
                                 password.value
                             )
                             //todo save to global vars
                             var userByNickname =
-                                jsonToApplicationUser(sendGet("http://${GlobalVars().getIp()}/users/email/${login}"))
+                                jsonToApplicationUser(sendGet("http://${GlobalVars().getIp()}/users/email/${login.value}"))
                             println(userByNickname)
                             //todo get personal group
                             var groupsJson =
                                 sendGet("http://${GlobalVars().getIp()}/users/${userByNickname.getId()}/groups")
                             var groups = jsonArrayToExpenseGroups(groupsJson)
                             for (group in groups) {
-                                if (group.getName() == "per${login}") {
+                                if (group.getName() == "per${login.value}") {
                                     //todo save to global vars
                                 }
                             }
@@ -257,6 +257,7 @@ fun SignUpMailScreen(navController: NavController) {
     val repeatPassword = remember { mutableStateOf("") }
     val showError = remember { mutableStateOf(false) }
     val errorMessage = remember { mutableStateOf("") }
+    val pass = remember { mutableStateOf("") }
     val context = LocalContext.current
     Scaffold(
         content = { padding ->
@@ -279,26 +280,28 @@ fun SignUpMailScreen(navController: NavController) {
 
                     CustomInput("E-mail", email)
                     CustomInput("Username", username)
-                    CustomPasswordInput("Password", password)
-                    CustomPasswordInput("Repeat password", repeatPassword)
+//                    CustomPasswordInput("Password", password)
+//                    CustomPasswordInput("Repeat password", repeatPassword)
                     PrimaryButton("SIGN UP", 20.dp, onClick = {
                         try {
 //                            throw ServerException("Something went wrong, please try later")
-
+                            val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+                            StrictMode.setThreadPolicy(policy)
                             System.out.println("trying to register...")
                             var loginandpassword = register(
                                 "http://${GlobalVars().getIp()}/users",
                                 email.value,
                                 username.value
                             )
+                            pass.value = loginandpassword.getPassword()
                             println("registered!")
                             var userByNickname =
-                                jsonToApplicationUser(sendGet("http://${GlobalVars().getIp()}/users/email/${email}"))
+                                jsonToApplicationUser(sendGet("http://${GlobalVars().getIp()}/users/email/${email.value}"))
                             println(userByNickname)
                             //todo create private group for the user
                             var groupCreationResult = sendPost(
                                 "http://${GlobalVars().getIp()}/users/${userByNickname.getId()}/groups",
-                                Gson().toJson(ExpenseGroup("per${email}", "USD"))
+                                Gson().toJson(ExpenseGroup("per${email.value}", "USD"))
                             )
                             println(groupCreationResult)
 
@@ -341,13 +344,22 @@ fun SignUpMailScreen(navController: NavController) {
                             restoreState = true
                         }
                     })
-                    if (showError.value) ContextCompat.getMainExecutor(context).execute {
-                        Toast.makeText(
-                            context,
-                            errorMessage.value,
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+                    if (showError.value)
+                        ContextCompat.getMainExecutor(context).execute {
+                            Toast.makeText(
+                                context,
+                                errorMessage.value,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    else
+                        ContextCompat.getMainExecutor(context).execute {
+                            Toast.makeText(
+                                context,
+                                pass.value,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     showError.value = false
                 }
 
