@@ -62,7 +62,7 @@ class BackendService {
         val list = ArrayList<ExpenseItem>()
 
         val jsonBodyGet = sendGet(
-            "http://${GlobalVars.serverIp}/groups/2/expenses"
+            "http://${GlobalVars.serverIp}/groups/${GlobalVars.group.getId()}/expenses"
         )
         val listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
         val categoryMap: HashMap<String, ExpenseItem> = HashMap()
@@ -108,19 +108,21 @@ class BackendService {
         val entries = ArrayList<BarChartData>()
 
         val jsonBodyGetUsersFromGroup = sendGet(
+            //todo change to group choice
             "http://${GlobalVars.serverIp}/groups/1/users"
         )
         val userExpenseMap: HashMap<String, Int> = HashMap()
 
         val userList = jsonArrayToApplicationUsers(jsonBodyGetUsersFromGroup)
         println(userList)
-        for(user in userList){
+        for (user in userList) {
             val jsonBodyGet = sendGet(
+                //todo change to group choice
                 "http://${GlobalVars.serverIp}/groups/1/users/${user.getId()}/expenses"
             )
             val listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
             var sumForUser: Int = 0
-            for(expense in listExpense){
+            for (expense in listExpense) {
                 sumForUser += expense.getAmount()
             }
             userExpenseMap[user.getUsername()] = sumForUser
@@ -137,6 +139,7 @@ class BackendService {
         StrictMode.setThreadPolicy(policy)
 
         val jsonBodyGet = sendGet(
+            //todo change to group choose
             "http://${GlobalVars.serverIp}/groups/1/expenses"
         )
 
@@ -147,23 +150,27 @@ class BackendService {
 
 //region Personal screen
 /** Item used for changing scales on personal screen (vertical navigation) **/
-data class ScaleItem (
+data class ScaleItem(
     val type: String,
     val name: String
 )
 
 /** Item used for selecting scaled date on personal screen (horizontal navigation) **/
-data class ScaledDateItem (
+data class ScaledDateItem(
     val name: String,
     val date: LocalDate
 )
 
-data class ExpenseItem (
+data class ExpenseItem(
     var text: String,
     var amount: Double,
     var expenses: ArrayList<Expense>
 ) {
-    constructor(expense: Expense) : this(expense.getCategory(), expense.getAmount().toDouble(), arrayListOf(expense))
+    constructor(expense: Expense) : this(
+        expense.getCategory(),
+        expense.getAmount().toDouble(),
+        arrayListOf(expense)
+    )
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -183,7 +190,7 @@ data class ExpenseItem (
 //endregion
 
 //region Group screen
-data class BarChartData (
+data class BarChartData(
     var debtor: String,
     var value: Double
 )
