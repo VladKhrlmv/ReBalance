@@ -1,7 +1,5 @@
 package com.rebalance.ui.components.screens
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -23,11 +21,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rebalance.DummyBackend
-import com.rebalance.DummyItemValue
+import com.rebalance.backend.entities.Expense
+import com.rebalance.backend.service.BackendService
+import com.rebalance.backend.service.BarChartData
 import com.rebalance.ui.components.BarChart
 
-@RequiresApi(Build.VERSION_CODES.N)
 @Composable
 fun GroupScreen() {
     // initialize tabs
@@ -38,8 +36,6 @@ fun GroupScreen() {
         modifier = Modifier
             .fillMaxSize()
     ) {
-        // BarChart() // TODO: fix
-
         // top tabs
         DisplayTabs(tabItems, selectedTabIndex) { tabIndex ->
             selectedTabIndex = tabIndex
@@ -51,9 +47,9 @@ fun GroupScreen() {
                 .fillMaxSize()
         ) {
             if (selectedTabIndex == 0) { // if visual tab
-                DisplayVisual()
+                DisplayVisual(BackendService().getGroupVisualBarChart())
             } else { // if list tab
-                DisplayList(DummyBackend().getGroup())
+                DisplayList(BackendService().getGroupList())
             }
         }
     }
@@ -80,9 +76,10 @@ private fun DisplayTabs(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.N)
 @Composable
-private fun DisplayVisual() {
+private fun DisplayVisual(
+    data: List<BarChartData>
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -91,14 +88,14 @@ private fun DisplayVisual() {
                 flingBehavior = null // TODO: disable
             )
     ) {
-        Box( // TODO: change to bar chart
+        Box(
             modifier = Modifier
                 .width(200.dp)
                 .height(400.dp)
                 .align(Alignment.CenterHorizontally),
             contentAlignment = Center
         ) {
-            BarChart()
+            BarChart(data)
         }
 
         Text(
@@ -108,20 +105,34 @@ private fun DisplayVisual() {
                 .padding(20.dp, 20.dp, 0.dp, 20.dp)
         )
 
-        Column( // TODO: change to list of dropdowns
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(10.dp),
             verticalArrangement = Arrangement.Top
         ) {
-            repeat(10) { item ->
-                Text(
-                    text = "Item $item",
+            for (item in data) {
+                Row(
                     modifier = Modifier
-                        .padding(bottom = 10.dp)
-                        .background(Color.Blue),
-                    fontSize = 19.sp
-                )
+                        .padding(10.dp)
+                        .background(Color.LightGray)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = item.debtor,
+                        fontSize = 14.sp,
+                        modifier = Modifier
+                            .padding(10.dp)
+                    )
+                    Text(
+                        text = item.value.toString() + " PLN",
+                        fontSize = 14.sp,
+                        color = Color.hsl(358f, 0.63f, 0.49f),
+                        modifier = Modifier
+                            .padding(10.dp)
+                    )
+                }
             }
         }
     }
@@ -129,33 +140,46 @@ private fun DisplayVisual() {
 
 @Composable
 private fun DisplayList(
-    list: List<DummyItemValue>
+    data: List<Expense>
 ) {
     Box(
         modifier = Modifier
             .fillMaxSize(),
         contentAlignment = Center
     ) {
-        LazyColumn( // TODO: change it to lazy list of spendings
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(10.dp),
             verticalArrangement = Arrangement.Top
         ) {
-            items(items = list, itemContent = { item ->
-                Text(
-                    text = "Item ${item.name}",
+            items(items = data, itemContent = { item ->
+                Row(
                     modifier = Modifier
-                        .padding(bottom = 10.dp)
-                        .background(Color.Blue),
-                    fontSize = 19.sp
-                )
+                        .padding(10.dp)
+                        .background(Color.LightGray)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = item.getDescription(),
+                        fontSize = 14.sp,
+                        modifier = Modifier
+                            .padding(10.dp)
+                    )
+                    Text(
+                        text = (item.getAmount()/100).toString() + " PLN",
+                        fontSize = 14.sp,
+                        color = Color.hsl(358f, 0.63f, 0.49f),
+                        modifier = Modifier
+                            .padding(10.dp)
+                    )
+                }
             })
         }
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.N)
 @Preview
 @Composable
 private fun DefaultPreview() {

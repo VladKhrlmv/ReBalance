@@ -7,7 +7,6 @@ import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
 
-@RequiresApi(Build.VERSION_CODES.N)
 fun sendGet(toWhere: String) : String {
     var res = ""
     val url = URL(toWhere)
@@ -24,7 +23,6 @@ fun sendGet(toWhere: String) : String {
     return res
 }
 
-@RequiresApi(Build.VERSION_CODES.N)
 fun sendPost(toWhere: String, requestBody: String) : String {
     var res = ""
     val url = URL(toWhere)
@@ -46,7 +44,6 @@ fun sendPost(toWhere: String, requestBody: String) : String {
     return res
 }
 
-@RequiresApi(Build.VERSION_CODES.N)
 fun sendPut(toWhere: String, requestBody: String) : String {
     var res = ""
     val url = URL(toWhere)
@@ -68,7 +65,6 @@ fun sendPut(toWhere: String, requestBody: String) : String {
     return res
 }
 
-@RequiresApi(Build.VERSION_CODES.N)
 fun sendDelete(toWhere: String) : String {
     var res = ""
     val url = URL(toWhere)

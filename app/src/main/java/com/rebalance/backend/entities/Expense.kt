@@ -1,7 +1,5 @@
 package com.rebalance.backend.entities
 
-import android.os.Build
-
 class Expense {
 
     private var id: Long = -1

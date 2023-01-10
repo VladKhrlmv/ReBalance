@@ -2,9 +2,7 @@ package com.rebalance.ui.components.screens
 
 import android.annotation.SuppressLint
 import android.graphics.Typeface
-import android.os.Build
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -24,19 +22,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.google.gson.Gson
-import com.rebalance.DummyBackend
 import com.rebalance.backend.GlobalVars
 import com.rebalance.backend.api.sendPost
 import com.rebalance.backend.entities.ApplicationUser
 import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.entities.ExpenseGroup
+import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.components.DatePickerField
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 val costValueRegex = """^\d{0,12}[.,]?\d{0,2}${'$'}""".toRegex()
 
-@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -88,11 +85,11 @@ fun AddSpendingScreen() {
                         Thread {
                             try {
                                 if (isGroupExpense) {
-                                    var activeMembers =
+                                    val activeMembers =
                                         membersSelection.filterValues { flag -> flag }
                                     for (member in activeMembers) {
-                                        var jsonBodyPOST = sendPost(
-                                            "http://${GlobalVars().getIp()}/expenses/user/${member.key.getId()}/group/${groupId}",
+                                        val jsonBodyPOST = sendPost(
+                                            "http://${GlobalVars.serverIp}/expenses/user/${member.key.getId()}/group/${groupId}",
                                             Gson().toJson(
                                                 Expense(
                                                     (costValue.text.toDouble() / activeMembers.size * 100 * -1).toInt(),
@@ -105,8 +102,8 @@ fun AddSpendingScreen() {
                                         )
                                         println(jsonBodyPOST)
                                     }
-                                    var jsonBodyPOST = sendPost(
-                                        "http://${GlobalVars().getIp()}/expenses/user/${GlobalVars().user.getId()}/group/${groupId}",
+                                    val jsonBodyPOST = sendPost(
+                                        "http://${GlobalVars.serverIp}/expenses/user/${GlobalVars.user.getId()}/group/${groupId}",
                                         Gson().toJson(
                                             Expense(
                                                 (costValue.text.toFloat() * 100).toInt(),
@@ -119,9 +116,9 @@ fun AddSpendingScreen() {
                                     )
                                     println(jsonBodyPOST)
                                 } else {
-                                    var jsonBodyPOST = sendPost(
-                                        "http://${GlobalVars().getIp()}/expenses/user/${GlobalVars().user.getId()}/group/${
-                                            GlobalVars().getPersonalGroup().getId()
+                                    val jsonBodyPOST = sendPost(
+                                        "http://${GlobalVars.serverIp}/expenses/user/${GlobalVars.user.getId()}/group/${
+                                            GlobalVars.group.getId()
                                         }",
                                         Gson().toJson(
                                             Expense(
@@ -154,9 +151,8 @@ fun AddSpendingScreen() {
                             }
                         }.start()
                         //todo sleep
-                        val currTime: Long = System.currentTimeMillis();
-                        while (System.currentTimeMillis() < currTime + 50) {
-                        }
+//                        val currTime: Long = System.currentTimeMillis()
+//                        }
 //                        spendingName = TextFieldValue("")
 //                        costValue = TextFieldValue("")
 //                        selectedCategory = TextFieldValue("")
@@ -222,7 +218,7 @@ fun AddSpendingScreen() {
                 checked = isGroupExpense,
                 onCheckedChange = {
                     isGroupExpense = it
-                    groupList = DummyBackend().getGroups()
+                    groupList = BackendService().getGroups()
                 },
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
@@ -234,7 +230,7 @@ fun AddSpendingScreen() {
                     .fillMaxWidth()
                     .clickable {
                         isGroupExpense = !isGroupExpense
-                        groupList = DummyBackend().getGroups()
+                        groupList = BackendService().getGroups()
                     }
             )
         }

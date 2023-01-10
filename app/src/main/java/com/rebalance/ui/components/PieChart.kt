@@ -1,12 +1,8 @@
 package com.rebalance.ui.components
 
 import android.graphics.Typeface
-import android.os.Build
-import android.os.StrictMode
-import android.os.StrictMode.ThreadPolicy
 import android.view.ViewGroup
 import android.widget.LinearLayout
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.Composable
@@ -22,56 +18,21 @@ import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.rebalance.R
-import com.rebalance.backend.GlobalVars
-import com.rebalance.backend.api.jsonArrayToExpenses
-import com.rebalance.backend.api.sendGet
-import com.rebalance.backend.entities.Expense
+import com.rebalance.backend.service.ExpenseItem
 import com.rebalance.ui.theme.categoryColor
-import com.rebalance.ui.theme.greyColor
 import com.rebalance.ui.theme.redColor
 import java.text.DecimalFormat
 
-
-data class PieChartData(var category: String, var value: Double)
-
-@RequiresApi(Build.VERSION_CODES.N)
-fun getPieChartData(): ArrayList<PieChartData> {
-    val policy = ThreadPolicy.Builder().permitAll().build()
-    StrictMode.setThreadPolicy(policy)
-    var entries = ArrayList<PieChartData>()
-
-    var jsonBodyGet = sendGet(
-        "http://${GlobalVars().getIp()}/groups/2/expenses"
-    )
-    var listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
-    println(listExpense)
-    var categoryMap: HashMap<String, Int> = HashMap()
-    listExpense.forEach { entry ->
-        if (categoryMap.containsKey(entry.getCategory())) {
-            categoryMap[entry.getCategory()] =
-                categoryMap.getValue(entry.getCategory()) + entry.getAmount()
-        } else {
-            categoryMap[entry.getCategory()] = entry.getAmount()
-        }
-    }
-    for (entry in categoryMap.entries.iterator()) {
-        entries.add(PieChartData(entry.key, entry.value.toDouble() / 100))
-    }
-    //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
-    return entries
-}
-
-@RequiresApi(Build.VERSION_CODES.N)
 @Composable
-fun PieChart() {
+fun PieChart(data: List<ExpenseItem>) {
     Column(
         modifier = Modifier
             .padding(18.dp)
-            .size(320.dp),
+            .size(300.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Crossfade(targetState = getPieChartData()) { pieChartData ->
+        Crossfade(targetState = data) { pieChartData ->
             AndroidView(factory = { context ->
                 PieChart(context).apply {
                     layoutParams = LinearLayout.LayoutParams(
@@ -98,16 +59,15 @@ fun PieChart() {
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.N)
 fun updatePieChartWithData(
     chart: PieChart,
-    data: List<PieChartData>
+    data: List<ExpenseItem>
 ) {
     val entries = ArrayList<PieEntry>()
 
     for (i in data.indices) {
         val item = data[i]
-        entries.add(PieEntry(item.value.toFloat(), item.category))
+        entries.add(PieEntry(item.amount.toFloat(), item.text))
     }
 
     val ds = PieDataSet(entries, "")
@@ -141,6 +101,6 @@ fun updatePieChartWithData(
     ds.valueTypeface = Typeface.DEFAULT_BOLD
     val d = PieData(ds)
     chart.data = d
-    chart.centerText = String.format("%.2f", data.sumOf { it.value })
+    chart.centerText = String.format("%.2f", data.sumOf { it.amount })
     chart.invalidate()
 }
