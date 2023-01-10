@@ -6,7 +6,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.*
@@ -16,7 +15,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.Center
-import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithContent
@@ -25,11 +23,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rebalance.*
+import com.rebalance.backend.entities.Expense
+import com.rebalance.backend.service.BackendService
+import com.rebalance.backend.service.ScaleItem
+import com.rebalance.backend.service.ScaledDateItem
 import com.rebalance.R
 import com.rebalance.ui.components.PieChart
 
@@ -39,11 +40,11 @@ fun PersonalScreen(
     pieChartActive: Boolean
 ) {
     // initialize scale variables
-    val scaleItems = DummyBackend().getScale() // list of scales
+    val scaleItems = BackendService().getScaleItems() // list of scales
     var selectedScaleIndex by rememberSaveable { mutableStateOf(0) } // selected index of scale
 
     // initialize tabs
-    val tabItems = rememberSaveable { mutableListOf<DummyItem>() } // list of tabs
+    val tabItems = rememberSaveable { mutableListOf<ScaledDateItem>() } // list of tabs
     updateTabItems(tabItems, scaleItems[selectedScaleIndex].type)
     var selectedTabIndex by rememberSaveable { mutableStateOf(tabItems.size - 1) } // selected index of tab
 
@@ -68,8 +69,8 @@ fun PersonalScreen(
                 DisplayPieChart(tabItems[selectedTabIndex].name)
             } else {
                 DisplayList(
-                    scaleButtonWidth, scaleButtonPadding, DummyBackend().getPersonal(
-                        scaleItems[selectedScaleIndex].type, tabItems[selectedTabIndex].date
+                    scaleButtonWidth, scaleButtonPadding, BackendService().getPersonal(
+                        scaleItems[selectedScaleIndex].type, tabItems[selectedTabIndex].date, false
                     )
                 )
             }
@@ -89,7 +90,7 @@ fun PersonalScreen(
 
 @Composable
 private fun DisplayTabs(
-    tabs: List<DummyItem>,
+    tabs: List<ScaledDateItem>,
     selectedTabIndex: Int,
     onTabClick: (Int) -> Unit
 ) {
@@ -113,7 +114,7 @@ private fun DisplayTabs(
 
 @Composable
 private fun DisplayScaleButtons(
-    scaleItems: List<DummyScaleItem>,
+    scaleItems: List<ScaleItem>,
     selectedScaleIndex: Int,
     scaleButtonWidth: Int,
     scaleButtonPadding: Int,
@@ -172,7 +173,7 @@ private fun DisplayPieChart(
 private fun DisplayList(
     scaleButtonWidth: Int,
     scaleButtonPadding: Int,
-    list: List<DummyItemValue>
+    list: List<Expense>
 ) {
     Box(
         modifier = Modifier
@@ -187,7 +188,7 @@ private fun DisplayList(
         ) {
             items(items = list, itemContent = { item ->
                 Text(
-                    text = "Item ${item.name}",
+                    text = "Item ${item.getDescription()}",
                     modifier = Modifier
                         .padding(bottom = 10.dp)
                         .background(Color.Blue),
@@ -199,11 +200,11 @@ private fun DisplayList(
 }
 
 private fun updateTabItems(
-    tabItems: MutableList<DummyItem>,
-    type: DummyScale
+    tabItems: MutableList<ScaledDateItem>,
+    type: String
 ) {
     tabItems.clear()
-    tabItems.addAll(DummyBackend().getValues(type))
+    tabItems.addAll(BackendService().getScaledDateItems(type))
 }
 
 @RequiresApi(Build.VERSION_CODES.N)
@@ -211,67 +212,4 @@ private fun updateTabItems(
 @Composable
 private fun DefaultPreview() {
     PersonalScreen(false)
-}
-
-
-// -------------------- sample code for lazy rows --------------------
-
-//@Preview
-//@Composable
-//fun LazyRowPreview(){
-//    LazyRowMain();
-//}
-
-@Composable
-fun LazyRowMain() {
-    LazyRowExample(list = DummyBackend().getValues(DummyScale.Year))
-}
-
-@Composable
-fun LazyRowExample(list: List<DummyItem>) {
-    // implement LazyRow
-    LazyRow(
-        contentPadding = PaddingValues(4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-        modifier = Modifier.fillMaxSize(1F)
-    ) {
-        // display items horizontally
-        items(items = list, itemContent = { item ->
-            ListItem(item = item)
-        })
-    }
-}
-
-
-@Composable
-fun ListItem(item: DummyItem) {
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(4.dp)
-            .height(60.dp)
-            .background(color = Color.Gray)
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 8.dp)
-                .fillMaxWidth()
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                contentDescription = "user icon",
-                modifier = Modifier
-                    .padding(horizontal = 8.dp)
-                    .align(CenterVertically)
-            )
-            Text(
-                modifier = Modifier
-                    .padding(horizontal = 16.dp)
-                    .align(CenterVertically),
-                text = item.name,
-                color = Color.White,
-                fontSize = 16.sp
-            )
-        }
-    }
 }
