@@ -1,7 +1,5 @@
 package com.rebalance.ui.components.screens
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -27,7 +25,6 @@ import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.components.BarChart
 
-@RequiresApi(Build.VERSION_CODES.N)
 @Composable
 fun GroupScreen() {
     // initialize tabs
@@ -53,7 +50,7 @@ fun GroupScreen() {
             if (selectedTabIndex == 0) { // if visual tab
                 DisplayVisual()
             } else { // if list tab
-                DisplayList(BackendService().getGroup())
+                DisplayList(BackendService().getGroupList())
             }
         }
     }
@@ -80,7 +77,6 @@ private fun DisplayTabs(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.N)
 @Composable
 private fun DisplayVisual() {
     Column(
@@ -143,19 +139,32 @@ private fun DisplayList(
             verticalArrangement = Arrangement.Top
         ) {
             items(items = list, itemContent = { item ->
-                Text(
-                    text = "Item ${item.getDescription()}",
+                Row(
                     modifier = Modifier
-                        .padding(bottom = 10.dp)
-                        .background(Color.Blue),
-                    fontSize = 19.sp
-                )
+                        .padding(10.dp)
+                        .background(Color.LightGray)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = item.getDescription(),
+                        fontSize = 14.sp,
+                        modifier = Modifier
+                            .padding(10.dp)
+                    )
+                    Text(
+                        text = item.getAmount().toString() + "PLN",
+                        fontSize = 14.sp,
+                        color = Color.hsl(358f, 0.63f, 0.49f),
+                        modifier = Modifier
+                            .padding(10.dp)
+                    )
+                }
             })
         }
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.N)
 @Preview
 @Composable
 private fun DefaultPreview() {
