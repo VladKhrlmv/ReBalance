@@ -1,9 +1,6 @@
 package com.rebalance.ui.components.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -11,6 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.Center
+import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.geometry.Offset
@@ -20,11 +18,11 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.rebalance.backend.service.BackendService
 import com.rebalance.backend.service.ExpenseItem
 import com.rebalance.backend.service.ScaleItem
 import com.rebalance.backend.service.ScaledDateItem
+import com.rebalance.ui.components.ExpandableList
 import com.rebalance.ui.components.PieChart
 
 @Composable
@@ -171,23 +169,9 @@ private fun DisplayList(
         modifier = Modifier
             .fillMaxSize()
             .padding((scaleButtonWidth + scaleButtonPadding).dp, 0.dp, 0.dp, 0.dp),
-        contentAlignment = Center
+        contentAlignment = TopCenter
     ) {
-        LazyColumn( // TODO: change it to lazy list of spendings
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(10.dp), verticalArrangement = Arrangement.Top
-        ) {
-            items(items = data, itemContent = { item ->
-                Text(
-                    text = "Item ${item.category} with ${item.amount}",
-                    modifier = Modifier
-                        .padding(bottom = 10.dp)
-                        .background(Color.Blue),
-                    fontSize = 19.sp
-                )
-            })
-        }
+        ExpandableList(items = data)
     }
 }
 
