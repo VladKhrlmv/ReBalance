@@ -32,9 +32,10 @@ import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.google.gson.Gson
 import com.rebalance.backend.GlobalVars
-import com.rebalance.backend.api.login
-import com.rebalance.backend.api.register
+import com.rebalance.backend.api.*
+import com.rebalance.backend.entities.ExpenseGroup
 import com.rebalance.backend.exceptions.FailedLoginException
 import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.ui.components.screens.navigation.ScreenNavigation
@@ -58,9 +59,11 @@ fun MainSignInScreen() {
     val navController = rememberNavController()
     Scaffold(
         // TODO: Make piechart parameter optional
-        topBar = { com.rebalance.ui.components.TopAppBar(pieChartActive, onPieChartActiveChange = {
-            pieChartActive = !pieChartActive
-        }) },
+        topBar = {
+            com.rebalance.ui.components.TopAppBar(pieChartActive, onPieChartActiveChange = {
+                pieChartActive = !pieChartActive
+            })
+        },
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
             Box(modifier = Modifier.padding(padding)) {
                 ScreenNavigation(navController, pieChartActive)
@@ -103,7 +106,24 @@ fun SignInScreen(navController: NavController) {
                             println("trying to login...")
                             val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
                             StrictMode.setThreadPolicy(policy)
-                            var user = login("http://${GlobalVars().getIp()}/users/login", login.value, password.value)
+                            var user = login(
+                                "http://${GlobalVars().getIp()}/users/",
+                                login.value,
+                                password.value
+                            )
+                            //todo save to global vars
+                            var userByNickname =
+                                jsonToApplicationUser(sendGet("http://${GlobalVars().getIp()}/users/email/${login}"))
+                            println(userByNickname)
+                            //todo get personal group
+                            var groupsJson =
+                                sendGet("http://${GlobalVars().getIp()}/users/${userByNickname.getId()}/groups")
+                            var groups = jsonArrayToExpenseGroups(groupsJson)
+                            for (group in groups) {
+                                if (group.getName() == "per${login}") {
+                                    //todo save to global vars
+                                }
+                            }
                             println("logged in")
 
 //                            throw FailedLoginException("Invalid password for email")
@@ -266,9 +286,21 @@ fun SignUpMailScreen(navController: NavController) {
 //                            throw ServerException("Something went wrong, please try later")
 
                             System.out.println("trying to register...")
-                            var loginandpassword = register("http://${GlobalVars().getIp()}/users", email.value, username.value)
-                            System.out.println("registered!")
-
+                            var loginandpassword = register(
+                                "http://${GlobalVars().getIp()}/users",
+                                email.value,
+                                username.value
+                            )
+                            println("registered!")
+                            var userByNickname =
+                                jsonToApplicationUser(sendGet("http://${GlobalVars().getIp()}/users/email/${email}"))
+                            println(userByNickname)
+                            //todo create private group for the user
+                            var groupCreationResult = sendPost(
+                                "http://${GlobalVars().getIp()}/users/${userByNickname.getId()}/groups",
+                                Gson().toJson(ExpenseGroup("per${email}", "USD"))
+                            )
+                            println(groupCreationResult)
 
                             navController.navigate(ScreenNavigationItem.Personal.route) {
                                 // Pop up to the start destination of the graph to
@@ -352,8 +384,8 @@ fun CustomPasswordInput(label: String, textState: MutableState<String>) {
 
             val description = if (passwordVisible.value) "Hide password" else "Show password"
 
-            IconButton(onClick = {passwordVisible.value = !passwordVisible.value}){
-                Icon(imageVector  = image, description)
+            IconButton(onClick = { passwordVisible.value = !passwordVisible.value }) {
+                Icon(imageVector = image, description)
             }
         }
     )
@@ -381,7 +413,8 @@ fun SecondaryButton(label: String, paddingTop: Dp, onClick: () -> Unit) {
     TextButton(
         onClick = onClick,
         modifier = Modifier
-        .padding(top = paddingTop)) {
+            .padding(top = paddingTop)
+    ) {
         Text(
             text = label,
             fontSize = 18.sp
@@ -404,7 +437,7 @@ fun ReferenceButton(label: String, paddingTop: Dp, image: Int, onClick: () -> Un
         Box {
             Image(
                 painterResource(id = image),
-                contentDescription ="icon",
+                contentDescription = "icon",
                 modifier = Modifier
                     .size(25.dp)
             )
