@@ -32,6 +32,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.rebalance.backend.GlobalVars
 import com.rebalance.backend.api.login
+import com.rebalance.backend.api.register
 import com.rebalance.backend.exceptions.FailedLoginException
 import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.ui.components.BottomNavigationBar
@@ -254,7 +255,7 @@ fun SignUpMailScreen(navController: NavController) {
                     PrimaryButton("SIGN UP", 20.dp, onClick = {
                         try {
                             System.out.println("trying to register...")
-                            var user = login("http://${GlobalVars().getIp()}/user/login/${login.value}", login.value, password.value)
+                            var loginandpassword = register("http://${GlobalVars().getIp()}/user/login/${login.value}", email.value, login.value)
                             System.out.println("registered!")
 
 
