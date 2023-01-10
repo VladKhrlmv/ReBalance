@@ -19,8 +19,6 @@ import androidx.navigation.compose.rememberNavController
 import com.rebalance.backend.api.*
 import com.rebalance.backend.entities.LoginAndPassword
 import com.rebalance.ui.components.BottomNavigationBar
-import com.rebalance.ui.components.CardsScreen
-import com.rebalance.ui.components.CardsViewModel
 import com.rebalance.ui.components.PlusButton
 import com.rebalance.ui.components.screens.navigation.ScreenNavigation
 import com.rebalance.ui.theme.ReBalanceTheme
@@ -31,7 +29,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ReBalanceTheme {
-                CardsScreen(cardsViewModel)
+                MainScreen()
             }
         }
     }
