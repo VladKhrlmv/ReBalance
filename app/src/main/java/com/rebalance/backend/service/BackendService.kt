@@ -102,23 +102,23 @@ class BackendService {
     //endregion
 
     //region Group screen
-    fun getGroupVisualBarChart(): List<BarChartData> {
+    fun getGroupVisualBarChart(groupId: Long): List<BarChartData> {
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
         val entries = ArrayList<BarChartData>()
 
-        val jsonBodyGetUsersFromGroup = sendGet(
+        val jsonBodyGetUsersFromGroup = if (groupId == -1L)  "[]" else sendGet(
             //todo change to group choice
-            "http://${GlobalVars.serverIp}/groups/1/users"
+            "http://${GlobalVars.serverIp}/groups/${groupId}/users"
         )
         val userExpenseMap: HashMap<String, Int> = HashMap()
 
-        val userList = jsonArrayToApplicationUsers(jsonBodyGetUsersFromGroup)
+        val userList = if (groupId == -1L)  listOf() else jsonArrayToApplicationUsers(jsonBodyGetUsersFromGroup)
         println(userList)
         for (user in userList) {
             val jsonBodyGet = sendGet(
                 //todo change to group choice
-                "http://${GlobalVars.serverIp}/groups/1/users/${user.getId()}/expenses"
+                "http://${GlobalVars.serverIp}/groups/${groupId}/users/${user.getId()}/expenses"
             )
             val listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
             var sumForUser: Int = 0
@@ -134,16 +134,16 @@ class BackendService {
         return entries
     }
 
-    fun getGroupList(): List<Expense> {
+    fun getGroupList(groupId: Long): List<Expense> {
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
 
-        val jsonBodyGet = sendGet(
+        val responseGroupList = if(groupId == -1L) "[]" else sendGet(
             //todo change to group choice
-            "http://${GlobalVars.serverIp}/groups/1/expenses"
+            "http://${GlobalVars.serverIp}/groups/${groupId}/expenses"
         )
 
-        return jsonArrayToExpenses(jsonBodyGet).filter { it.getAmount() > 0 }
+        return jsonArrayToExpenses(responseGroupList).filter { it.getAmount() > 0 }
     }
     //endregion
 }

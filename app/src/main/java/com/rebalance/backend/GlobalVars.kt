@@ -11,9 +11,9 @@ class GlobalVars : Application() {
         //    var user: ApplicationUser = ApplicationUser(1, "User1", "user.1@gmail.com")
         var user: ApplicationUser = ApplicationUser(2, "User2", "user.2@gmail.com")
 
-        var serverIp: String = "192.168.197.115:8080"
+        var serverIp: String = "192.168.1.16:8080"
 
-        var group: ExpenseGroup = ExpenseGroup(2, "Personal", "PLN")
+        var group: ExpenseGroup = ExpenseGroup(3, "Personal", "PLN")
 
     }
 

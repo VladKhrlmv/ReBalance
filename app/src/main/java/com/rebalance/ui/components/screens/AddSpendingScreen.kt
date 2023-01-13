@@ -150,13 +150,6 @@ fun AddSpendingScreen() {
                                 }
                             }
                         }.start()
-                        //todo sleep
-//                        val currTime: Long = System.currentTimeMillis()
-//                        }
-//                        spendingName = TextFieldValue("")
-//                        costValue = TextFieldValue("")
-//                        selectedCategory = TextFieldValue("")
-//                        isGroupExpense = false
                     },
                     modifier = Modifier
                         .padding(1.dp)
@@ -230,7 +223,9 @@ fun AddSpendingScreen() {
                     .fillMaxWidth()
                     .clickable {
                         isGroupExpense = !isGroupExpense
-                        groupList = BackendService().getGroups()
+                        groupList = BackendService()
+                            .getGroups()
+                            .filter { group -> group.getId() != GlobalVars.group.getId() }
                     }
             )
         }
