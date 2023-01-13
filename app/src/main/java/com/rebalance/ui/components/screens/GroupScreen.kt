@@ -1,5 +1,6 @@
 package com.rebalance.ui.components.screens
 
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -18,16 +19,20 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.rebalance.Preferences
 import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.service.BackendService
 import com.rebalance.backend.service.BarChartData
 import com.rebalance.ui.components.BarChart
 
 @Composable
-fun GroupScreen() {
+fun GroupScreen(
+    context: Context
+) {
+    val preferences = rememberSaveable { Preferences(context).read() }
+
     // initialize tabs
     val tabItems = listOf("Visual", "List")
     var selectedTabIndex by rememberSaveable { mutableStateOf(0) } // selected index of tab
@@ -47,9 +52,9 @@ fun GroupScreen() {
                 .fillMaxSize()
         ) {
             if (selectedTabIndex == 0) { // if visual tab
-                DisplayVisual(BackendService().getGroupVisualBarChart())
+                DisplayVisual(BackendService(preferences).getGroupVisualBarChart())
             } else { // if list tab
-                DisplayList(BackendService().getGroupList())
+                DisplayList(BackendService(preferences).getGroupList())
             }
         }
     }
@@ -178,10 +183,4 @@ private fun DisplayList(
             })
         }
     }
-}
-
-@Preview
-@Composable
-private fun DefaultPreview() {
-    GroupScreen()
 }
