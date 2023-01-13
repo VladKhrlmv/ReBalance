@@ -1,5 +1,6 @@
 package com.rebalance.ui.components.screens.navigation
 
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -11,17 +12,18 @@ import com.rebalance.ui.components.screens.PersonalScreen
 @Composable
 fun ScreenNavigation(
     navController: NavHostController,
+    context: Context,
     pieChart: Boolean
 ) {
     NavHost(navController, startDestination = ScreenNavigationItem.Personal.route) {
         composable(ScreenNavigationItem.Personal.route) {
-            PersonalScreen(pieChart)
+            PersonalScreen(context, pieChart)
         }
         composable(ScreenNavigationItem.Group.route) {
-            GroupScreen()
+            GroupScreen(context)
         }
         composable(ScreenNavigationItem.AddSpending.route) {
-            AddSpendingScreen()
+            AddSpendingScreen(context)
         }
     }
 }

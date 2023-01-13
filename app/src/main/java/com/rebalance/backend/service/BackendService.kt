@@ -1,7 +1,7 @@
 package com.rebalance.backend.service
 
 import android.os.StrictMode
-import com.rebalance.backend.GlobalVars
+import com.rebalance.PreferencesData
 import com.rebalance.backend.api.jsonArrayToApplicationUsers
 import com.rebalance.backend.api.jsonArrayToExpenseGroups
 import com.rebalance.backend.api.jsonArrayToExpenses
@@ -11,10 +11,13 @@ import com.rebalance.backend.entities.ExpenseGroup
 import java.time.LocalDate
 import kotlin.collections.ArrayList
 
-class BackendService {
+class BackendService(
+    private val preferences: PreferencesData
+) {
     //region Personal screen
     /** Returns scale items that is scrollable vertically in personal screen (day, week, month, year) **/
     fun getScaleItems(): List<ScaleItem> {
+
         return listOf(
             ScaleItem("Day", "D"),
             ScaleItem("Week", "W"),
@@ -62,7 +65,7 @@ class BackendService {
         val list = ArrayList<ExpenseItem>()
 
         val jsonBodyGet = sendGet(
-            "http://${GlobalVars.serverIp}/groups/${GlobalVars.group.getId()}/expenses"
+            "http://${preferences.serverIp}/groups/${preferences.groupId}/expenses"
         )
         val listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
         val categoryMap: HashMap<String, ExpenseItem> = HashMap()
@@ -91,7 +94,7 @@ class BackendService {
         StrictMode.setThreadPolicy(policy)
 
         val jsonBodyGroups = sendGet(
-            "http://${GlobalVars.serverIp}/users/${GlobalVars.user.getId()}/groups"
+            "http://${preferences.serverIp}/users/${preferences.userId}/groups"
         )
         val groups: List<ExpenseGroup> = jsonArrayToExpenseGroups(jsonBodyGroups)
         println(groups)
@@ -109,7 +112,7 @@ class BackendService {
 
         val jsonBodyGetUsersFromGroup = sendGet(
             //todo change to group choice
-            "http://${GlobalVars.serverIp}/groups/1/users"
+            "http://${preferences.serverIp}/groups/1/users"
         )
         val userExpenseMap: HashMap<String, Int> = HashMap()
 
@@ -118,7 +121,7 @@ class BackendService {
         for (user in userList) {
             val jsonBodyGet = sendGet(
                 //todo change to group choice
-                "http://${GlobalVars.serverIp}/groups/1/users/${user.getId()}/expenses"
+                "http://${preferences.serverIp}/groups/1/users/${user.getId()}/expenses"
             )
             val listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
             var sumForUser: Int = 0
@@ -140,7 +143,7 @@ class BackendService {
 
         val jsonBodyGet = sendGet(
             //todo change to group choice
-            "http://${GlobalVars.serverIp}/groups/1/expenses"
+            "http://${preferences.serverIp}/groups/1/expenses"
         )
 
         return jsonArrayToExpenses(jsonBodyGet).filter { it.getAmount() > 0 }

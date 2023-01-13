@@ -1,5 +1,6 @@
 package com.rebalance.ui.components.screens
 
+import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
@@ -16,8 +17,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.rebalance.Preferences
+import com.rebalance.PreferencesData
 import com.rebalance.backend.service.BackendService
 import com.rebalance.backend.service.ExpenseItem
 import com.rebalance.backend.service.ScaleItem
@@ -27,15 +29,18 @@ import com.rebalance.ui.components.PieChart
 
 @Composable
 fun PersonalScreen(
+    context: Context,
     pieChartActive: Boolean
 ) {
+    val preferences = rememberSaveable { Preferences(context).read() }
+
     // initialize scale variables
-    val scaleItems = BackendService().getScaleItems() // list of scales
+    val scaleItems = BackendService(preferences).getScaleItems() // list of scales
     var selectedScaleIndex by rememberSaveable { mutableStateOf(0) } // selected index of scale
 
     // initialize tabs
     val tabItems = rememberSaveable { mutableListOf<ScaledDateItem>() } // list of tabs
-    updateTabItems(tabItems, scaleItems[selectedScaleIndex].type)
+    updateTabItems(preferences, tabItems, scaleItems[selectedScaleIndex].type)
     var selectedTabIndex by rememberSaveable { mutableStateOf(tabItems.size - 1) } // selected index of tab
 
     val scaleButtonWidth = 50
@@ -53,7 +58,7 @@ fun PersonalScreen(
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
-            val data = BackendService().getPersonal(
+            val data = BackendService(preferences).getPersonal(
                 scaleItems[selectedScaleIndex].type, tabItems[selectedTabIndex].date
             )
             if (pieChartActive) {
@@ -70,7 +75,7 @@ fun PersonalScreen(
             ) { scaleIndex ->
                 selectedScaleIndex = scaleIndex
 //                personalViewModel.updateTabItems(scaleItem.type)
-                updateTabItems(tabItems, scaleItems[selectedScaleIndex].type)
+                updateTabItems(preferences, tabItems, scaleItems[selectedScaleIndex].type)
                 selectedTabIndex = (tabItems.size - 1)
             }
         }
@@ -174,15 +179,10 @@ private fun DisplayList(
 }
 
 private fun updateTabItems(
+    preferences: PreferencesData,
     tabItems: MutableList<ScaledDateItem>,
     type: String
 ) {
     tabItems.clear()
-    tabItems.addAll(BackendService().getScaledDateItems(type))
-}
-
-@Preview
-@Composable
-private fun DefaultPreview() {
-    PersonalScreen(false)
+    tabItems.addAll(BackendService(preferences).getScaledDateItems(type))
 }

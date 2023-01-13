@@ -1,6 +1,7 @@
 package com.rebalance.ui.components.screens
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.Typeface
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
@@ -11,10 +12,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -22,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.google.gson.Gson
-import com.rebalance.backend.GlobalVars
+import com.rebalance.Preferences
 import com.rebalance.backend.api.sendPost
 import com.rebalance.backend.entities.ApplicationUser
 import com.rebalance.backend.entities.Expense
@@ -37,7 +38,11 @@ val costValueRegex = """^\d{0,12}[.,]?\d{0,2}${'$'}""".toRegex()
 @SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun AddSpendingScreen() {
+fun AddSpendingScreen(
+    context: Context
+) {
+    val preferences = rememberSaveable { Preferences(context).read() }
+
     var spendingName by remember { mutableStateOf(TextFieldValue()) }
     var selectedCategory by remember { mutableStateOf(TextFieldValue()) }
     var costValue by remember { mutableStateOf(TextFieldValue()) }
@@ -52,7 +57,6 @@ fun AddSpendingScreen() {
             .fillMaxSize()
             .padding(10.dp)
     ) {
-        val context = LocalContext.current
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -89,7 +93,7 @@ fun AddSpendingScreen() {
                                         membersSelection.filterValues { flag -> flag }
                                     for (member in activeMembers) {
                                         val jsonBodyPOST = sendPost(
-                                            "http://${GlobalVars.serverIp}/expenses/user/${member.key.getId()}/group/${groupId}",
+                                            "http://${preferences.serverIp}/expenses/user/${member.key.getId()}/group/${groupId}",
                                             Gson().toJson(
                                                 Expense(
                                                     (costValue.text.toDouble() / activeMembers.size * 100 * -1).toInt(),
@@ -103,7 +107,7 @@ fun AddSpendingScreen() {
                                         println(jsonBodyPOST)
                                     }
                                     val jsonBodyPOST = sendPost(
-                                        "http://${GlobalVars.serverIp}/expenses/user/${GlobalVars.user.getId()}/group/${groupId}",
+                                        "http://${preferences.serverIp}/expenses/user/${preferences.userId}/group/${groupId}",
                                         Gson().toJson(
                                             Expense(
                                                 (costValue.text.toFloat() * 100).toInt(),
@@ -117,8 +121,8 @@ fun AddSpendingScreen() {
                                     println(jsonBodyPOST)
                                 } else {
                                     val jsonBodyPOST = sendPost(
-                                        "http://${GlobalVars.serverIp}/expenses/user/${GlobalVars.user.getId()}/group/${
-                                            GlobalVars.group.getId()
+                                        "http://${preferences.serverIp}/expenses/user/${preferences.userId}/group/${
+                                            preferences.groupId
                                         }",
                                         Gson().toJson(
                                             Expense(
@@ -218,7 +222,7 @@ fun AddSpendingScreen() {
                 checked = isGroupExpense,
                 onCheckedChange = {
                     isGroupExpense = it
-                    groupList = BackendService().getGroups()
+                    groupList = BackendService(preferences).getGroups()
                 },
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
@@ -230,7 +234,7 @@ fun AddSpendingScreen() {
                     .fillMaxWidth()
                     .clickable {
                         isGroupExpense = !isGroupExpense
-                        groupList = BackendService().getGroups()
+                        groupList = BackendService(preferences).getGroups()
                     }
             )
         }
