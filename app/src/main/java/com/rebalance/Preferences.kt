@@ -12,7 +12,7 @@ class Preferences(
 ) {
     private val gson = Gson()
     private val fileName = "preferences.txt"
-    private val serverIp = "192.168.56.1:8080"
+    private val serverIp = "192.168.0.108:8080"
 
     fun read(): PreferencesData {
         return try {
@@ -50,7 +50,7 @@ class Preferences(
 @Parcelize
 data class PreferencesData(
     var serverIp: String,
-    val userId: String,
+    var userId: String,
     var groupId: Long
 ) : Parcelable {
     fun exists(): Boolean {

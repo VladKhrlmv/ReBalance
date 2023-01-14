@@ -91,6 +91,15 @@ fun AddSpendingScreen(
                 }
                 Button(
                     onClick = {
+                        if (spendingName.text.isEmpty() || costValue.text.isEmpty() || selectedCategory.text.isEmpty()) {
+                            ContextCompat.getMainExecutor(context).execute {
+                                Toast.makeText(
+                                    context,
+                                    "Fill in all data!",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                        }
                         Thread {
                             try {
                                 if (isGroupExpense) {
@@ -104,6 +113,7 @@ fun AddSpendingScreen(
                                                 Toast.LENGTH_SHORT
                                             ).show()
                                         }
+                                        return@Thread
                                     }
                                     for (member in activeMembers) {
                                         val jsonBodyPOST = sendPost(
@@ -113,7 +123,11 @@ fun AddSpendingScreen(
                                                     costValue.text.toDouble() / activeMembers.size * -1,
                                                     date.value.ifBlank {
                                                         LocalDate.now()
-                                                            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                                                            .format(
+                                                                DateTimeFormatter.ofPattern(
+                                                                    "yyyy-MM-dd"
+                                                                )
+                                                            )
                                                     },
                                                     selectedCategory.text,
                                                     spendingName.text

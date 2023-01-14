@@ -60,7 +60,7 @@ fun MainSignInScreen() {
     var pieChartActive by rememberSaveable { mutableStateOf(true) }
     val navController = rememberNavController()
     Scaffold(
-        // TODO: Make piechart parameter optional
+        // TODO: Make pie-chart parameter optional
         topBar = {
             com.rebalance.ui.components.TopAppBar(pieChartActive, onPieChartActiveChange = {
                 pieChartActive = !pieChartActive
@@ -132,13 +132,9 @@ fun SignInScreen(context: Context, navController: NavController) {
                             for (group in groups) {
                                 if (group.getName() == "per${user.getEmail()}") {
                                     val preferencesData = PreferencesData("",  user.getId().toString(), group.getId())
-
                                     Preferences(context).write(preferencesData)
                                 }
                             }
-
-
-
 //                             throw FailedLoginException("Invalid password for email")
 
                             context.startActivity(Intent(context, MainActivity::class.java))
