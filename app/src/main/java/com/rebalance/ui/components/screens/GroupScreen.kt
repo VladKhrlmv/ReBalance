@@ -268,7 +268,7 @@ private fun DisplayVisual(
         DisplayInviteFields(preferences, groupId)
         Box(
             modifier = Modifier
-                .width(200.dp)
+                .fillMaxWidth()
                 .height(400.dp)
                 .align(Alignment.CenterHorizontally),
             contentAlignment = Center
