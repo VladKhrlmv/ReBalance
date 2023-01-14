@@ -92,7 +92,7 @@ fun AddSpendingScreen() {
                                             "http://${GlobalVars.serverIp}/expenses/user/${member.key.getId()}/group/${groupId}",
                                             Gson().toJson(
                                                 Expense(
-                                                    (costValue.text.toDouble() / activeMembers.size * 100 * -1).toInt(),
+                                                    costValue.text.toDouble() / activeMembers.size * -1,
                                                     LocalDate.now()
                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                                                     selectedCategory.text,
@@ -106,7 +106,7 @@ fun AddSpendingScreen() {
                                         "http://${GlobalVars.serverIp}/expenses/user/${GlobalVars.user.getId()}/group/${groupId}",
                                         Gson().toJson(
                                             Expense(
-                                                (costValue.text.toFloat() * 100).toInt(),
+                                                costValue.text.toDouble(),
                                                 LocalDate.now()
                                                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                                                 selectedCategory.text,
@@ -122,7 +122,7 @@ fun AddSpendingScreen() {
                                         }",
                                         Gson().toJson(
                                             Expense(
-                                                (costValue.text.toFloat() * 100).toInt(),
+                                                costValue.text.toDouble(),
                                                 LocalDate.now()
                                                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                                                 selectedCategory.text,
@@ -212,6 +212,7 @@ fun AddSpendingScreen() {
                 onCheckedChange = {
                     isGroupExpense = it
                     groupList = BackendService().getGroups()
+                        .filter { group -> group.getId() != GlobalVars.group.getId() }
                 },
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
