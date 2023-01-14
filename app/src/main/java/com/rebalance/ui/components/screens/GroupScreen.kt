@@ -29,7 +29,6 @@ import com.rebalance.backend.api.sendPost
 import com.rebalance.Preferences
 import com.rebalance.PreferencesData
 import com.rebalance.backend.entities.Expense
-import com.rebalance.backend.entities.ExpenseGroup
 import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.backend.service.BackendService
 import com.rebalance.backend.service.BarChartData
@@ -44,7 +43,7 @@ fun GroupScreen(
     // initialize tabs
     val tabItems = listOf("Visual", "List")
     var selectedTabIndex by rememberSaveable { mutableStateOf(0) } // selected index of tab
-    val groupId = remember { mutableStateOf(-1L) }
+    val groupId = rememberSaveable { mutableStateOf(-1L) }
 
     Column(
         modifier = Modifier
@@ -55,7 +54,7 @@ fun GroupScreen(
             selectedTabIndex = tabIndex
         }
 
-        DisplayGroupSelection(context, groupId, BackendService(preferences).getGroups().filter { group -> group.getId() != preferences.groupId })
+        DisplayGroupSelection(context, preferences, groupId)
 
         // content
         Box(
@@ -75,11 +74,11 @@ fun GroupScreen(
 @Composable
 private fun DisplayGroupSelection(
     context: Context,
+    preferences: PreferencesData,
     groupId: MutableState<Long>,
-    groupList: List<ExpenseGroup>
 ) {
     var expandedDropdownGroups by remember { mutableStateOf(false) }
-    var groupName by remember { mutableStateOf("") }
+    var groupName by rememberSaveable { mutableStateOf("") }
     val addGroupDialogController = remember { mutableStateOf(false) }
     Box (
         modifier = Modifier
@@ -117,6 +116,7 @@ private fun DisplayGroupSelection(
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
+                val groupList = BackendService(preferences).getGroups().filter { group -> group.getId() != preferences.groupId }
                 groupList.forEach { group ->
                     DropdownMenuItem(
                         onClick = {
