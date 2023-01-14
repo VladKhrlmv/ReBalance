@@ -49,7 +49,13 @@ class SignInActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ReBalanceTheme {
-                MainSignInScreen()
+                val preferences = Preferences(LocalContext.current).read()
+                if (!preferences.exists()) {
+                    MainSignInScreen()
+                } else {
+                    val context = LocalContext.current
+                    context.startActivity(Intent(context, MainActivity::class.java))
+                }
             }
         }
     }
@@ -133,6 +139,8 @@ fun SignInScreen(context: Context, navController: NavController) {
                                 if (group.getName() == "per${user.getEmail()}") {
                                     val preferencesData = PreferencesData("",  user.getId().toString(), group.getId())
                                     Preferences(context).write(preferencesData)
+                                    println("Logged in as: ${preferences.userId}")
+                                    println("Personal group: ${preferences.groupId}")
                                 }
                             }
 //                             throw FailedLoginException("Invalid password for email")
