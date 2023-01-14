@@ -46,6 +46,7 @@ fun AddSpendingScreen(
     var spendingName by remember { mutableStateOf(TextFieldValue()) }
     var selectedCategory by remember { mutableStateOf(TextFieldValue()) }
     var costValue by remember { mutableStateOf(TextFieldValue()) }
+    var date = remember { mutableStateOf("") }
     var isGroupExpense by remember { mutableStateOf(false) }
     var expandedDropdownGroups by remember { mutableStateOf(false) }
     var groupName by remember { mutableStateOf("") }
@@ -106,8 +107,10 @@ fun AddSpendingScreen(
                                             Gson().toJson(
                                                 Expense(
                                                     costValue.text.toDouble() / activeMembers.size * -1,
-                                                    LocalDate.now()
-                                                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                                                    date.value.ifBlank {
+                                                        LocalDate.now()
+                                                            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                                                    },
                                                     selectedCategory.text,
                                                     spendingName.text
                                                 )
@@ -120,8 +123,10 @@ fun AddSpendingScreen(
                                         Gson().toJson(
                                             Expense(
                                                 costValue.text.toDouble(),
-                                                LocalDate.now()
-                                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                                                date.value.ifBlank {
+                                                    LocalDate.now()
+                                                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                                                },
                                                 selectedCategory.text,
                                                 spendingName.text
                                             )
@@ -136,8 +141,10 @@ fun AddSpendingScreen(
                                         Gson().toJson(
                                             Expense(
                                                 costValue.text.toDouble(),
-                                                LocalDate.now()
-                                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                                                date.value.ifBlank {
+                                                    LocalDate.now()
+                                                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                                                },
                                                 selectedCategory.text,
                                                 spendingName.text
                                             )
@@ -217,6 +224,7 @@ fun AddSpendingScreen(
                 .fillMaxWidth()
         ) {
             DatePickerField(
+                date,
                 modifier = Modifier
                     .width(180.dp)
             )
