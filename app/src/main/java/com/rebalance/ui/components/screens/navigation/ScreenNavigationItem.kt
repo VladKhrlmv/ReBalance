@@ -10,4 +10,7 @@ sealed class ScreenNavigationItem(var route: String, var icon: ImageVector, var 
     object Personal : ScreenNavigationItem("personal", Icons.Filled.Person, "Personal")
     object Group : ScreenNavigationItem("group", Icons.Outlined.Person, "Group")
     object AddSpending : ScreenNavigationItem("add_spending", Icons.Filled.Add, "AddSpending")
+    object SignIn : ScreenNavigationItem("sign_in", Icons.Filled.Add, "SignIn")
+    object SignUp : ScreenNavigationItem("sign_up", Icons.Filled.Add, "SignUp")
+    object SignUpMail : ScreenNavigationItem("sign_mail", Icons.Filled.Add, "SignUpMail")
 }
