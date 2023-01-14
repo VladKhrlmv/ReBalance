@@ -59,7 +59,8 @@ fun PersonalScreen(
             modifier = Modifier.fillMaxSize()
         ) {
             val data = BackendService(preferences).getPersonal(
-                scaleItems[selectedScaleIndex].type, tabItems[selectedTabIndex].date
+                tabItems[selectedTabIndex].dateFrom,
+                tabItems[selectedTabIndex].dateTo
             )
             if (pieChartActive) {
                 DisplayPieChart(data)
