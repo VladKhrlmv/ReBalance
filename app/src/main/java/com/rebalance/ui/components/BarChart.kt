@@ -15,7 +15,6 @@ import com.github.mikephil.charting.charts.HorizontalBarChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.ValueFormatter
-import com.rebalance.R
 import com.rebalance.backend.service.BarChartData
 import com.rebalance.ui.theme.blackColor
 import com.rebalance.ui.theme.greenColor
@@ -29,11 +28,15 @@ fun BarChart(
     Column(
         modifier = Modifier
             .padding(18.dp)
-            .size(320.dp),
+            .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
     ) {
-        Crossfade(targetState = data) { barChartData ->
+        Crossfade(
+            targetState = data,
+            modifier = Modifier
+                .fillMaxWidth()
+        ) { barChartData ->
             AndroidView(factory = { context ->
                 HorizontalBarChart(context).apply {
                     layoutParams = LinearLayout.LayoutParams(
@@ -44,7 +47,6 @@ fun BarChart(
                     this.legend.isEnabled = false
                     this.axisRight.isEnabled = false
                     this.axisLeft.isEnabled = false
-                    //this.xAxis.isEnabled = false
                     this.xAxis.setDrawGridLines(false)
                     this.xAxis.setDrawAxisLine(false)
                     this.xAxis.setDrawGridLinesBehindData(false)
@@ -53,16 +55,21 @@ fun BarChart(
                     this.xAxis.position = XAxis.XAxisPosition.BOTTOM
                     this.xAxis.textSize = 16f
                     this.xAxis.typeface = Typeface.DEFAULT
+                    this.setDrawValueAboveBar(false)
+                    this.setTouchEnabled(false)
+                    this.setPinchZoom(false)
+                    this.isDoubleTapToZoomEnabled = false
                     this.setNoDataText("No data")
-                    this.setNoDataTextColor(R.color.black)
                     this.setNoDataTextTypeface(Typeface.DEFAULT_BOLD)
                 }
             },
                 modifier = Modifier
-                    .wrapContentSize()
-                    .padding(5.dp), update = {
+                    .fillMaxWidth()
+                    .padding(5.dp),
+                update = {
                     updateBarChartWithData(it, barChartData)
-                })
+                }
+            )
         }
     }
 
