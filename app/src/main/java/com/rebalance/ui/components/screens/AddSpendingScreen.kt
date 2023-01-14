@@ -46,7 +46,7 @@ fun AddSpendingScreen(
     var spendingName by remember { mutableStateOf(TextFieldValue()) }
     var selectedCategory by remember { mutableStateOf(TextFieldValue()) }
     var costValue by remember { mutableStateOf(TextFieldValue()) }
-    var date = remember { mutableStateOf("") }
+    val date = remember { mutableStateOf("") }
     var isGroupExpense by remember { mutableStateOf(false) }
     var expandedDropdownGroups by remember { mutableStateOf(false) }
     var groupName by remember { mutableStateOf("") }
@@ -78,7 +78,11 @@ fun AddSpendingScreen(
                         spendingName = TextFieldValue("")
                         costValue = TextFieldValue("")
                         selectedCategory = TextFieldValue("")
+                        date.value = ""
                         isGroupExpense = false
+                        groupName = ""
+                        groupId = 0L
+                        membersSelection.clear()
                     },
                     modifier = Modifier
                         .padding(1.dp)
@@ -133,6 +137,14 @@ fun AddSpendingScreen(
                                         )
                                     )
                                     println(jsonBodyPOST)
+                                    spendingName = TextFieldValue("")
+                                    costValue = TextFieldValue("")
+                                    selectedCategory = TextFieldValue("")
+                                    date.value = ""
+                                    isGroupExpense = false
+                                    groupName = ""
+                                    groupId = 0L
+                                    membersSelection.clear()
                                 } else {
                                     val jsonBodyPOST = sendPost(
                                         "http://${preferences.serverIp}/expenses/user/${preferences.userId}/group/${
@@ -151,6 +163,14 @@ fun AddSpendingScreen(
                                         )
                                     )
                                     println(jsonBodyPOST)
+                                    spendingName = TextFieldValue("")
+                                    costValue = TextFieldValue("")
+                                    selectedCategory = TextFieldValue("")
+                                    date.value = ""
+                                    isGroupExpense = false
+                                    groupName = ""
+                                    groupId = 0L
+                                    membersSelection.clear()
                                 }
                                 ContextCompat.getMainExecutor(context).execute {
                                     Toast.makeText(
