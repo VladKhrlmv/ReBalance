@@ -161,7 +161,7 @@ class BackendService(
 
         val jsonBodyGetUsersFromGroup = if (groupId == -1L) "[]" else sendGet(
             //todo change to group choice
-            "http://${preferences.serverIp}/groups/${preferences.groupId}/users"
+            "http://${preferences.serverIp}/groups/${groupId}/users"
         )
         val userExpenseMap: HashMap<String, Double> = HashMap()
 
@@ -171,7 +171,7 @@ class BackendService(
         for (user in userList) {
             val jsonBodyGet = sendGet(
                 //todo change to group choice
-                "http://${preferences.serverIp}/groups/${preferences.groupId}/users/${user.getId()}/expenses"
+                "http://${preferences.serverIp}/groups/${groupId}/users/${user.getId()}/expenses"
             )
             val listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
             var sumForUser = 0.0
@@ -193,7 +193,7 @@ class BackendService(
 
         val responseGroupList = if (groupId == -1L) "[]" else sendGet(
             //todo change to group choice
-            "http://${preferences.serverIp}/groups/${preferences.groupId}/expenses"
+            "http://${preferences.serverIp}/groups/${groupId}/expenses"
         )
 
         return jsonArrayToExpenses(responseGroupList).filter { it.getAmount() > 0 }
