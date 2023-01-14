@@ -4,9 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.rebalance.SignInScreen
-import com.rebalance.SignUpMailScreen
-import com.rebalance.SignUpScreen
+import com.rebalance.*
 import com.rebalance.ui.components.screens.AddSpendingScreen
 import com.rebalance.ui.components.screens.GroupScreen
 import com.rebalance.ui.components.screens.PersonalScreen
@@ -34,6 +32,12 @@ fun ScreenNavigation(
         }
         composable(ScreenNavigationItem.SignUpMail.route) {
             SignUpMailScreen(navController)
+        }
+        composable("mainActivity") {
+            MainActivity()
+        }
+        composable("signInActivity") {
+            SignInActivity()
         }
     }
 }
