@@ -338,7 +338,8 @@ private fun DisplayList(
                             .padding(10.dp)
                     )
                     Text(
-                        text = (item.getAmount()/100).toString() + " PLN",
+                        //todo change from PLN to group currency
+                        text = (item.getAmount()).toString() + " PLN",
                         fontSize = 14.sp,
                         color = Color.hsl(358f, 0.63f, 0.49f),
                         modifier = Modifier

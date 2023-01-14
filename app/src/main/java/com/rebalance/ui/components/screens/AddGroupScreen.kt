@@ -71,6 +71,16 @@ fun AddGroupScreen(dialogController: MutableState<Boolean>) {
             }
             Button(
                 onClick = {
+                    if (groupCurrency.text.length != 3 || groupName.text.isBlank()) {
+                        ContextCompat.getMainExecutor(context).execute {
+                            Toast.makeText(
+                                context,
+                                "Fill in all fields!",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                        return@Button
+                    }
                     val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
                     StrictMode.setThreadPolicy(policy)
                     sendPost(

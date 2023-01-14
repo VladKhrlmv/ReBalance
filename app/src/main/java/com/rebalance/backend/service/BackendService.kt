@@ -129,7 +129,7 @@ class BackendService {
             userExpenseMap[user.getUsername()] = sumForUser
         }
         for (entry in userExpenseMap.entries.iterator()) {
-            entries.add(BarChartData(entry.key, entry.value / 100))
+            entries.add(BarChartData(entry.key, entry.value))
         }
         //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
         return entries

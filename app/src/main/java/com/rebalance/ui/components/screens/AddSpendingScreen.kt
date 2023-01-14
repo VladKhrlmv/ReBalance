@@ -87,6 +87,15 @@ fun AddSpendingScreen() {
                                 if (isGroupExpense) {
                                     val activeMembers =
                                         membersSelection.filterValues { flag -> flag }
+                                    if (activeMembers.isEmpty()) {
+                                        ContextCompat.getMainExecutor(context).execute {
+                                            Toast.makeText(
+                                                context,
+                                                "Choose at least one member",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
                                     for (member in activeMembers) {
                                         val jsonBodyPOST = sendPost(
                                             "http://${GlobalVars.serverIp}/expenses/user/${member.key.getId()}/group/${groupId}",
