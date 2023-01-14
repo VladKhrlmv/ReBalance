@@ -209,6 +209,7 @@ private fun DisplayInviteFields(
                             Toast.LENGTH_SHORT
                         ).show()
                     }
+                    email = TextFieldValue(text = "")
                 }
                 catch(e: ServerException){
                     ContextCompat.getMainExecutor(context).execute {
