@@ -6,9 +6,9 @@ class ApplicationUser {
     private var username: String = ""
     private var email: String = ""
 
-    public constructor()
+    constructor()
 
-    public constructor(id: Long, username: String, email: String) {
+    constructor(id: Long, username: String, email: String) {
         this.id = id
         this.username = username
         this.email = email
@@ -38,15 +38,15 @@ class ApplicationUser {
         return id.hashCode()
     }
 
-    public fun getUsername(): String {
+    fun getUsername(): String {
         return this.username
     }
 
-    public fun getEmail(): String {
+    fun getEmail(): String {
         return this.email
     }
 
-    public fun getId(): Long{
+    fun getId(): Long{
         return this.id
     }
 

@@ -91,12 +91,21 @@ fun AddSpendingScreen(
                                 if (isGroupExpense) {
                                     val activeMembers =
                                         membersSelection.filterValues { flag -> flag }
+                                    if (activeMembers.isEmpty()) {
+                                        ContextCompat.getMainExecutor(context).execute {
+                                            Toast.makeText(
+                                                context,
+                                                "Choose at least one member",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
                                     for (member in activeMembers) {
                                         val jsonBodyPOST = sendPost(
                                             "http://${preferences.serverIp}/expenses/user/${member.key.getId()}/group/${groupId}",
                                             Gson().toJson(
                                                 Expense(
-                                                    (costValue.text.toDouble() / activeMembers.size * 100 * -1).toInt(),
+                                                    costValue.text.toDouble() / activeMembers.size * -1,
                                                     LocalDate.now()
                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                                                     selectedCategory.text,
@@ -110,7 +119,7 @@ fun AddSpendingScreen(
                                         "http://${preferences.serverIp}/expenses/user/${preferences.userId}/group/${groupId}",
                                         Gson().toJson(
                                             Expense(
-                                                (costValue.text.toFloat() * 100).toInt(),
+                                                costValue.text.toDouble(),
                                                 LocalDate.now()
                                                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                                                 selectedCategory.text,
@@ -126,7 +135,7 @@ fun AddSpendingScreen(
                                         }",
                                         Gson().toJson(
                                             Expense(
-                                                (costValue.text.toFloat() * 100).toInt(),
+                                                costValue.text.toDouble(),
                                                 LocalDate.now()
                                                     .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
                                                 selectedCategory.text,
@@ -154,13 +163,6 @@ fun AddSpendingScreen(
                                 }
                             }
                         }.start()
-                        //todo sleep
-//                        val currTime: Long = System.currentTimeMillis()
-//                        }
-//                        spendingName = TextFieldValue("")
-//                        costValue = TextFieldValue("")
-//                        selectedCategory = TextFieldValue("")
-//                        isGroupExpense = false
                     },
                     modifier = Modifier
                         .padding(1.dp)
@@ -223,6 +225,7 @@ fun AddSpendingScreen(
                 onCheckedChange = {
                     isGroupExpense = it
                     groupList = BackendService(preferences).getGroups()
+                        .filter { group -> group.getId() != GlobalVars.group.getId() }
                 },
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
@@ -234,7 +237,9 @@ fun AddSpendingScreen(
                     .fillMaxWidth()
                     .clickable {
                         isGroupExpense = !isGroupExpense
-                        groupList = BackendService(preferences).getGroups()
+                        groupList = BackendService(preferences)
+                            .getGroups()
+                            .filter { group -> group.getId() != GlobalVars.group.getId() }
                     }
             )
         }

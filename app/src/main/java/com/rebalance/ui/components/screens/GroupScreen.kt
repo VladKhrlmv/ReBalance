@@ -1,5 +1,7 @@
 package com.rebalance.ui.components.screens
 
+import android.os.StrictMode
+import android.widget.Toast
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -7,22 +9,29 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Tab
-import androidx.compose.material.TabRow
-import androidx.compose.material.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.material.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
+import androidx.compose.ui.Alignment.Companion.CenterEnd
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.core.content.ContextCompat
+import com.rebalance.backend.GlobalVars
+import com.rebalance.backend.api.jsonToApplicationUser
+import com.rebalance.backend.api.sendGet
+import com.rebalance.backend.api.sendPost
 import com.rebalance.Preferences
 import com.rebalance.backend.entities.Expense
+import com.rebalance.backend.entities.ExpenseGroup
+import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.backend.service.BackendService
 import com.rebalance.backend.service.BarChartData
 import com.rebalance.ui.components.BarChart
@@ -46,16 +55,175 @@ fun GroupScreen(
             selectedTabIndex = tabIndex
         }
 
+        DisplayGroupSelection(groupId, BackendService().getGroups().filter { group -> group.getId() != GlobalVars.group.getId() })
+
         // content
         Box(
             modifier = Modifier
                 .fillMaxSize()
         ) {
             if (selectedTabIndex == 0) { // if visual tab
-                DisplayVisual(BackendService(preferences).getGroupVisualBarChart())
+                DisplayVisual(BackendService(preferences).getGroupVisualBarChart(groupId.value))
             } else { // if list tab
-                DisplayList(BackendService(preferences).getGroupList())
+                DisplayList(BackendService(preferences).getGroupList(groupId.value))
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterialApi::class)
+@Composable
+private fun DisplayGroupSelection(
+    groupId: MutableState<Long>,
+    groupList: List<ExpenseGroup>
+) {
+    var expandedDropdownGroups by remember { mutableStateOf(false) }
+    var groupName by remember { mutableStateOf("") }
+    val addGroupDialogController = remember { mutableStateOf(false) }
+    Box (
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        ExposedDropdownMenuBox(
+            expanded = expandedDropdownGroups,
+            onExpandedChange = {
+                expandedDropdownGroups = !expandedDropdownGroups
+            },
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .fillMaxWidth()
+        ) {
+            TextField(
+                value = groupName,
+                onValueChange = { },
+                readOnly = true,
+                label = {
+                    Text(text = "Group")
+                },
+                trailingIcon = {
+                    ExposedDropdownMenuDefaults.TrailingIcon(
+                        expanded = expandedDropdownGroups
+                    )
+                },
+                colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp, bottom = 10.dp, start = 10.dp, end = 100.dp)
+            )
+            ExposedDropdownMenu(
+                expanded = expandedDropdownGroups,
+                onDismissRequest = { expandedDropdownGroups = false },
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                groupList.forEach { group ->
+                    DropdownMenuItem(
+                        onClick = {
+                            groupName = group.getName()
+                            groupId.value = group.getId()
+                            expandedDropdownGroups = false
+
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp)
+                    ) {
+                        Text(text = group.getName())
+                    }
+                }
+            }
+        }
+        Button(
+            onClick = {
+                addGroupDialogController.value = !addGroupDialogController.value
+            },
+            modifier = Modifier
+                .padding(10.dp)
+                .align(CenterEnd)
+        ) {
+            Text(text = "Create")
+        }
+    }
+    if (addGroupDialogController.value) {
+        Dialog(
+            onDismissRequest = { addGroupDialogController.value = !addGroupDialogController.value },
+
+        ) {
+            Surface(
+                elevation = 4.dp
+            ) {
+                AddGroupScreen(addGroupDialogController)
+            }
+        }
+    }
+}
+
+@Composable
+private fun DisplayInviteFields(
+    groupId: Long
+) {
+    val context = LocalContext.current
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+    ) {
+        var email by remember { mutableStateOf(TextFieldValue()) }
+        TextField(
+            value = email,
+            onValueChange = { newEmail -> email = newEmail },
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .fillMaxWidth()
+                .padding(top = 10.dp, bottom = 10.dp, start = 10.dp, end = 100.dp),
+            label = {
+                Text(text = "Email")
+            }
+        )
+        Button(
+            onClick = {
+                if(groupId == -1L){
+                    ContextCompat.getMainExecutor(context).execute {
+                        Toast.makeText(
+                            context,
+                            "Choose a group!",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    return@Button
+                }
+                try{
+                    val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+                    StrictMode.setThreadPolicy(policy)
+                    val getUserByEmailResponse = sendGet("http://${GlobalVars.serverIp}/users/email/${email.text}")
+                    val user = jsonToApplicationUser(getUserByEmailResponse)
+                    sendPost(
+                        "http://${GlobalVars.serverIp}/users/${user.getId()}/groups",
+                        "{\"id\": ${groupId}}"
+                    )
+                    ContextCompat.getMainExecutor(context).execute {
+                        Toast.makeText(
+                            context,
+                            "User in group",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+                catch(e: ServerException){
+                    ContextCompat.getMainExecutor(context).execute {
+                        Toast.makeText(
+                            context,
+                            "User not found",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                    return@Button
+                }
+            },
+            modifier = Modifier
+                .padding(10.dp)
+                .align(CenterEnd)
+        ) {
+            Text(text = "Invite")
         }
     }
 }
@@ -83,7 +251,8 @@ private fun DisplayTabs(
 
 @Composable
 private fun DisplayVisual(
-    data: List<BarChartData>
+    data: List<BarChartData>,
+    groupId: Long
 ) {
     Column(
         modifier = Modifier
@@ -93,6 +262,7 @@ private fun DisplayVisual(
                 flingBehavior = null // TODO: disable
             )
     ) {
+        DisplayInviteFields(groupId)
         Box(
             modifier = Modifier
                 .width(200.dp)
@@ -173,7 +343,8 @@ private fun DisplayList(
                             .padding(10.dp)
                     )
                     Text(
-                        text = (item.getAmount()/100).toString() + " PLN",
+                        //todo change from PLN to group currency
+                        text = (item.getAmount()).toString() + " PLN",
                         fontSize = 14.sp,
                         color = Color.hsl(358f, 0.63f, 0.49f),
                         modifier = Modifier

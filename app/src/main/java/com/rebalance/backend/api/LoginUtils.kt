@@ -1,7 +1,5 @@
 package com.rebalance.backend.api
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.google.gson.Gson
 import com.rebalance.backend.entities.ApplicationUser
 import com.rebalance.backend.entities.LoginAndPassword
@@ -11,7 +9,6 @@ import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
 
-@RequiresApi(Build.VERSION_CODES.N)
 fun login(toWhere: String, email: String, password: String) : ApplicationUser {
     var res = ""
     val url = URL(toWhere)
@@ -34,7 +31,6 @@ fun login(toWhere: String, email: String, password: String) : ApplicationUser {
     return jsonToApplicationUser(res)
 }
 
-@RequiresApi(Build.VERSION_CODES.N)
 fun register(toWhere: String, email: String, username: String) : LoginAndPassword {
     var res = ""
     val url = URL(toWhere)

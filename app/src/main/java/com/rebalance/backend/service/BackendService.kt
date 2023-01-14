@@ -21,7 +21,6 @@ class BackendService(
     //region Personal screen
     /** Returns scale items that is scrollable vertically in personal screen (day, week, month, year) **/
     fun getScaleItems(): List<ScaleItem> {
-
         return listOf(
             ScaleItem("Day", "D"),
             ScaleItem("Week", "W"),
@@ -155,18 +154,19 @@ class BackendService(
     //endregion
 
     //region Group screen
-    fun getGroupVisualBarChart(): List<BarChartData> {
+    fun getGroupVisualBarChart(groupId: Long): List<BarChartData> {
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
         val entries = ArrayList<BarChartData>()
 
-        val jsonBodyGetUsersFromGroup = sendGet(
+        val jsonBodyGetUsersFromGroup = if (groupId == -1L) "[]" else sendGet(
             //todo change to group choice
             "http://${preferences.serverIp}/groups/${preferences.groupId}/users"
         )
-        val userExpenseMap: HashMap<String, Int> = HashMap()
+        val userExpenseMap: HashMap<String, Double> = HashMap()
 
-        val userList = jsonArrayToApplicationUsers(jsonBodyGetUsersFromGroup)
+        val userList =
+            if (groupId == -1L) listOf() else jsonArrayToApplicationUsers(jsonBodyGetUsersFromGroup)
         println(userList)
         for (user in userList) {
             val jsonBodyGet = sendGet(
@@ -174,29 +174,29 @@ class BackendService(
                 "http://${preferences.serverIp}/groups/${preferences.groupId}/users/${user.getId()}/expenses"
             )
             val listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
-            var sumForUser: Int = 0
+            var sumForUser = 0.0
             for (expense in listExpense) {
                 sumForUser += expense.getAmount()
             }
             userExpenseMap[user.getUsername()] = sumForUser
         }
         for (entry in userExpenseMap.entries.iterator()) {
-            entries.add(BarChartData(entry.key, entry.value.toDouble() / 100))
+            entries.add(BarChartData(entry.key, entry.value))
         }
         //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
         return entries
     }
 
-    fun getGroupList(): List<Expense> {
+    fun getGroupList(groupId: Long): List<Expense> {
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
 
-        val jsonBodyGet = sendGet(
+        val responseGroupList = if (groupId == -1L) "[]" else sendGet(
             //todo change to group choice
             "http://${preferences.serverIp}/groups/${preferences.groupId}/expenses"
         )
 
-        return jsonArrayToExpenses(jsonBodyGet).filter { it.getAmount() > 0 }
+        return jsonArrayToExpenses(responseGroupList).filter { it.getAmount() > 0 }
     }
     //endregion
 }
@@ -222,7 +222,7 @@ data class ExpenseItem(
 ) {
     constructor(expense: Expense) : this(
         expense.getCategory(),
-        expense.getAmount().toDouble(),
+        expense.getAmount(),
         arrayListOf(expense)
     )
 

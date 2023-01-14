@@ -16,8 +16,6 @@ import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.*
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.rebalance.R
-import com.rebalance.backend.entities.Expense
-import com.rebalance.backend.service.BackendService
 import com.rebalance.backend.service.BarChartData
 import com.rebalance.ui.theme.blackColor
 import com.rebalance.ui.theme.greenColor
@@ -77,7 +75,7 @@ fun updateBarChartWithData(
     val entries = ArrayList<BarEntry>()
     for (i in data.indices) {
         val item = data[i]
-        entries.add(BarEntry(i.toFloat(), item.value.toFloat() ?: 0F))
+        entries.add(BarEntry(i.toFloat(), item.value.toFloat()))
     }
     val ds = BarDataSet(entries, "")
     ds.colors = data.map { if (it.value >= 0) greenColor.toArgb() else redColor.toArgb() }
