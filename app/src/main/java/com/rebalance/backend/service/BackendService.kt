@@ -8,12 +8,16 @@ import com.rebalance.backend.api.jsonArrayToExpenses
 import com.rebalance.backend.api.sendGet
 import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.entities.ExpenseGroup
+import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 import kotlin.collections.ArrayList
 
 class BackendService(
     private val preferences: PreferencesData
 ) {
+    private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+
     //region Personal screen
     /** Returns scale items that is scrollable vertically in personal screen (day, week, month, year) **/
     fun getScaleItems(): List<ScaleItem> {
@@ -28,44 +32,90 @@ class BackendService(
 
     /** Returns scaled date items that is scrollable horizontally in personal screen **/
     fun getScaledDateItems(scale: String): List<ScaledDateItem> {
+        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+        StrictMode.setThreadPolicy(policy)
+
+        val jsonBodyExpenses = sendGet(
+            "http://${preferences.serverIp}/groups/${preferences.groupId}/expenses"
+        )
+        val expenses: List<Expense> = jsonArrayToExpenses(jsonBodyExpenses)
+
         val list = ArrayList<ScaledDateItem>()
 
-        //TODO: get using requests
         when (scale) {
             "Day" -> {
-                for (i in 10..30) {
-                    list.add(ScaledDateItem("Day $i", LocalDate.parse("2022-01-$i")))
+                for (ex in expenses) {
+                    val date = LocalDate.parse(ex.getDateStamp(), formatter)
+                    if (list.any {
+                            it.dateTo.year == date.year &&
+                                    it.dateTo.dayOfYear == date.dayOfYear }) {
+                        continue // if not the same date
+                    }
+                    list.add(ScaledDateItem(ex.getDateStamp(), date, date))
                 }
             }
             "Week" -> {
-                for (i in 10..20) {
-                    list.add(ScaledDateItem("Week $i", LocalDate.parse("2022-01-$i")))
+                for (ex in expenses) {
+                    val date = LocalDate.parse(ex.getDateStamp(), formatter)
+                    if (list.any {
+                            it.dateTo.year == date.year &&
+                                    date.dayOfYear - it.dateFrom.dayOfYear < 7 &&
+                                    it.dateTo.dayOfYear - date.dayOfYear < 7 &&
+                                    date.dayOfWeek >= it.dateFrom.dayOfWeek &&
+                                    date.dayOfWeek <= it.dateTo.dayOfWeek }) {
+                        continue // if not the same week
+                    }
+                    val dateFrom = date.with(DayOfWeek.MONDAY)
+                    val dateTo = date.with(DayOfWeek.SUNDAY)
+                    list.add(ScaledDateItem(dateFrom.format(formatter) +
+                            "\n" +
+                            dateTo.format(formatter), dateFrom, dateTo))
                 }
             }
             "Month" -> {
-                for (i in 10..12) {
-                    list.add(ScaledDateItem("Month $i", LocalDate.parse("2022-$i-01")))
+                for (ex in expenses) {
+                    val date = LocalDate.parse(ex.getDateStamp(), formatter)
+                    if (list.any {
+                            it.dateFrom.year == date.year &&
+                                    it.dateFrom.month == date.month }) {
+                        continue // if not the same year
+                    }
+                    val from = date.minusDays(date.dayOfMonth.toLong() - 1)
+                    val to = date.plusMonths(1).minusDays(date.dayOfMonth.toLong())
+                    list.add(ScaledDateItem(date.month.toString() + " " + date.year.toString(),
+                        from, to))
                 }
             }
             "Year" -> {
-                for (i in 10..99) {
-                    list.add(ScaledDateItem("Year $i", LocalDate.parse("20$i-01-01")))
+                for (ex in expenses) {
+                    val date = LocalDate.parse(ex.getDateStamp(), formatter)
+                    if (list.any { it.dateFrom.year == date.year }) {
+                        continue // if not the same year
+                    }
+                    val year = LocalDate.parse(date.year.toString() + "-01-01", DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                    list.add(ScaledDateItem(year.year.toString(), year, year.plusYears(1).minusDays(1)))
                 }
             }
         }
 
-        return list
+        if (list.isEmpty()) { // if empty list add current date otherwise app crash
+            list.add(ScaledDateItem(LocalDate.now().format(formatter), LocalDate.now(), LocalDate.now()))
+        }
+
+        return list.sortedWith(compareBy({ it.dateFrom.year }, { it.dateFrom.dayOfYear }))
     }
 
     /** Returns list of expenses grouped by category **/
-    fun getPersonal(scale: String, date: LocalDate): List<ExpenseItem> {
+    fun getPersonal(dateFrom: LocalDate, dateTo: LocalDate): List<ExpenseItem> {
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
 
         val list = ArrayList<ExpenseItem>()
 
         val jsonBodyGet = sendGet(
-            "http://${preferences.serverIp}/groups/${preferences.groupId}/expenses"
+            "http://${preferences.serverIp}/expenses/group/${preferences.groupId}/between/${dateFrom.format(
+                formatter)}/${dateTo.format(
+                formatter)}"
         )
         val listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
         val categoryMap: HashMap<String, ExpenseItem> = HashMap()
@@ -112,7 +162,7 @@ class BackendService(
 
         val jsonBodyGetUsersFromGroup = sendGet(
             //todo change to group choice
-            "http://${preferences.serverIp}/groups/1/users"
+            "http://${preferences.serverIp}/groups/${preferences.groupId}/users"
         )
         val userExpenseMap: HashMap<String, Int> = HashMap()
 
@@ -121,7 +171,7 @@ class BackendService(
         for (user in userList) {
             val jsonBodyGet = sendGet(
                 //todo change to group choice
-                "http://${preferences.serverIp}/groups/1/users/${user.getId()}/expenses"
+                "http://${preferences.serverIp}/groups/${preferences.groupId}/users/${user.getId()}/expenses"
             )
             val listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
             var sumForUser: Int = 0
@@ -143,7 +193,7 @@ class BackendService(
 
         val jsonBodyGet = sendGet(
             //todo change to group choice
-            "http://${preferences.serverIp}/groups/1/expenses"
+            "http://${preferences.serverIp}/groups/${preferences.groupId}/expenses"
         )
 
         return jsonArrayToExpenses(jsonBodyGet).filter { it.getAmount() > 0 }
@@ -160,8 +210,9 @@ data class ScaleItem(
 
 /** Item used for selecting scaled date on personal screen (horizontal navigation) **/
 data class ScaledDateItem(
-    val name: String,
-    val date: LocalDate
+    var name: String,
+    var dateFrom: LocalDate,
+    var dateTo: LocalDate
 )
 
 data class ExpenseItem(
