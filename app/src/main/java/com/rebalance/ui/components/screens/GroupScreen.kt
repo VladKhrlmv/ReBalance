@@ -39,7 +39,7 @@ fun GroupScreen() {
     // initialize tabs
     val tabItems = listOf("Visual", "List")
     var selectedTabIndex by rememberSaveable { mutableStateOf(0) } // selected index of tab
-    var groupId = remember { mutableStateOf(-1L) }
+    val groupId = remember { mutableStateOf(-1L) }
 
     Column(
         modifier = Modifier
@@ -74,7 +74,7 @@ private fun DisplayGroupSelection(
 ) {
     var expandedDropdownGroups by remember { mutableStateOf(false) }
     var groupName by remember { mutableStateOf("") }
-    var addGroupDialogController = remember { mutableStateOf(false) }
+    val addGroupDialogController = remember { mutableStateOf(false) }
     Box (
         modifier = Modifier
             .fillMaxWidth()
@@ -184,13 +184,13 @@ private fun DisplayInviteFields(
                             Toast.LENGTH_SHORT
                         ).show()
                     }
-                    return@Button;
+                    return@Button
                 }
                 try{
                     val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
                     StrictMode.setThreadPolicy(policy)
-                    var getUserByEmailResponse = sendGet("http://${GlobalVars.serverIp}/users/email/${email.text}")
-                    var user = jsonToApplicationUser(getUserByEmailResponse);
+                    val getUserByEmailResponse = sendGet("http://${GlobalVars.serverIp}/users/email/${email.text}")
+                    val user = jsonToApplicationUser(getUserByEmailResponse)
                     sendPost(
                         "http://${GlobalVars.serverIp}/users/${user.getId()}/groups",
                         "{\"id\": ${groupId}}"
@@ -211,7 +211,7 @@ private fun DisplayInviteFields(
                             Toast.LENGTH_SHORT
                         ).show()
                     }
-                    return@Button;
+                    return@Button
                 }
             },
             modifier = Modifier
