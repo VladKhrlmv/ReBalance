@@ -19,16 +19,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
-import com.rebalance.backend.GlobalVars
 import com.rebalance.backend.api.jsonToApplicationUser
 import com.rebalance.backend.api.sendGet
 import com.rebalance.backend.api.sendPost
 import com.rebalance.Preferences
+import com.rebalance.PreferencesData
 import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.entities.ExpenseGroup
 import com.rebalance.backend.exceptions.ServerException
@@ -45,6 +44,7 @@ fun GroupScreen(
     // initialize tabs
     val tabItems = listOf("Visual", "List")
     var selectedTabIndex by rememberSaveable { mutableStateOf(0) } // selected index of tab
+    val groupId = remember { mutableStateOf(-1L) }
 
     Column(
         modifier = Modifier
@@ -55,7 +55,7 @@ fun GroupScreen(
             selectedTabIndex = tabIndex
         }
 
-        DisplayGroupSelection(groupId, BackendService().getGroups().filter { group -> group.getId() != GlobalVars.group.getId() })
+        DisplayGroupSelection(context, groupId, BackendService(preferences).getGroups().filter { group -> group.getId() != preferences.groupId })
 
         // content
         Box(
@@ -63,7 +63,7 @@ fun GroupScreen(
                 .fillMaxSize()
         ) {
             if (selectedTabIndex == 0) { // if visual tab
-                DisplayVisual(BackendService(preferences).getGroupVisualBarChart(groupId.value))
+                DisplayVisual(preferences, groupId.value, BackendService(preferences).getGroupVisualBarChart(groupId.value))
             } else { // if list tab
                 DisplayList(BackendService(preferences).getGroupList(groupId.value))
             }
@@ -74,6 +74,7 @@ fun GroupScreen(
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 private fun DisplayGroupSelection(
+    context: Context,
     groupId: MutableState<Long>,
     groupList: List<ExpenseGroup>
 ) {
@@ -152,7 +153,7 @@ private fun DisplayGroupSelection(
             Surface(
                 elevation = 4.dp
             ) {
-                AddGroupScreen(addGroupDialogController)
+                AddGroupScreen(context, addGroupDialogController)
             }
         }
     }
@@ -160,6 +161,7 @@ private fun DisplayGroupSelection(
 
 @Composable
 private fun DisplayInviteFields(
+    preferences: PreferencesData,
     groupId: Long
 ) {
     val context = LocalContext.current
@@ -194,10 +196,10 @@ private fun DisplayInviteFields(
                 try{
                     val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
                     StrictMode.setThreadPolicy(policy)
-                    val getUserByEmailResponse = sendGet("http://${GlobalVars.serverIp}/users/email/${email.text}")
+                    val getUserByEmailResponse = sendGet("http://${preferences.serverIp}/users/email/${email.text}")
                     val user = jsonToApplicationUser(getUserByEmailResponse)
                     sendPost(
-                        "http://${GlobalVars.serverIp}/users/${user.getId()}/groups",
+                        "http://${preferences.serverIp}/users/${user.getId()}/groups",
                         "{\"id\": ${groupId}}"
                     )
                     ContextCompat.getMainExecutor(context).execute {
@@ -251,8 +253,9 @@ private fun DisplayTabs(
 
 @Composable
 private fun DisplayVisual(
-    data: List<BarChartData>,
-    groupId: Long
+    preferences: PreferencesData,
+    groupId: Long,
+    data: List<BarChartData>
 ) {
     Column(
         modifier = Modifier
@@ -262,7 +265,7 @@ private fun DisplayVisual(
                 flingBehavior = null // TODO: disable
             )
     ) {
-        DisplayInviteFields(groupId)
+        DisplayInviteFields(preferences, groupId)
         Box(
             modifier = Modifier
                 .width(200.dp)

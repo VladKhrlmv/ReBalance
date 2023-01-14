@@ -225,7 +225,7 @@ fun AddSpendingScreen(
                 onCheckedChange = {
                     isGroupExpense = it
                     groupList = BackendService(preferences).getGroups()
-                        .filter { group -> group.getId() != GlobalVars.group.getId() }
+                        .filter { group -> group.getId() != preferences.groupId }
                 },
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
@@ -239,7 +239,7 @@ fun AddSpendingScreen(
                         isGroupExpense = !isGroupExpense
                         groupList = BackendService(preferences)
                             .getGroups()
-                            .filter { group -> group.getId() != GlobalVars.group.getId() }
+                            .filter { group -> group.getId() != preferences.groupId }
                     }
             )
         }

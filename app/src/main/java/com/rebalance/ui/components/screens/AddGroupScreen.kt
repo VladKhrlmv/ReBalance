@@ -1,11 +1,13 @@
 package com.rebalance.ui.components.screens
 
+import android.content.Context
 import android.graphics.Typeface
 import android.os.StrictMode
 import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
@@ -13,13 +15,18 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import com.rebalance.backend.GlobalVars
+import com.rebalance.Preferences
 import com.rebalance.backend.api.sendPost
 
 val currencyRegex = """[A-Z]{0,3}""".toRegex()
 
 @Composable
-fun AddGroupScreen(dialogController: MutableState<Boolean>) {
+fun AddGroupScreen(
+    context: Context,
+    dialogController: MutableState<Boolean>
+) {
+    val preferences = rememberSaveable { Preferences(context).read() }
+
     var groupName by remember { mutableStateOf(TextFieldValue()) }
     var groupCurrency by remember { mutableStateOf(TextFieldValue()) }
     Column(
@@ -84,7 +91,7 @@ fun AddGroupScreen(dialogController: MutableState<Boolean>) {
                     val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
                     StrictMode.setThreadPolicy(policy)
                     sendPost(
-                        "http://${GlobalVars.serverIp}/users/${GlobalVars.user.getId()}/groups",
+                        "http://${preferences.serverIp}/users/${preferences.userId}/groups",
                         "{\"currency\": \"${groupCurrency.text}\", \"name\": \"${groupName.text}\"}"
                     )
                     ContextCompat.getMainExecutor(context).execute {

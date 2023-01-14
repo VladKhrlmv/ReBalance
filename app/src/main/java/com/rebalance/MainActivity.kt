@@ -32,6 +32,9 @@ class MainActivity : ComponentActivity() {
 //                        PreferencesData("", "2", "2")
 //                    )
 //                }
+                Preferences(LocalContext.current).write(
+                    PreferencesData("", "2", 3)
+                )
                 MainScreen()
             }
         }

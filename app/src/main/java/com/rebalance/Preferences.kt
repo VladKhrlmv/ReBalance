@@ -26,7 +26,7 @@ class Preferences(
 
             gson.fromJson(temp.toString(), PreferencesData::class.java)
         } catch (e: Exception) {
-            PreferencesData(this.serverIp, "","")
+            PreferencesData(this.serverIp, "",0)
         }
     }
 
@@ -51,7 +51,7 @@ class Preferences(
 data class PreferencesData(
     var serverIp: String,
     val userId: String,
-    var groupId: String
+    var groupId: Long
 ) : Parcelable {
     fun exists(): Boolean {
         return userId != null
