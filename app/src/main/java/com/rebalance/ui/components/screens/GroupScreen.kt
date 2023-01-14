@@ -64,7 +64,7 @@ fun GroupScreen(
             if (selectedTabIndex == 0) { // if visual tab
                 DisplayVisual(preferences, groupId.value, BackendService(preferences).getGroupVisualBarChart(groupId.value))
             } else { // if list tab
-                DisplayList(BackendService(preferences).getGroupList(groupId.value))
+                DisplayList(preferences, groupId.value, BackendService(preferences).getGroupList(groupId.value))
             }
         }
     }
@@ -305,7 +305,7 @@ private fun DisplayVisual(
                             .padding(10.dp)
                     )
                     Text(
-                        text = item.value.toString() + " PLN",
+                        text = "${String.format("%.2f", item.value)} ${BackendService(preferences).getGroupById(groupId).getCurrency()}",
                         fontSize = 14.sp,
                         color = Color.hsl(358f, 0.63f, 0.49f),
                         modifier = Modifier
@@ -319,6 +319,8 @@ private fun DisplayVisual(
 
 @Composable
 private fun DisplayList(
+    preferences: PreferencesData,
+    groupId: Long,
     data: List<Expense>
 ) {
     Box(
@@ -347,8 +349,7 @@ private fun DisplayList(
                             .padding(10.dp)
                     )
                     Text(
-                        //todo change from PLN to group currency
-                        text = (item.getAmount()).toString() + " PLN",
+                        text = "${item.getAmount()} ${BackendService(preferences).getGroupById(groupId).getCurrency()}",
                         fontSize = 14.sp,
                         color = Color.hsl(358f, 0.63f, 0.49f),
                         modifier = Modifier

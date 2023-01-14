@@ -2,10 +2,7 @@ package com.rebalance.backend.service
 
 import android.os.StrictMode
 import com.rebalance.PreferencesData
-import com.rebalance.backend.api.jsonArrayToApplicationUsers
-import com.rebalance.backend.api.jsonArrayToExpenseGroups
-import com.rebalance.backend.api.jsonArrayToExpenses
-import com.rebalance.backend.api.sendGet
+import com.rebalance.backend.api.*
 import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.entities.ExpenseGroup
 import java.time.DayOfWeek
@@ -150,6 +147,20 @@ class BackendService(
 
         //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
         return groups
+    }
+    //endregion
+
+    //region Group by id
+    fun getGroupById(id: Long): ExpenseGroup {
+        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+        StrictMode.setThreadPolicy(policy)
+
+        val jsonBodyGroup = sendGet(
+            "http://${preferences.serverIp}/groups/${id}"
+        )
+
+        //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
+        return jsonToExpenseGroup(jsonBodyGroup)
     }
     //endregion
 
