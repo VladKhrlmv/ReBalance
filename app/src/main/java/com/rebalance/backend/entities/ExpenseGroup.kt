@@ -18,6 +18,11 @@ class ExpenseGroup {
         this.currency = currency
     }
 
+    constructor(name: String, currency: String) {
+        this.name = name
+        this.currency = currency
+    }
+
     constructor(id: Long, name: String, currency: String, usersSet: Set<ApplicationUser>) {
         this.id = id
         this.name = name

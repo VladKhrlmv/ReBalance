@@ -18,6 +18,7 @@ import androidx.navigation.compose.rememberNavController
 import com.rebalance.ui.components.BottomNavigationBar
 import com.rebalance.ui.components.PlusButton
 import com.rebalance.ui.components.screens.navigation.ScreenNavigation
+import com.rebalance.ui.components.screens.navigation.ScreenNavigationItem
 import com.rebalance.ui.theme.ReBalanceTheme
 
 class MainActivity : ComponentActivity() {
@@ -55,7 +56,7 @@ fun MainScreen() {
         isFloatingActionButtonDocked = true,
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
             Box(modifier = Modifier.padding(padding)) {
-                ScreenNavigation(navController, LocalContext.current, pieChartActive)
+                ScreenNavigation(navController, LocalContext.current, pieChartActive, ScreenNavigationItem.Personal.route)
             }
         }
     )

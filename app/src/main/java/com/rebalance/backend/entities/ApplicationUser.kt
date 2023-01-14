@@ -5,6 +5,7 @@ class ApplicationUser {
     private var id: Long = -1
     private var username: String = ""
     private var email: String = ""
+    private var password: String = ""
 
     constructor()
 
@@ -18,6 +19,13 @@ class ApplicationUser {
         this.username = username
         this.email = email
     }
+
+    constructor(username: String, email: String, password: String) {
+        this.username = username
+        this.email = email
+        this.password = password
+    }
+
 
     override fun toString(): String {
         return "ApplicationUser(id=$id, username='$username', email='$email')"
@@ -48,6 +56,14 @@ class ApplicationUser {
 
     fun getId(): Long{
         return this.id
+    }
+
+    fun getPassword(): String {
+        return password
+    }
+
+    fun setPassword(password: String) {
+        this.password = password
     }
 
 }

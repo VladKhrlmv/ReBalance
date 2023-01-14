@@ -1,5 +1,6 @@
 package com.rebalance
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.StrictMode
@@ -24,7 +25,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
@@ -32,13 +32,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
-import com.rebalance.backend.GlobalVars
 import com.rebalance.backend.api.*
 import com.rebalance.backend.entities.ExpenseGroup
-import com.rebalance.backend.exceptions.FailedLoginException
 import com.rebalance.backend.exceptions.PasswordMissmatchException
 import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.ui.components.screens.navigation.ScreenNavigation
@@ -71,19 +68,20 @@ fun MainSignInScreen() {
         },
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
             Box(modifier = Modifier.padding(padding)) {
-                ScreenNavigation(navController, pieChartActive)
+                ScreenNavigation(navController, LocalContext.current, pieChartActive, ScreenNavigationItem.SignIn.route)
             }
         }
     )
 }
 
 @Composable
-fun SignInScreen(navController: NavController) {
+fun SignInScreen(context: Context, navController: NavController) {
+    val preferences = rememberSaveable { Preferences(context).read() }
+
     val login = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
     val showError = remember { mutableStateOf(false) }
     val errorMessage = remember { mutableStateOf("") }
-    val context = LocalContext.current
     Scaffold(
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
@@ -106,30 +104,43 @@ fun SignInScreen(navController: NavController) {
                     CustomInput("Login", login)
                     CustomPasswordInput("Password", password)
                     PrimaryButton("SIGN IN", 20.dp, onClick = {
+                        if (login.value.isEmpty() || password.value.isEmpty()) {
+                            ContextCompat.getMainExecutor(context).execute {
+                                Toast.makeText(
+                                    context,
+                                    "No empty fields allowed",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            return@PrimaryButton
+                        }
                         try {
-//                            println("trying to login...")
-//                            val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-//                            StrictMode.setThreadPolicy(policy)
-//                            val user = login(
-//                                "http://${GlobalVars.serverIp}/users/login",
-//                                login.value,
-//                                password.value
-//                            )
-//                            println(user)
-//                            GlobalVars.user = user
-//                            val groupsJson =
-//                                sendGet("http://${GlobalVars.serverIp}/users/${user.getId()}/groups")
-//                            val groups = jsonArrayToExpenseGroups(groupsJson)
-//                            for (group in groups) {
-//                                if (group.getName() == "per${user.getEmail()}") {
-//                                    GlobalVars.group = group
-//                                }
-//                            }
-//                            println("logged in as ${GlobalVars.user}")
-//                            println("personal group is: ${GlobalVars.group}")
-//
-////                            throw FailedLoginException("Invalid password for email")
-//
+                            // TODO: Uncomment
+                            println("trying to login...")
+                            val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+                            StrictMode.setThreadPolicy(policy)
+                            val user = login(
+                                "http://${preferences.serverIp}/users/login",
+                                login.value,
+                                password.value
+                            )
+                            println(user)
+
+                            val groupsJson =
+                                sendGet("http://${preferences.serverIp}/users/${user.getId()}/groups")
+                            val groups = jsonArrayToExpenseGroups(groupsJson)
+                            for (group in groups) {
+                                if (group.getName() == "per${user.getEmail()}") {
+                                    val preferencesData = PreferencesData("",  user.getId().toString(), group.getId())
+
+                                    Preferences(context).write(preferencesData)
+                                }
+                            }
+
+
+
+//                             throw FailedLoginException("Invalid password for email")
+
                             context.startActivity(Intent(context, MainActivity::class.java))
                         } catch (error: Exception) {
                             println("Caught a FailedLoginException! You should see the error message on the screen")
@@ -173,8 +184,6 @@ fun SignInScreen(navController: NavController) {
 
 @Composable
 fun SignUpScreen(navController: NavController) {
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
     Scaffold(
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
@@ -237,9 +246,9 @@ fun SignUpScreen(navController: NavController) {
 }
 
 @Composable
-fun SignUpMailScreen(navController: NavController) {
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
+fun SignUpMailScreen(context: Context, navController: NavController) {
+    val preferences = rememberSaveable { Preferences(context).read() }
+
     val email = remember { mutableStateOf("") }
     val username = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
@@ -247,7 +256,6 @@ fun SignUpMailScreen(navController: NavController) {
     val showError = remember { mutableStateOf(false) }
     val errorMessage = remember { mutableStateOf("") }
     val pass = remember { mutableStateOf("") }
-    val context = LocalContext.current
     val personalCurrency = remember { mutableStateOf("") }
     Scaffold(
         content = { padding ->
@@ -274,6 +282,31 @@ fun SignUpMailScreen(navController: NavController) {
                     CustomPasswordInput("Repeat password", repeatPassword)
                     CurrencyInput(personalCurrency)
                     PrimaryButton("SIGN UP", 20.dp, onClick = {
+                        if (
+                            email.value.isEmpty()
+                            || password.value.isEmpty()
+                            || username.value.isEmpty()
+                            || repeatPassword.value.isEmpty()
+                            || personalCurrency.value.isEmpty()
+                        ) {
+                            ContextCompat.getMainExecutor(context).execute {
+                                Toast.makeText(
+                                    context,
+                                    "No empty fields allowed",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            return@PrimaryButton
+                        } else if (personalCurrency.value.length != 3) {
+                            ContextCompat.getMainExecutor(context).execute {
+                                Toast.makeText(
+                                    context,
+                                    "Currency must have exactly 3 symbols",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
+                            return@PrimaryButton
+                        }
                         try {
                             if (password.value != repeatPassword.value) {
                                 throw PasswordMissmatchException("Passwords do not match")
@@ -283,39 +316,27 @@ fun SignUpMailScreen(navController: NavController) {
                             StrictMode.setThreadPolicy(policy)
                             println("trying to register...")
                             val loginAndPassword = register(
-                                "http://${GlobalVars.serverIp}/users",
+                                "http://${preferences.serverIp}/users",
                                 email.value,
                                 username.value,
                                 password.value
                             )
                             pass.value = loginAndPassword.getPassword()
                             val userByNickname =
-                                jsonToApplicationUser(sendGet("http://${GlobalVars.serverIp}/users/email/${email.value}"))
+                                jsonToApplicationUser(sendGet("http://${preferences.serverIp}/users/email/${email.value}"))
                             println(userByNickname)
                             val groupCreationResult = sendPost(
-                                "http://${GlobalVars.serverIp}/users/${userByNickname.getId()}/groups",
-                                Gson().toJson(ExpenseGroup("per${email.value}", "USD"))
+                                "http://${preferences.serverIp}/users/${userByNickname.getId()}/groups",
+                                Gson().toJson(ExpenseGroup("per${email.value}", personalCurrency.value))
                             )
                             println(groupCreationResult)
-                            GlobalVars.user = userByNickname
-                            GlobalVars.group = jsonToExpenseGroup(groupCreationResult)
-                            println("registered as ${GlobalVars.user}")
-                            println("personal group: ${GlobalVars.group}")
-                            navController.navigate(ScreenNavigationItem.Personal.route) {
-                                // Pop up to the start destination of the graph to
-                                // avoid building up a large stack of destinations
-                                // on the back stack as users select items
-                                navController.graph.startDestinationRoute?.let { route ->
-                                    popUpTo(route) {
-                                        saveState = true
-                                    }
-                                }
-                                // Avoid multiple copies of the same destination when
-                                // reselecting the same item
-                                launchSingleTop = true
-                                // Restore state when reselecting a previously selected item
-                                restoreState = true
-                            }
+
+                            val preferencesData = PreferencesData("",  userByNickname.getId().toString(), jsonToExpenseGroup(groupCreationResult).getId())
+
+                            Preferences(context).write(preferencesData)
+
+
+                            context.startActivity(Intent(context, MainActivity::class.java))
                         } catch (error: ServerException) {
                             println("Caught a ServerException!")
                             showError.value = true
@@ -471,7 +492,7 @@ fun CurrencyInput(personalCurrency: MutableState<String>) {
             }
         },
         label = {
-            Text(text = "Currency")
+            Text(text = "Your currency")
         },
         modifier = Modifier.padding(8.dp)
     )
