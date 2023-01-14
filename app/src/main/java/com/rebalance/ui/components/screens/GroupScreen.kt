@@ -12,9 +12,8 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.Bottom
-import androidx.compose.ui.Alignment.Companion.Top
 import androidx.compose.ui.Alignment.Companion.Center
+import androidx.compose.ui.Alignment.Companion.CenterEnd
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -76,7 +75,7 @@ private fun DisplayGroupSelection(
     var expandedDropdownGroups by remember { mutableStateOf(false) }
     var groupName by remember { mutableStateOf("") }
     var addGroupDialogController = remember { mutableStateOf(false) }
-    Row (
+    Box (
         modifier = Modifier
             .fillMaxWidth()
     ) {
@@ -86,8 +85,8 @@ private fun DisplayGroupSelection(
                 expandedDropdownGroups = !expandedDropdownGroups
             },
             modifier = Modifier
-                .align(Top)
-                .padding(10.dp),
+                .align(Alignment.CenterStart)
+                .fillMaxWidth()
         ) {
             TextField(
                 value = groupName,
@@ -101,7 +100,10 @@ private fun DisplayGroupSelection(
                         expanded = expandedDropdownGroups
                     )
                 },
-                colors = ExposedDropdownMenuDefaults.textFieldColors()
+                colors = ExposedDropdownMenuDefaults.textFieldColors(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp, bottom = 10.dp, start = 10.dp, end = 100.dp)
             )
             ExposedDropdownMenu(
                 expanded = expandedDropdownGroups,
@@ -119,6 +121,7 @@ private fun DisplayGroupSelection(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
+                            .padding(10.dp)
                     ) {
                         Text(text = group.getName())
                     }
@@ -131,7 +134,7 @@ private fun DisplayGroupSelection(
             },
             modifier = Modifier
                 .padding(10.dp)
-                .align(Bottom)
+                .align(CenterEnd)
         ) {
             Text(text = "Create")
         }
@@ -155,7 +158,7 @@ private fun DisplayInviteFields(
     groupId: Long
 ) {
     val context = LocalContext.current
-    Row(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
     ) {
@@ -164,16 +167,15 @@ private fun DisplayInviteFields(
             value = email,
             onValueChange = { newEmail -> email = newEmail },
             modifier = Modifier
-                .align(Top)
-                .padding(10.dp),
+                .align(Alignment.CenterStart)
+                .fillMaxWidth()
+                .padding(top = 10.dp, bottom = 10.dp, start = 10.dp, end = 100.dp),
             label = {
                 Text(text = "Email")
             }
         )
         Button(
             onClick = {
-                val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-                StrictMode.setThreadPolicy(policy)
                 if(groupId == -1L){
                     ContextCompat.getMainExecutor(context).execute {
                         Toast.makeText(
@@ -185,6 +187,8 @@ private fun DisplayInviteFields(
                     return@Button;
                 }
                 try{
+                    val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+                    StrictMode.setThreadPolicy(policy)
                     var getUserByEmailResponse = sendGet("http://${GlobalVars.serverIp}/users/email/${email.text}")
                     var user = jsonToApplicationUser(getUserByEmailResponse);
                     sendPost(
@@ -212,7 +216,7 @@ private fun DisplayInviteFields(
             },
             modifier = Modifier
                 .padding(10.dp)
-                .align(Bottom)
+                .align(CenterEnd)
         ) {
             Text(text = "Invite")
         }
