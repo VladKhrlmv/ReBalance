@@ -1,22 +1,20 @@
 package com.rebalance.backend.entities
 
-import android.os.Build
-
 class Expense {
 
     private var id: Long = -1
-    private var amount: Int = 0;
+    private var amount: Double = 0.0
 
     private var dateStamp: String = "2000-01-01"
     private var category: String = "default"
     private var description: String = ""
     private var globalId: Long = -1
 
-    public constructor()
+    constructor()
 
     constructor(
         id: Long,
-        amount: Int,
+        amount: Double,
         dateStamp: String,
         category: String,
         description: String,
@@ -30,7 +28,7 @@ class Expense {
         this.globalId = globalId
     }
 
-    constructor(amount: Int, dateStamp: String, category: String, description: String) {
+    constructor(amount: Double, dateStamp: String, category: String, description: String) {
         this.amount = amount
         this.dateStamp = dateStamp
         this.category = category
@@ -56,40 +54,40 @@ class Expense {
         return result
     }
 
-    public fun getId(): Long {
+    fun getId(): Long {
         return this.id
     }
 
-    public fun getAmount(): Int {
+    fun getAmount(): Double {
         return this.amount
     }
 
-    public fun getDescription(): String {
+    fun getDescription(): String {
         return this.description
     }
 
-    public fun getGlobalId(): Long {
+    fun getGlobalId(): Long {
         return this.globalId
     }
 
-    public fun setId(id: Long) {
+    fun setId(id: Long) {
         this.id = id
     }
 
-    public fun setAmount(amount: Int) {
+    fun setAmount(amount: Double) {
         this.amount = amount
     }
 
-    public fun setDescription(description: String) {
+    fun setDescription(description: String) {
         this.description = description
     }
 
-    public fun setGlobalId(globalId: Long) {
+    fun setGlobalId(globalId: Long) {
         this.globalId = globalId
     }
 
 
-    public fun getDateStamp(): String {
+    fun getDateStamp(): String {
         return dateStamp
     }
 
@@ -97,11 +95,11 @@ class Expense {
         return "Expense(id=$id, amount=$amount, dateStamp='$dateStamp', category='$category', description='$description', globalId=$globalId)"
     }
 
-    public fun getCategory(): String {
+    fun getCategory(): String {
         return category
     }
 
-    public fun setCategory() {
+    fun setCategory(category: String) {
         this.category = category
     }
 

@@ -7,17 +7,16 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
 import android.widget.DatePicker
+import androidx.compose.runtime.MutableState
 import java.util.Calendar
 import java.util.Date
 
 @Composable
-fun DatePickerField(modifier: Modifier) {
+fun DatePickerField(mDate: MutableState<String>, modifier: Modifier) {
     val mContext = LocalContext.current
 
     val mYear: Int
@@ -31,13 +30,10 @@ fun DatePickerField(modifier: Modifier) {
     mDay = mCalendar.get(Calendar.DAY_OF_MONTH)
 
     mCalendar.time = Date()
-
-    val mDate = remember { mutableStateOf("") }
-
     val mDatePickerDialog = DatePickerDialog(
         mContext,
         { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
-            mDate.value = "$dayOfMonth/${month+1}/$year"
+            mDate.value = "${String.format("%04d", year)}-${String.format("%02d", month + 1)}-${String.format("%02d", dayOfMonth)}"
         }, mYear, mMonth, mDay
     )
     Column(modifier = modifier) {

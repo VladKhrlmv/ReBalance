@@ -1,9 +1,9 @@
 package com.rebalance.ui.components.screens
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.graphics.Typeface
-import android.os.Build
-import androidx.annotation.RequiresApi
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -12,41 +12,47 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import com.google.gson.Gson
-import com.rebalance.DummyBackend
-import com.rebalance.DummyGroup
-import com.rebalance.DummyGroupMember
-import com.rebalance.backend.GlobalVars
+import com.rebalance.Preferences
 import com.rebalance.backend.api.sendPost
+import com.rebalance.backend.entities.ApplicationUser
 import com.rebalance.backend.entities.Expense
+import com.rebalance.backend.entities.ExpenseGroup
+import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.components.DatePickerField
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 val costValueRegex = """^\d{0,12}[.,]?\d{0,2}${'$'}""".toRegex()
 
-@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun AddSpendingScreen() {
+fun AddSpendingScreen(
+    context: Context
+) {
+    val preferences = rememberSaveable { Preferences(context).read() }
+
     var spendingName by remember { mutableStateOf(TextFieldValue()) }
     var selectedCategory by remember { mutableStateOf(TextFieldValue()) }
     var costValue by remember { mutableStateOf(TextFieldValue()) }
+    val date = remember { mutableStateOf("") }
     var isGroupExpense by remember { mutableStateOf(false) }
     var expandedDropdownGroups by remember { mutableStateOf(false) }
     var groupName by remember { mutableStateOf("") }
-    var groupSet by remember { mutableStateOf(mutableSetOf<DummyGroup>()) }
-    val membersSelection = remember { mutableStateMapOf<DummyGroupMember, Boolean>() }
+    var groupId by remember { mutableStateOf(0L) }
+    var groupList by remember { mutableStateOf(listOf<ExpenseGroup>()) }
+    val membersSelection = remember { mutableStateMapOf<ApplicationUser, Boolean>() }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -72,7 +78,11 @@ fun AddSpendingScreen() {
                         spendingName = TextFieldValue("")
                         costValue = TextFieldValue("")
                         selectedCategory = TextFieldValue("")
+                        date.value = ""
                         isGroupExpense = false
+                        groupName = ""
+                        groupId = 0L
+                        membersSelection.clear()
                     },
                     modifier = Modifier
                         .padding(1.dp)
@@ -84,45 +94,102 @@ fun AddSpendingScreen() {
                         Thread {
                             try {
                                 if (isGroupExpense) {
-                                    var jsonBodyPOST = sendPost(
-                                        "http://${GlobalVars.serverIp}/expenses/user/${GlobalVars.user.getId()}/group/1",
+                                    val activeMembers =
+                                        membersSelection.filterValues { flag -> flag }
+                                    if (activeMembers.isEmpty()) {
+                                        ContextCompat.getMainExecutor(context).execute {
+                                            Toast.makeText(
+                                                context,
+                                                "Choose at least one member",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+                                    for (member in activeMembers) {
+                                        val jsonBodyPOST = sendPost(
+                                            "http://${preferences.serverIp}/expenses/user/${member.key.getId()}/group/${groupId}",
+                                            Gson().toJson(
+                                                Expense(
+                                                    costValue.text.toDouble() / activeMembers.size * -1,
+                                                    date.value.ifBlank {
+                                                        LocalDate.now()
+                                                            .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                                                    },
+                                                    selectedCategory.text,
+                                                    spendingName.text
+                                                )
+                                            )
+                                        )
+                                        println(jsonBodyPOST)
+                                    }
+                                    val jsonBodyPOST = sendPost(
+                                        "http://${preferences.serverIp}/expenses/user/${preferences.userId}/group/${groupId}",
                                         Gson().toJson(
                                             Expense(
-                                                (costValue.text.toFloat() * 100).toInt(),
-                                                LocalDate.now()
-                                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                                                costValue.text.toDouble(),
+                                                date.value.ifBlank {
+                                                    LocalDate.now()
+                                                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                                                },
                                                 selectedCategory.text,
                                                 spendingName.text
                                             )
                                         )
                                     )
                                     println(jsonBodyPOST)
+                                    spendingName = TextFieldValue("")
+                                    costValue = TextFieldValue("")
+                                    selectedCategory = TextFieldValue("")
+                                    date.value = ""
+                                    isGroupExpense = false
+                                    groupName = ""
+                                    groupId = 0L
+                                    membersSelection.clear()
                                 } else {
-                                    var jsonBodyPOST = sendPost(
-                                        "http://${GlobalVars.serverIp}/expenses/user/${GlobalVars.user.getId()}/group/2",
+                                    val jsonBodyPOST = sendPost(
+                                        "http://${preferences.serverIp}/expenses/user/${preferences.userId}/group/${
+                                            preferences.groupId
+                                        }",
                                         Gson().toJson(
                                             Expense(
-                                                (costValue.text.toFloat() * 100).toInt(),
-                                                LocalDate.now()
-                                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd")),
+                                                costValue.text.toDouble(),
+                                                date.value.ifBlank {
+                                                    LocalDate.now()
+                                                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                                                },
                                                 selectedCategory.text,
                                                 spendingName.text
                                             )
                                         )
                                     )
                                     println(jsonBodyPOST)
+                                    spendingName = TextFieldValue("")
+                                    costValue = TextFieldValue("")
+                                    selectedCategory = TextFieldValue("")
+                                    date.value = ""
+                                    isGroupExpense = false
+                                    groupName = ""
+                                    groupId = 0L
+                                    membersSelection.clear()
+                                }
+                                ContextCompat.getMainExecutor(context).execute {
+                                    Toast.makeText(
+                                        context,
+                                        "Expense saved!",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             } catch (e: Exception) {
                                 print(e.stackTrace)
+                                ContextCompat.getMainExecutor(context).execute {
+                                    Toast.makeText(
+                                        context,
+                                        "Unexpected error occurred",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                             }
                         }.start()
-                        val currTime: Long = System.currentTimeMillis();
-                        while(System.currentTimeMillis() < currTime + 50){
-                        }
-                        spendingName = TextFieldValue("")
-                        costValue = TextFieldValue("")
-                        selectedCategory = TextFieldValue("")
-                        isGroupExpense = false
                     },
                     modifier = Modifier
                         .padding(1.dp)
@@ -177,6 +244,7 @@ fun AddSpendingScreen() {
                 .fillMaxWidth()
         ) {
             DatePickerField(
+                date,
                 modifier = Modifier
                     .width(180.dp)
             )
@@ -184,7 +252,8 @@ fun AddSpendingScreen() {
                 checked = isGroupExpense,
                 onCheckedChange = {
                     isGroupExpense = it
-                    groupSet = DummyBackend().getGroups()
+                    groupList = BackendService(preferences).getGroups()
+                        .filter { group -> group.getId() != preferences.groupId }
                 },
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
@@ -196,7 +265,9 @@ fun AddSpendingScreen() {
                     .fillMaxWidth()
                     .clickable {
                         isGroupExpense = !isGroupExpense
-                        groupSet = DummyBackend().getGroups()
+                        groupList = BackendService(preferences)
+                            .getGroups()
+                            .filter { group -> group.getId() != preferences.groupId }
                     }
             )
         }
@@ -240,12 +311,13 @@ fun AddSpendingScreen() {
                         modifier = Modifier
                             .fillMaxWidth()
                     ) {
-                        groupSet.forEach { group ->
+                        groupList.forEach { group ->
                             DropdownMenuItem(
                                 onClick = {
-                                    groupName = group.name
+                                    groupName = group.getName()
+                                    groupId = group.getId()
                                     membersSelection.clear()
-                                    group.memberList.forEach { member ->
+                                    group.getUsers().forEach { member ->
                                         membersSelection[member] = false
                                     }
                                     expandedDropdownGroups = false
@@ -253,7 +325,7 @@ fun AddSpendingScreen() {
                                 modifier = Modifier
                                     .fillMaxWidth()
                             ) {
-                                Text(text = group.name)
+                                Text(text = group.getName())
                             }
                         }
                     }
@@ -284,7 +356,7 @@ fun AddSpendingScreen() {
                                 },
                             )
                             Text(
-                                text = member.name,
+                                text = member.getUsername(),
                                 modifier = Modifier
                                     .padding(vertical = 12.dp)
                                     .clickable {

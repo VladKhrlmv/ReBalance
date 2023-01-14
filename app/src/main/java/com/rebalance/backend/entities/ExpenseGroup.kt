@@ -8,7 +8,9 @@ class ExpenseGroup {
 
     private var currency: String = ""
 
-    public constructor()
+    private var users: Set<ApplicationUser> = HashSet()
+
+    constructor()
 
     constructor(id: Long, name: String, currency: String) {
         this.id = id
@@ -16,9 +18,11 @@ class ExpenseGroup {
         this.currency = currency
     }
 
-    constructor(name: String, currency: String) {
+    constructor(id: Long, name: String, currency: String, usersSet: Set<ApplicationUser>) {
+        this.id = id
         this.name = name
         this.currency = currency
+        this.users = usersSet
     }
 
 
@@ -41,29 +45,35 @@ class ExpenseGroup {
         return "ExpenseGroup(id=$id, name='$name', currency='$currency')"
     }
 
-    public fun getId(): Long {
+    fun getId(): Long {
         return this.id
     }
 
-    public fun setId(id: Long) {
+    fun setId(id: Long) {
         this.id = id
     }
 
-    public fun setName(name: String) {
+    fun setName(name: String) {
         this.name = name
     }
 
-    public fun getName(): String {
+    fun getName(): String {
         return this.name
     }
 
-    public fun setCurrency(currency: String) {
+    fun setCurrency(currency: String) {
         this.currency = currency
     }
 
-    public fun getCurrency(): String {
+    fun getCurrency(): String {
         return this.currency
     }
 
+    fun getUsers(): Set<ApplicationUser> {
+        return this.users
+    }
 
+    fun setUsers(users: Set<ApplicationUser>) {
+        this.users = users
+    }
 }

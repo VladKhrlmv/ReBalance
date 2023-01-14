@@ -12,8 +12,8 @@ fun jsonArrayToApplicationUsers(jsonBody: String): List<ApplicationUser> {
     return Gson().fromJson(jsonBody, typeToken)
 }
 
-fun jsonArrayToExpenses(jsonBody: String): List<Expense> {
-    val typeToken = object : TypeToken<List<Expense>>() {}.type
+fun jsonArrayToExpenses(jsonBody: String): ArrayList<Expense> {
+    val typeToken = object : TypeToken<ArrayList<Expense>>() {}.type
     return Gson().fromJson(jsonBody, typeToken)
 }
 

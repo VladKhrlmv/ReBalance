@@ -1,7 +1,5 @@
 package com.rebalance.backend.api
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.rebalance.backend.exceptions.ServerException
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection

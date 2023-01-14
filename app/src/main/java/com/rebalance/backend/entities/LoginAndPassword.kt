@@ -34,20 +34,20 @@ class LoginAndPassword {
         return result
     }
 
-    public fun getEmail(): String {
-        return email;
+    fun getEmail(): String {
+        return email
     }
 
-    public fun getPassword(): String {
-        return password;
+    fun getPassword(): String {
+        return password
     }
 
-    public fun setPassword(password: String) {
+    fun setPassword(password: String) {
         this.password = password
     }
 
 
-    public fun setEmail(email: String) {
+    fun setEmail(email: String) {
         this.email = email
     }
 

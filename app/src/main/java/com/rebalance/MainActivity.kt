@@ -1,10 +1,8 @@
 package com.rebalance
 
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.annotation.RequiresApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.FabPosition
@@ -15,20 +13,28 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
-import com.rebalance.backend.api.*
-import com.rebalance.backend.entities.LoginAndPassword
 import com.rebalance.ui.components.BottomNavigationBar
 import com.rebalance.ui.components.PlusButton
 import com.rebalance.ui.components.screens.navigation.ScreenNavigation
 import com.rebalance.ui.theme.ReBalanceTheme
 
 class MainActivity : ComponentActivity() {
-    @RequiresApi(Build.VERSION_CODES.N)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             ReBalanceTheme {
+                // sample code to check if user already logged in and saving if not
+//                val preferences = Preferences(LocalContext.current).read()
+//                if (!preferences.exists()) {
+//                    Preferences(LocalContext.current).write(
+//                        PreferencesData("", "2", "2")
+//                    )
+//                }
+                Preferences(LocalContext.current).write(
+                    PreferencesData("", "2", 3)
+                )
                 MainScreen()
             }
         }
@@ -49,7 +55,7 @@ fun MainScreen() {
         isFloatingActionButtonDocked = true,
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
             Box(modifier = Modifier.padding(padding)) {
-                ScreenNavigation(navController, pieChartActive)
+                ScreenNavigation(navController, LocalContext.current, pieChartActive)
             }
         }
     )
