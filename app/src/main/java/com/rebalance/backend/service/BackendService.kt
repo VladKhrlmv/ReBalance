@@ -107,13 +107,14 @@ class BackendService {
         StrictMode.setThreadPolicy(policy)
         val entries = ArrayList<BarChartData>()
 
-        val jsonBodyGetUsersFromGroup = if (groupId == -1L)  "[]" else sendGet(
+        val jsonBodyGetUsersFromGroup = if (groupId == -1L) "[]" else sendGet(
             //todo change to group choice
             "http://${GlobalVars.serverIp}/groups/${groupId}/users"
         )
-        val userExpenseMap: HashMap<String, Int> = HashMap()
+        val userExpenseMap: HashMap<String, Double> = HashMap()
 
-        val userList = if (groupId == -1L)  listOf() else jsonArrayToApplicationUsers(jsonBodyGetUsersFromGroup)
+        val userList =
+            if (groupId == -1L) listOf() else jsonArrayToApplicationUsers(jsonBodyGetUsersFromGroup)
         println(userList)
         for (user in userList) {
             val jsonBodyGet = sendGet(
@@ -121,14 +122,14 @@ class BackendService {
                 "http://${GlobalVars.serverIp}/groups/${groupId}/users/${user.getId()}/expenses"
             )
             val listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
-            var sumForUser: Int = 0
+            var sumForUser = 0.0
             for (expense in listExpense) {
                 sumForUser += expense.getAmount()
             }
             userExpenseMap[user.getUsername()] = sumForUser
         }
         for (entry in userExpenseMap.entries.iterator()) {
-            entries.add(BarChartData(entry.key, entry.value.toDouble() / 100))
+            entries.add(BarChartData(entry.key, entry.value / 100))
         }
         //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
         return entries
@@ -138,7 +139,7 @@ class BackendService {
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
 
-        val responseGroupList = if(groupId == -1L) "[]" else sendGet(
+        val responseGroupList = if (groupId == -1L) "[]" else sendGet(
             //todo change to group choice
             "http://${GlobalVars.serverIp}/groups/${groupId}/expenses"
         )
@@ -168,7 +169,7 @@ data class ExpenseItem(
 ) {
     constructor(expense: Expense) : this(
         expense.getCategory(),
-        expense.getAmount().toDouble(),
+        expense.getAmount(),
         arrayListOf(expense)
     )
 

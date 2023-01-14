@@ -1,7 +1,6 @@
 package com.rebalance.backend
 
 import android.app.Application
-import android.content.Context
 import com.rebalance.backend.entities.ApplicationUser
 import com.rebalance.backend.entities.ExpenseGroup
 
