@@ -49,13 +49,13 @@ class SignInActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ReBalanceTheme {
-                val preferences = Preferences(LocalContext.current).read()
-                if (!preferences.exists()) {
+//                val preferences = Preferences(LocalContext.current).read()
+//                if (!preferences.exists()) {
                     MainSignInScreen()
-                } else {
-                    val context = LocalContext.current
-                    context.startActivity(Intent(context, MainActivity::class.java))
-                }
+//                } else {
+//                    val context = LocalContext.current
+//                    context.startActivity(Intent(context, MainActivity::class.java))
+//                }
             }
         }
     }
