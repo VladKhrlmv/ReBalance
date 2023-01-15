@@ -54,6 +54,8 @@ fun BarChart(
                     this.xAxis.textSize = 16f
                     this.xAxis.typeface = Typeface.DEFAULT
                     this.xAxis.labelCount = data.size
+                    this.axisLeft.spaceBottom = 60f
+                    this.axisRight.spaceTop = 10f
                     this.setDrawValueAboveBar(false)
                     this.setTouchEnabled(false)
                     this.setPinchZoom(false)
