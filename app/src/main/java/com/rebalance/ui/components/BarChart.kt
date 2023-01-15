@@ -14,6 +14,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.github.mikephil.charting.charts.HorizontalBarChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.*
+import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.rebalance.backend.service.BarChartData
 import com.rebalance.ui.theme.blackColor
@@ -41,7 +42,7 @@ fun BarChart(
                 HorizontalBarChart(context).apply {
                     layoutParams = LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        (100 * data.size),
                     )
                     this.description.isEnabled = false
                     this.legend.isEnabled = false
@@ -53,8 +54,9 @@ fun BarChart(
                     this.xAxis.setDrawLimitLinesBehindData(false)
                     this.xAxis.granularity = 1f
                     this.xAxis.position = XAxis.XAxisPosition.BOTTOM
-                    this.xAxis.textSize = 16f
+                    this.xAxis.textSize = 14f
                     this.xAxis.typeface = Typeface.DEFAULT
+                    this.xAxis.labelCount = data.size
                     this.setDrawValueAboveBar(false)
                     this.setTouchEnabled(false)
                     this.setPinchZoom(false)
@@ -93,9 +95,14 @@ fun updateBarChartWithData(
         }
     }
     ds.valueTextColor = blackColor.toArgb()
-    ds.valueTextSize = 18f
+    ds.valueTextSize = 15f
     ds.valueTypeface = Typeface.DEFAULT_BOLD
     val d = BarData(ds)
+    val barWidth = 80F
+    val count = data.size
+    val totalWidth = (100 * data.size)
+    val ratio = barWidth * count / totalWidth
+    d.barWidth = ratio
     chart.data = d
     chart.xAxis.valueFormatter = object : ValueFormatter() {
         override fun getFormattedValue(value: Float): String {
