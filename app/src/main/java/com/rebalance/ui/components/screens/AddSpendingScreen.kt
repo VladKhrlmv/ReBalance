@@ -51,6 +51,7 @@ fun AddSpendingScreen(
     var expandedDropdownGroups by remember { mutableStateOf(false) }
     var groupName by remember { mutableStateOf("") }
     var groupId by remember { mutableStateOf(0L) }
+    var groupIdLast by remember { mutableStateOf(0L) }
     var groupList by remember { mutableStateOf(listOf<ExpenseGroup>()) }
     val membersSelection = remember { mutableStateMapOf<ApplicationUser, Boolean>() }
     Column(
@@ -250,7 +251,12 @@ fun AddSpendingScreen(
                             .replace("""\.$""".toRegex(), ".00")
                         costValue = TextFieldValue(tempCostValue)
                     }
-                }
+                },
+            trailingIcon = {
+                Text(
+                    text = BackendService(preferences).getGroupById(if(groupId == 0L) preferences.groupId else groupId).getCurrency()
+                )
+            }
         )
         Row(
             modifier = Modifier
@@ -266,6 +272,13 @@ fun AddSpendingScreen(
                 checked = isGroupExpense,
                 onCheckedChange = {
                     isGroupExpense = it
+                    if (isGroupExpense) {
+                        groupId = groupIdLast
+                    }
+                    else {
+                        groupIdLast = groupId
+                        groupId = 0L
+                    }
                     groupList = BackendService(preferences).getGroups()
                         .filter { group -> group.getId() != preferences.groupId }
                 },
@@ -282,6 +295,13 @@ fun AddSpendingScreen(
                         groupList = BackendService(preferences)
                             .getGroups()
                             .filter { group -> group.getId() != preferences.groupId }
+                        if (isGroupExpense) {
+                            groupId = groupIdLast
+                        }
+                        else {
+                            groupIdLast = groupId
+                            groupId = 0L
+                        }
                     }
             )
         }
