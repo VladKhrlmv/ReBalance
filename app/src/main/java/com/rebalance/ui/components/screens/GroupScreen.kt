@@ -285,44 +285,6 @@ private fun DisplayVisual(
         ) {
             BarChart(data)
         }
-
-        Text(
-            text = "Balance",
-            fontSize = 30.sp,
-            modifier = Modifier
-                .padding(20.dp, 20.dp, 0.dp, 20.dp)
-        )
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(10.dp),
-            verticalArrangement = Arrangement.Top
-        ) {
-            for (item in data) {
-                Row(
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .background(Color.LightGray)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = item.debtor,
-                        fontSize = 14.sp,
-                        modifier = Modifier
-                            .padding(10.dp)
-                    )
-                    Text(
-                        text = "${String.format("%.2f", item.value)} ${BackendService(preferences).getGroupById(groupId).getCurrency()}",
-                        fontSize = 14.sp,
-                        color = Color.hsl(358f, 0.63f, 0.49f),
-                        modifier = Modifier
-                            .padding(10.dp)
-                    )
-                }
-            }
-        }
     }
 }
 
