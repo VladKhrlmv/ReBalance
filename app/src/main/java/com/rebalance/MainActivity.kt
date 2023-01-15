@@ -26,13 +26,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ReBalanceTheme {
-                // sample code to check if user already logged in and saving if not
-//                val preferences = Preferences(LocalContext.current).read()
-//                if (!preferences.exists()) {
-//                    Preferences(LocalContext.current).write(
-//                        PreferencesData("", "2", "2")
-//                    )
-//                }
                 MainScreen()
             }
         }
