@@ -31,7 +31,6 @@ import com.rebalance.PreferencesData
 import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.backend.service.BackendService
-import com.rebalance.backend.service.BarChartData
 import com.rebalance.ui.components.BarChart
 
 @Composable
@@ -43,7 +42,8 @@ fun GroupScreen(
     // initialize tabs
     val tabItems = listOf("Visual", "List")
     var selectedTabIndex by rememberSaveable { mutableStateOf(0) } // selected index of tab
-    val groupId = rememberSaveable { mutableStateOf(-1L) }
+    var groupId by rememberSaveable { mutableStateOf(-1L) }
+    var userAddedSwitcher by rememberSaveable { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -54,7 +54,9 @@ fun GroupScreen(
             selectedTabIndex = tabIndex
         }
 
-        DisplayGroupSelection(context, preferences, groupId)
+        DisplayGroupSelection(context, preferences, groupId) { newGroupId ->
+            groupId = newGroupId
+        }
 
         // content
         Box(
@@ -62,9 +64,11 @@ fun GroupScreen(
                 .fillMaxSize()
         ) {
             if (selectedTabIndex == 0) { // if visual tab
-                DisplayVisual(preferences, groupId.value, BackendService(preferences).getGroupVisualBarChart(groupId.value))
+                DisplayVisual(preferences, groupId, userAddedSwitcher) {
+                    userAddedSwitcher = !userAddedSwitcher
+                }
             } else { // if list tab
-                DisplayList(preferences, groupId.value, BackendService(preferences).getGroupList(groupId.value))
+                DisplayList(preferences, groupId, BackendService(preferences).getGroupList(groupId))
             }
         }
     }
@@ -75,10 +79,10 @@ fun GroupScreen(
 private fun DisplayGroupSelection(
     context: Context,
     preferences: PreferencesData,
-    groupId: MutableState<Long>,
+    groupId: Long,
+    onSwitch: (Long) -> Unit
 ) {
     var expandedDropdownGroups by remember { mutableStateOf(false) }
-    var groupName by rememberSaveable { mutableStateOf("") }
     val addGroupDialogController = remember { mutableStateOf(false) }
     Box (
         modifier = Modifier
@@ -94,7 +98,7 @@ private fun DisplayGroupSelection(
                 .fillMaxWidth()
         ) {
             TextField(
-                value = groupName,
+                value = if(groupId == -1L) "" else BackendService(preferences).getGroupById(groupId).getName(),
                 onValueChange = { },
                 readOnly = true,
                 label = {
@@ -120,10 +124,8 @@ private fun DisplayGroupSelection(
                 groupList.forEach { group ->
                     DropdownMenuItem(
                         onClick = {
-                            groupName = group.getName()
-                            groupId.value = group.getId()
+                            onSwitch(group.getId())
                             expandedDropdownGroups = false
-
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -153,7 +155,9 @@ private fun DisplayGroupSelection(
             Surface(
                 elevation = 4.dp
             ) {
-                AddGroupScreen(context, addGroupDialogController)
+                AddGroupScreen(context, addGroupDialogController) { groupId ->
+                    onSwitch(groupId)
+                }
             }
         }
     }
@@ -162,7 +166,8 @@ private fun DisplayGroupSelection(
 @Composable
 private fun DisplayInviteFields(
     preferences: PreferencesData,
-    groupId: Long
+    groupId: Long,
+    onUserAdd: () -> Unit
 ) {
     val context = LocalContext.current
     Box(
@@ -210,6 +215,7 @@ private fun DisplayInviteFields(
                         ).show()
                     }
                     email = TextFieldValue(text = "")
+                    onUserAdd()
                 }
                 catch(e: ServerException){
                     ContextCompat.getMainExecutor(context).execute {
@@ -256,8 +262,11 @@ private fun DisplayTabs(
 private fun DisplayVisual(
     preferences: PreferencesData,
     groupId: Long,
-    data: List<BarChartData>
+    userAdded: Boolean,
+    onUserAdd: () -> Unit
 ) {
+    val data = BackendService(preferences).getGroupVisualBarChart(groupId)
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -266,7 +275,7 @@ private fun DisplayVisual(
                 flingBehavior = null // TODO: disable
             )
     ) {
-        DisplayInviteFields(preferences, groupId)
+        DisplayInviteFields(preferences, groupId, onUserAdd)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
