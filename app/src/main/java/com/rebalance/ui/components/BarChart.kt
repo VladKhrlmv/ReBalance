@@ -14,10 +14,8 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.github.mikephil.charting.charts.HorizontalBarChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.data.*
-import com.github.mikephil.charting.formatter.IndexAxisValueFormatter
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.rebalance.backend.service.BarChartData
-import com.rebalance.ui.theme.blackColor
 import com.rebalance.ui.theme.greenColor
 import com.rebalance.ui.theme.redColor
 import java.text.DecimalFormat
@@ -28,7 +26,6 @@ fun BarChart(
 ) {
     Column(
         modifier = Modifier
-            .padding(18.dp)
             .fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Top
@@ -42,7 +39,7 @@ fun BarChart(
                 HorizontalBarChart(context).apply {
                     layoutParams = LinearLayout.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
-                        (100 * data.size),
+                        (130 * data.size),
                     )
                     this.description.isEnabled = false
                     this.legend.isEnabled = false
@@ -54,9 +51,11 @@ fun BarChart(
                     this.xAxis.setDrawLimitLinesBehindData(false)
                     this.xAxis.granularity = 1f
                     this.xAxis.position = XAxis.XAxisPosition.BOTTOM
-                    this.xAxis.textSize = 14f
+                    this.xAxis.textSize = 16f
                     this.xAxis.typeface = Typeface.DEFAULT
                     this.xAxis.labelCount = data.size
+                    this.axisLeft.spaceBottom = 60f
+                    this.axisRight.spaceTop = 10f
                     this.setDrawValueAboveBar(false)
                     this.setTouchEnabled(false)
                     this.setPinchZoom(false)
@@ -84,29 +83,28 @@ fun updateBarChartWithData(
     val entries = ArrayList<BarEntry>()
     for (i in data.indices) {
         val item = data[i]
-        entries.add(BarEntry(i.toFloat(), item.value.toFloat()))
+        entries.add(BarEntry(i.toFloat(), item.data.second.toFloat()))
     }
     val ds = BarDataSet(entries, "")
-    ds.colors = data.map { if (it.value >= 0) greenColor.toArgb() else redColor.toArgb() }
+    ds.colors = data.map { if (it.data.second >= 0) greenColor.toArgb() else redColor.toArgb() }
     ds.valueFormatter = object : ValueFormatter() {
         val format = DecimalFormat("###,###,###.##")
         override fun getFormattedValue(value: Float): String {
             return format.format(value)
         }
     }
-    ds.valueTextColor = blackColor.toArgb()
-    ds.valueTextSize = 15f
+    ds.valueTextSize = 16f
     ds.valueTypeface = Typeface.DEFAULT_BOLD
     val d = BarData(ds)
-    val barWidth = 80F
+    val barWidth = 110F
     val count = data.size
-    val totalWidth = (100 * data.size)
+    val totalWidth = (130 * data.size)
     val ratio = barWidth * count / totalWidth
     d.barWidth = ratio
     chart.data = d
     chart.xAxis.valueFormatter = object : ValueFormatter() {
         override fun getFormattedValue(value: Float): String {
-            return data[value.toInt()].debtor
+            return data[value.toInt()].data.first
         }
     }
     chart.invalidate()
