@@ -54,7 +54,7 @@ fun GroupScreen(
             selectedTabIndex = tabIndex
         }
 
-        DisplayGroupSelection(context, preferences) { newGroupId ->
+        DisplayGroupSelection(context, preferences, groupId) { newGroupId ->
             groupId = newGroupId
         }
 
@@ -79,10 +79,10 @@ fun GroupScreen(
 private fun DisplayGroupSelection(
     context: Context,
     preferences: PreferencesData,
+    groupId: Long,
     onSwitch: (Long) -> Unit
 ) {
     var expandedDropdownGroups by remember { mutableStateOf(false) }
-    var groupName by rememberSaveable { mutableStateOf("") }
     val addGroupDialogController = remember { mutableStateOf(false) }
     Box (
         modifier = Modifier
@@ -98,7 +98,7 @@ private fun DisplayGroupSelection(
                 .fillMaxWidth()
         ) {
             TextField(
-                value = groupName,
+                value = if(groupId == -1L) "" else BackendService(preferences).getGroupById(groupId).getName(),
                 onValueChange = { },
                 readOnly = true,
                 label = {
@@ -124,10 +124,8 @@ private fun DisplayGroupSelection(
                 groupList.forEach { group ->
                     DropdownMenuItem(
                         onClick = {
-                            groupName = group.getName()
                             onSwitch(group.getId())
                             expandedDropdownGroups = false
-
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -157,7 +155,9 @@ private fun DisplayGroupSelection(
             Surface(
                 elevation = 4.dp
             ) {
-                AddGroupScreen(context, addGroupDialogController)
+                AddGroupScreen(context, addGroupDialogController) { groupId ->
+                    onSwitch(groupId)
+                }
             }
         }
     }

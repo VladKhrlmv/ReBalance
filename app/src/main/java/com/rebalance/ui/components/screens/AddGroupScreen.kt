@@ -9,13 +9,13 @@ import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.rebalance.Preferences
+import com.rebalance.backend.api.jsonToExpenseGroup
 import com.rebalance.backend.api.sendPost
 
 val currencyRegex = """[A-Z]{0,3}""".toRegex()
@@ -23,7 +23,8 @@ val currencyRegex = """[A-Z]{0,3}""".toRegex()
 @Composable
 fun AddGroupScreen(
     context: Context,
-    dialogController: MutableState<Boolean>
+    dialogController: MutableState<Boolean>,
+    onCreate: (Long) -> Unit
 ) {
     val preferences = rememberSaveable { Preferences(context).read() }
 
@@ -33,7 +34,6 @@ fun AddGroupScreen(
         modifier = Modifier
             .padding(10.dp)
     ) {
-        val context = LocalContext.current
         Text(
             text = "Add group",
             modifier = Modifier
@@ -90,10 +90,10 @@ fun AddGroupScreen(
                     }
                     val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
                     StrictMode.setThreadPolicy(policy)
-                    sendPost(
+                    val group = jsonToExpenseGroup(sendPost(
                         "http://${preferences.serverIp}/users/${preferences.userId}/groups",
                         "{\"currency\": \"${groupCurrency.text}\", \"name\": \"${groupName.text}\"}"
-                    )
+                    ))
                     ContextCompat.getMainExecutor(context).execute {
                         Toast.makeText(
                             context,
@@ -102,6 +102,7 @@ fun AddGroupScreen(
                         ).show()
                     }
                     dialogController.value = !dialogController.value
+                    onCreate(group.getId())
                 },
                 modifier = Modifier
                     .padding(1.dp)
