@@ -174,7 +174,7 @@ class BackendService(
             //todo change to group choice
             "http://${preferences.serverIp}/groups/${groupId}/users"
         )
-        val userExpenseMap: HashMap<String, Double> = HashMap()
+        val userExpenseMap: HashMap<Long, Pair<String, Double>> = HashMap()
 
         val userList =
             if (groupId == -1L) listOf() else jsonArrayToApplicationUsers(jsonBodyGetUsersFromGroup)
@@ -189,13 +189,13 @@ class BackendService(
             for (expense in listExpense) {
                 sumForUser += expense.getAmount()
             }
-            userExpenseMap[user.getUsername()] = sumForUser
+            userExpenseMap[user.getId()] = Pair(user.getUsername(), sumForUser)
         }
         for (entry in userExpenseMap.entries.iterator()) {
             entries.add(BarChartData(entry.key, entry.value))
         }
         //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
-        return entries.sortedByDescending { it.debtor }
+        return entries.sortedByDescending { it.data.first }
     }
 
     fun getGroupList(groupId: Long): List<Expense> {
@@ -257,7 +257,7 @@ data class ExpenseItem(
 
 //region Group screen
 data class BarChartData(
-    var debtor: String,
-    var value: Double
+    var id: Long,
+    var data: Pair<String, Double>
 )
 //endregion
