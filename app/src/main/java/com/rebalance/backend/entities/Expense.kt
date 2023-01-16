@@ -28,11 +28,12 @@ class Expense {
         this.globalId = globalId
     }
 
-    constructor(amount: Double, dateStamp: String, category: String, description: String) {
+    constructor(amount: Double, dateStamp: String, category: String, description: String, globalId: Long) {
         this.amount = amount
         this.dateStamp = dateStamp
         this.category = category
         this.description = description
+        this.globalId = globalId
     }
 
 

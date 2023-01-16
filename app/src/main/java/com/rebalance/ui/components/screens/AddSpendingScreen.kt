@@ -131,7 +131,8 @@ fun AddSpendingScreen(
                                                             )
                                                     },
                                                     selectedCategory.text,
-                                                    spendingName.text
+                                                    spendingName.text,
+                                                    0L
                                                 )
                                             )
                                         )
@@ -147,7 +148,8 @@ fun AddSpendingScreen(
                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                                                 },
                                                 selectedCategory.text,
-                                                spendingName.text
+                                                spendingName.text,
+                                                0L
                                             )
                                         )
                                     )
@@ -173,7 +175,8 @@ fun AddSpendingScreen(
                                                         .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
                                                 },
                                                 selectedCategory.text,
-                                                spendingName.text
+                                                spendingName.text,
+                                                -1L
                                             )
                                         )
                                     )
