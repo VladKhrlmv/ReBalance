@@ -1,11 +1,8 @@
 package com.rebalance.backend.api
 
-import com.rebalance.backend.entities.ApplicationUser
-import com.rebalance.backend.entities.Expense
-import com.rebalance.backend.entities.ExpenseGroup
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
-import com.rebalance.backend.entities.LoginAndPassword
+import com.rebalance.backend.entities.*
 
 fun jsonArrayToApplicationUsers(jsonBody: String): List<ApplicationUser> {
     val typeToken = object : TypeToken<List<ApplicationUser>>() {}.type
@@ -37,4 +34,9 @@ fun jsonToExpenseGroup(jsonBody: String): ExpenseGroup {
 
 fun jsonToLoginAndPassword(jsonBody: String): LoginAndPassword{
     return Gson().fromJson(jsonBody, LoginAndPassword::class.java)
+}
+
+fun jsonArrayToNotification(jsonBody: String): List<Notification> {
+    val typeToken = object : TypeToken<List<Notification>>() {}.type
+    return Gson().fromJson(jsonBody, typeToken)
 }

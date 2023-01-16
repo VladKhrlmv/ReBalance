@@ -26,6 +26,9 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ReBalanceTheme {
+                val notificationService = NotificationService(LocalContext.current)
+                notificationService.start()
+
                 MainScreen()
             }
         }
