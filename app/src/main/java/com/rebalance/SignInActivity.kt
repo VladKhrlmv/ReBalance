@@ -70,7 +70,7 @@ fun MainSignInScreen() {
         topBar = {
             com.rebalance.ui.components.TopAppBar(pieChartActive, onPieChartActiveChange = {
                 pieChartActive = !pieChartActive
-            })
+            }, false)
         },
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
             Box(modifier = Modifier.padding(padding)) {

@@ -42,7 +42,7 @@ fun MainScreen() {
     Scaffold(
         topBar = { com.rebalance.ui.components.TopAppBar(pieChartActive, onPieChartActiveChange = {
             pieChartActive = !pieChartActive
-        }) },
+        }, true) },
         bottomBar = { BottomNavigationBar(navController) },
         floatingActionButton = { PlusButton(navController) },
         floatingActionButtonPosition = FabPosition.Center,
