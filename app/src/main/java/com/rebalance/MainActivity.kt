@@ -15,17 +15,25 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
+import androidx.work.PeriodicWorkRequest
+import androidx.work.WorkManager
 import com.rebalance.ui.components.BottomNavigationBar
 import com.rebalance.ui.components.PlusButton
 import com.rebalance.ui.components.screens.navigation.ScreenNavigation
 import com.rebalance.ui.components.screens.navigation.ScreenNavigationItem
 import com.rebalance.ui.theme.ReBalanceTheme
+import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
+    private val workManager = WorkManager.getInstance(application)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
             ReBalanceTheme {
+                val recurringWork: PeriodicWorkRequest =
+                    PeriodicWorkRequest.Builder(NotificationIdle::class.java, 15, TimeUnit.MINUTES)
+                        .build()
+                workManager.enqueue(recurringWork)
                 val notificationService = NotificationService(LocalContext.current)
                 notificationService.start()
 
@@ -49,7 +57,12 @@ fun MainScreen() {
         isFloatingActionButtonDocked = true,
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
             Box(modifier = Modifier.padding(padding)) {
-                ScreenNavigation(navController, LocalContext.current, pieChartActive, ScreenNavigationItem.Personal.route)
+                ScreenNavigation(
+                    navController,
+                    LocalContext.current,
+                    pieChartActive,
+                    ScreenNavigationItem.Personal.route
+                )
             }
         }
     )
