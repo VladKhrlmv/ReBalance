@@ -118,7 +118,7 @@ fun AddSpendingScreen(
                                     }
                                     for (member in activeMembers) {
                                         val jsonBodyPOST = sendPost(
-                                            "http://${preferences.serverIp}/expenses/user/${member.key.getId()}/group/${groupId}",
+                                            "http://${preferences.serverIp}/expenses/user/${member.key.getId()}/group/${groupId}/${preferences.userId}",
                                             Gson().toJson(
                                                 Expense(
                                                     costValue.text.toDouble() / activeMembers.size * -1,
@@ -139,7 +139,7 @@ fun AddSpendingScreen(
                                         println(jsonBodyPOST)
                                     }
                                     val jsonBodyPOST = sendPost(
-                                        "http://${preferences.serverIp}/expenses/user/${preferences.userId}/group/${groupId}",
+                                        "http://${preferences.serverIp}/expenses/user/${preferences.userId}/group/${groupId}/${preferences.userId}",
                                         Gson().toJson(
                                             Expense(
                                                 costValue.text.toDouble(),
@@ -166,7 +166,7 @@ fun AddSpendingScreen(
                                     val jsonBodyPOST = sendPost(
                                         "http://${preferences.serverIp}/expenses/user/${preferences.userId}/group/${
                                             preferences.groupId
-                                        }",
+                                        }/${preferences.userId}",
                                         Gson().toJson(
                                             Expense(
                                                 costValue.text.toDouble(),
