@@ -100,6 +100,7 @@ fun AddSpendingScreen(
                                     Toast.LENGTH_SHORT
                                 ).show()
                             }
+                            return@Button
                         }
                         Thread {
                             try {
