@@ -12,7 +12,7 @@ class Preferences(
 ) {
     private val gson = Gson()
     private val fileName = "preferences.txt"
-    private val serverIp = "10.182.137.52:8080"
+    private val serverIp = "156.17.239.158:8080"
 
     fun read(): PreferencesData {
         return try {

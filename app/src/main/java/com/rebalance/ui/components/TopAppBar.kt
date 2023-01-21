@@ -27,6 +27,7 @@ fun TopAppBar(
     TopAppBar(
         title = { Text(text = stringResource(R.string.app_name), fontSize = 18.sp) },
         actions = {
+            if (logout) {
             IconButton(onClick = onPieChartActiveChange) {
                 Icon(
                     if(pieChartActive) Icons.Filled.List else EvaIcons.Fill.PieChart,
@@ -34,7 +35,7 @@ fun TopAppBar(
                 )
 
             }
-            if (logout) {
+
                 IconButton(onClick = {
                     Preferences(context).write(PreferencesData("", "-1", -1))
                     context.startActivity(Intent(context, SignInActivity::class.java))

@@ -35,7 +35,8 @@ class NotificationService(
                     if (notifications.isNotEmpty()) {
                         for (notification in notifications) {
                             if (notification.getUserId().toString() == preferences.userId &&
-                                    notification.getAmount() < 0) {
+                                    notification.getAmount() < 0 &&
+                                    notification.getUserFromId().toString() != preferences.userId) {
                                 Handler(mainLooper).post {
                                     if (notification.getExpenseId() != -1L) {
                                         sendNotification("Added new expense")

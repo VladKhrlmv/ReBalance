@@ -345,6 +345,13 @@ fun SignUpMailScreen(context: Context, navController: NavController) {
                             println("Caught a ServerException!")
                             showError.value = true
                             errorMessage.value = error.message.toString()
+                            ContextCompat.getMainExecutor(context).execute {
+                                Toast.makeText(
+                                    context,
+                                    error.message,
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         }
 
                     })
