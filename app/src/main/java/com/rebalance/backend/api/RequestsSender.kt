@@ -12,9 +12,10 @@ class RequestsSender {
             val url = URL(toWhere)
             with(url.openConnection() as HttpURLConnection) {
                 requestMethod = "GET"
+                doOutput=true
                 println("Sent 'GET' request to URL : $url; Response Code : $responseCode")
                 if (responseCode == 409 || responseCode == 400) {
-                    throw ServerException(responseMessage)
+                    throw ServerException()
                 }
                 inputStream.bufferedReader().use {
                     it.lines().forEach { line -> res = res.plus(line + "\n") }
@@ -29,6 +30,7 @@ class RequestsSender {
             with(url.openConnection() as HttpURLConnection) {
                 requestMethod = "POST"
                 doInput = true
+                doOutput=true
                 setRequestProperty("Content-Type", "application/json")
                 val outputStreamWriter = OutputStreamWriter(outputStream)
                 outputStreamWriter.write(requestBody)
