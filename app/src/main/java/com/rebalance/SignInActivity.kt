@@ -174,8 +174,8 @@ fun SignInScreen(context: Context, navController: NavController) {
                     if (showError.value) ContextCompat.getMainExecutor(context).execute {
                         Toast.makeText(
                             context,
-                            errorMessage.value,
-                            Toast.LENGTH_SHORT
+                            "Wrong email or password",
+                            Toast.LENGTH_SHORT,
                         ).show()
                     }
                     showError.value = false
