@@ -244,12 +244,17 @@ data class ExpenseItem(
         other as ExpenseItem
 
         if (text != other.text) return false
+        if (amount != other.amount) return false
+        if (expenses != other.expenses) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        return text.hashCode()
+        var result = text.hashCode()
+        result = 31 * result + amount.hashCode()
+        result = 31 * result + expenses.hashCode()
+        return result
     }
 }
 //endregion
