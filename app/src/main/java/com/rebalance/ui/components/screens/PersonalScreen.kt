@@ -17,6 +17,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.rebalance.Preferences
 import com.rebalance.PreferencesData
@@ -172,7 +173,7 @@ private fun DisplayList(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding((scaleButtonWidth + scaleButtonPadding).dp, 0.dp, 0.dp, 0.dp),
+            .padding((scaleButtonWidth + scaleButtonPadding).dp, 0.dp, 0.dp, 0.dp).testTag("personalList"),
         contentAlignment = TopCenter
     ) {
         ExpandableList(items = data)

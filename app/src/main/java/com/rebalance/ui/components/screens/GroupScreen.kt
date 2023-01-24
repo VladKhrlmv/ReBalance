@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment.Companion.CenterEnd
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -86,7 +87,7 @@ private fun DisplayGroupSelection(
     val addGroupDialogController = remember { mutableStateOf(false) }
     Box (
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxWidth().testTag("groupSelectionGroupScreen")
     ) {
         ExposedDropdownMenuBox(
             expanded = expandedDropdownGroups,
@@ -296,7 +297,7 @@ private fun DisplayList(
 ) {
     Box(
         modifier = Modifier
-            .fillMaxSize(),
+            .fillMaxSize().testTag("groupList"),
         contentAlignment = Center
     ) {
         LazyColumn(
