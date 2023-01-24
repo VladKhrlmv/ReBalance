@@ -15,6 +15,11 @@ class BackendService(
 ) {
     private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
+    fun setPolicy(){
+        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+        StrictMode.setThreadPolicy(policy)
+    }
+
     //region Personal screen
     /** Returns scale items that is scrollable vertically in personal screen (day, week, month, year) **/
     fun getScaleItems(): List<ScaleItem> {
@@ -28,8 +33,7 @@ class BackendService(
 
     /** Returns scaled date items that is scrollable horizontally in personal screen **/
     fun getScaledDateItems(scale: String): List<ScaledDateItem> {
-        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-        StrictMode.setThreadPolicy(policy)
+        setPolicy()
 
         val jsonBodyExpenses = RequestsSender.sendGet(
             "http://${preferences.serverIp}/groups/${preferences.groupId}/expenses"
@@ -103,8 +107,7 @@ class BackendService(
 
     /** Returns list of expenses grouped by category **/
     fun getPersonal(dateFrom: LocalDate, dateTo: LocalDate): List<ExpenseItem> {
-        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-        StrictMode.setThreadPolicy(policy)
+      setPolicy()
 
         val list = ArrayList<ExpenseItem>()
 
@@ -136,8 +139,7 @@ class BackendService(
     //region Add spending screen
     //TODO: change to entities
     fun getGroups(): List<ExpenseGroup> {
-        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-        StrictMode.setThreadPolicy(policy)
+        setPolicy()
 
         val jsonBodyGroups = RequestsSender.sendGet(
             "http://${preferences.serverIp}/users/${preferences.userId}/groups"
@@ -152,8 +154,7 @@ class BackendService(
 
     //region Group by id
     fun getGroupById(id: Long): ExpenseGroup {
-        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-        StrictMode.setThreadPolicy(policy)
+        setPolicy()
 
         val jsonBodyGroup = RequestsSender.sendGet(
             "http://${preferences.serverIp}/groups/${id}"
@@ -166,8 +167,7 @@ class BackendService(
 
     //region Group screen
     fun getGroupVisualBarChart(groupId: Long): List<BarChartData> {
-        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-        StrictMode.setThreadPolicy(policy)
+        setPolicy()
         val entries = ArrayList<BarChartData>()
 
         val jsonBodyGetUsersFromGroup = if (groupId == -1L) "[]" else RequestsSender.sendGet(
@@ -199,8 +199,7 @@ class BackendService(
     }
 
     fun getGroupList(groupId: Long): List<Expense> {
-        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-        StrictMode.setThreadPolicy(policy)
+        setPolicy()
 
         val responseGroupList = if (groupId == -1L) "[]" else RequestsSender.sendGet(
             //todo change to group choice
