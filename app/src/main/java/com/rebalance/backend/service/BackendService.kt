@@ -31,7 +31,7 @@ class BackendService(
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
 
-        val jsonBodyExpenses = sendGet(
+        val jsonBodyExpenses = RequestsSender.sendGet(
             "http://${preferences.serverIp}/groups/${preferences.groupId}/expenses"
         )
         val expenses: List<Expense> = jsonArrayToExpenses(jsonBodyExpenses)
@@ -108,7 +108,7 @@ class BackendService(
 
         val list = ArrayList<ExpenseItem>()
 
-        val jsonBodyGet = sendGet(
+        val jsonBodyGet = RequestsSender.sendGet(
             "http://${preferences.serverIp}/expenses/group/${preferences.groupId}/between/${dateFrom.format(
                 formatter)}/${dateTo.format(
                 formatter)}"
@@ -139,7 +139,7 @@ class BackendService(
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
 
-        val jsonBodyGroups = sendGet(
+        val jsonBodyGroups = RequestsSender.sendGet(
             "http://${preferences.serverIp}/users/${preferences.userId}/groups"
         )
         val groups: List<ExpenseGroup> = jsonArrayToExpenseGroups(jsonBodyGroups)
@@ -155,7 +155,7 @@ class BackendService(
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
 
-        val jsonBodyGroup = sendGet(
+        val jsonBodyGroup = RequestsSender.sendGet(
             "http://${preferences.serverIp}/groups/${id}"
         )
 
@@ -170,7 +170,7 @@ class BackendService(
         StrictMode.setThreadPolicy(policy)
         val entries = ArrayList<BarChartData>()
 
-        val jsonBodyGetUsersFromGroup = if (groupId == -1L) "[]" else sendGet(
+        val jsonBodyGetUsersFromGroup = if (groupId == -1L) "[]" else RequestsSender.sendGet(
             //todo change to group choice
             "http://${preferences.serverIp}/groups/${groupId}/users"
         )
@@ -180,7 +180,7 @@ class BackendService(
             if (groupId == -1L) listOf() else jsonArrayToApplicationUsers(jsonBodyGetUsersFromGroup)
         println(userList)
         for (user in userList) {
-            val jsonBodyGet = sendGet(
+            val jsonBodyGet = RequestsSender.sendGet(
                 //todo change to group choice
                 "http://${preferences.serverIp}/groups/${groupId}/users/${user.getId()}/expenses"
             )
@@ -202,7 +202,7 @@ class BackendService(
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
 
-        val responseGroupList = if (groupId == -1L) "[]" else sendGet(
+        val responseGroupList = if (groupId == -1L) "[]" else RequestsSender.sendGet(
             //todo change to group choice
             "http://${preferences.serverIp}/groups/${groupId}/expenses"
         )

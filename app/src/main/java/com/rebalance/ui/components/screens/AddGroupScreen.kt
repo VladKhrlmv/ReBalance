@@ -15,8 +15,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.rebalance.Preferences
+import com.rebalance.backend.api.RequestsSender
 import com.rebalance.backend.api.jsonToExpenseGroup
-import com.rebalance.backend.api.sendPost
 
 val currencyRegex = """[A-Z]{0,3}""".toRegex()
 
@@ -90,7 +90,7 @@ fun AddGroupScreen(
                     }
                     val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
                     StrictMode.setThreadPolicy(policy)
-                    val group = jsonToExpenseGroup(sendPost(
+                    val group = jsonToExpenseGroup(RequestsSender.sendPost(
                         "http://${preferences.serverIp}/users/${preferences.userId}/groups",
                         "{\"currency\": \"${groupCurrency.text}\", \"name\": \"${groupName.text}\"}"
                     ))

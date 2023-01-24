@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.google.gson.Gson
 import com.rebalance.Preferences
-import com.rebalance.backend.api.sendPost
+import com.rebalance.backend.api.RequestsSender
 import com.rebalance.backend.entities.ApplicationUser
 import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.entities.ExpenseGroup
@@ -118,7 +118,7 @@ fun AddSpendingScreen(
                                         return@Thread
                                     }
                                     for (member in activeMembers) {
-                                        val jsonBodyPOST = sendPost(
+                                        val jsonBodyPOST = RequestsSender.sendPost(
                                             "http://${preferences.serverIp}/expenses/user/${member.key.getId()}/group/${groupId}/${preferences.userId}",
                                             Gson().toJson(
                                                 Expense(
@@ -139,7 +139,7 @@ fun AddSpendingScreen(
                                         )
                                         println(jsonBodyPOST)
                                     }
-                                    val jsonBodyPOST = sendPost(
+                                    val jsonBodyPOST = RequestsSender.sendPost(
                                         "http://${preferences.serverIp}/expenses/user/${preferences.userId}/group/${groupId}/${preferences.userId}",
                                         Gson().toJson(
                                             Expense(
@@ -164,7 +164,7 @@ fun AddSpendingScreen(
                                     groupId = 0L
                                     membersSelection.clear()
                                 } else {
-                                    val jsonBodyPOST = sendPost(
+                                    val jsonBodyPOST = RequestsSender.sendPost(
                                         "http://${preferences.serverIp}/expenses/user/${preferences.userId}/group/${
                                             preferences.groupId
                                         }/${preferences.userId}",

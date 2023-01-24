@@ -24,10 +24,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat
 import com.rebalance.backend.api.jsonToApplicationUser
-import com.rebalance.backend.api.sendGet
-import com.rebalance.backend.api.sendPost
 import com.rebalance.Preferences
 import com.rebalance.PreferencesData
+import com.rebalance.backend.api.RequestsSender
 import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.backend.service.BackendService
@@ -201,9 +200,9 @@ private fun DisplayInviteFields(
                 try{
                     val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
                     StrictMode.setThreadPolicy(policy)
-                    val getUserByEmailResponse = sendGet("http://${preferences.serverIp}/users/email/${email.text}")
+                    val getUserByEmailResponse = RequestsSender.sendGet("http://${preferences.serverIp}/users/email/${email.text}")
                     val user = jsonToApplicationUser(getUserByEmailResponse)
-                    sendPost(
+                    RequestsSender.sendPost(
                         "http://${preferences.serverIp}/users/${user.getId()}/groups",
                         "{\"id\": ${groupId}}"
                     )
