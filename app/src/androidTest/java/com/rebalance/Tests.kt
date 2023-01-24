@@ -9,6 +9,7 @@ import org.junit.Test
 class Tests {
     @get:Rule
     val composeTestRule = createComposeRule()
+    val id = "7"
 
     @Test
     fun signInNavigation() {
@@ -76,8 +77,8 @@ class Tests {
         composeTestRule.onNodeWithText("SIGN UP").performClick()
         composeTestRule.onNodeWithText("Mail").performClick()
 
-        composeTestRule.onNodeWithText("E-mail").performTextInput("test_user_assertion@gmail.com")
-        composeTestRule.onNodeWithText("Username").performTextInput("test_user_assertion")
+        composeTestRule.onNodeWithText("E-mail").performTextInput("test_user_assertion${id}@gmail.com")
+        composeTestRule.onNodeWithText("Username").performTextInput("test_user_assertion${id}")
         composeTestRule.onNodeWithText("Password").performTextInput("pass")
         composeTestRule.onNodeWithText("Repeat password").performTextInput("pass")
         composeTestRule.onNodeWithText("Your currency").performTextInput("PLN")
@@ -165,8 +166,8 @@ class Tests {
 
         composeTestRule.onNodeWithContentDescription("Add spending").performClick()
 
-        composeTestRule.onNodeWithText("Title").performTextInput("Assertion_tests1")
-        composeTestRule.onNodeWithText("Category").performTextInput("Assertion_tests1")
+        composeTestRule.onNodeWithText("Title").performTextInput("Assertion_tests${id}")
+        composeTestRule.onNodeWithText("Category").performTextInput("Assertion_tests${id}")
         composeTestRule.onNode(hasTestTag("addCost"), useUnmergedTree = true).performTextInput("2.2")
         composeTestRule.onNodeWithText("Save").performClick()
         composeTestRule.onNodeWithText("Group").performClick()
@@ -194,8 +195,8 @@ class Tests {
 
         composeTestRule.onNodeWithContentDescription("Add spending").performClick()
 
-        composeTestRule.onNodeWithText("Title").performTextInput("Assertion_group_tests")
-        composeTestRule.onNodeWithText("Category").performTextInput("Assertion_group_tests")
+        composeTestRule.onNodeWithText("Title").performTextInput("Assertion_group_tests${id}")
+        composeTestRule.onNodeWithText("Category").performTextInput("Assertion_group_tests${id}")
         composeTestRule.onNode(hasTestTag("addCost"), useUnmergedTree = true).performTextInput("2.2")
         composeTestRule.onNode(hasTestTag("groupExpenseCheckBox"), useUnmergedTree = true).performClick()
         composeTestRule.onNode(hasTestTag("groupSelectExpenseDropdown"), useUnmergedTree = true).performClick()
@@ -209,7 +210,7 @@ class Tests {
         composeTestRule.onNode(hasTestTag("groupSelectionGroupScreen"), useUnmergedTree = true).performClick()
         composeTestRule.onNodeWithText("test16").performClick()
 
-        composeTestRule.onNodeWithText("Assertion_group_tests").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Assertion_group_tests${id}").assertIsDisplayed()
     }
 
     // change group name before run
@@ -228,7 +229,7 @@ class Tests {
 
         composeTestRule.onNodeWithText("Group").performClick()
         composeTestRule.onNodeWithText("Create").performClick()
-        composeTestRule.onNodeWithText("Name").performTextInput("assertion_test_group2")
+        composeTestRule.onNodeWithText("Name").performTextInput("assertion_test_group${id}")
         composeTestRule.onNodeWithText("Currency").performTextInput("PLN")
         composeTestRule.onNodeWithText("Save").performClick()
 
