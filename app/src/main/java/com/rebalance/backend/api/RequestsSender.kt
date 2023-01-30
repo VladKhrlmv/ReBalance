@@ -12,7 +12,6 @@ class RequestsSender {
             val url = URL(toWhere)
             with(url.openConnection() as HttpURLConnection) {
                 requestMethod = "GET"
-                doOutput=true
                 println("Sent 'GET' request to URL : $url; Response Code : $responseCode")
                 if (responseCode == 409 || responseCode == 400) {
                     throw ServerException()
