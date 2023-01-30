@@ -16,6 +16,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
@@ -255,7 +256,7 @@ fun AddSpendingScreen(
                             .replace("""\.$""".toRegex(), ".00")
                         costValue = TextFieldValue(tempCostValue)
                     }
-                },
+                }.testTag("addCost"),
             trailingIcon = {
                 Text(
                     text = BackendService(preferences).getGroupById(if(groupId == 0L) preferences.groupId else groupId).getCurrency()
@@ -287,7 +288,7 @@ fun AddSpendingScreen(
                         .filter { group -> group.getId() != preferences.groupId }
                 },
                 modifier = Modifier
-                    .align(Alignment.CenterVertically)
+                    .align(Alignment.CenterVertically).testTag("groupExpenseCheckBox")
             )
             Text(
                 text = "Group expense",
@@ -325,7 +326,7 @@ fun AddSpendingScreen(
                     },
                     modifier = Modifier
                         .padding(10.dp)
-                        .fillMaxWidth()
+                        .fillMaxWidth().testTag("groupSelectExpenseDropdown")
                 ) {
                     TextField(
                         value = groupName,
