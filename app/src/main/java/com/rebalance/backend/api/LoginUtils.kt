@@ -14,14 +14,13 @@ import java.net.URL
 
 // TODO: change toWhere
 fun login(toWhere: String, email: String, password: String): ApplicationUser {
-    val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-    StrictMode.setThreadPolicy(policy)
     var res = ""
     val url = URL(toWhere)
     val requestBody = Gson().toJson(LoginAndPassword(email, password))
     with(url.openConnection() as HttpURLConnection) {
         requestMethod = "POST"
         doInput = true
+        doOutput = true
         setRequestProperty("Content-Type", "application/json")
         val outputStreamWriter = OutputStreamWriter(outputStream)
         outputStreamWriter.write(requestBody)
@@ -44,13 +43,14 @@ fun register(toWhere: String, email: String, username: String, password: String)
     with(url.openConnection() as HttpURLConnection) {
         requestMethod = "POST"
         doInput = true
+        doOutput = true
         setRequestProperty("Content-Type", "application/json")
         val outputStreamWriter = OutputStreamWriter(outputStream)
         outputStreamWriter.write(requestBody)
         outputStreamWriter.flush()
         println("Sent 'POST' request to URL : $url, with body : $requestBody; Response Code : $responseCode")
         if (responseCode == 409 || responseCode == 400) {
-            throw ServerException(responseMessage)
+            throw ServerException(responseCode.toString())
         }
         inputStream.bufferedReader().use {
             it.lines().forEach { line -> res = res.plus(line + "\n") }

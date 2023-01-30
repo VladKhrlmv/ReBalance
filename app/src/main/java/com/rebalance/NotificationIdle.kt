@@ -11,8 +11,8 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.work.Worker
 import androidx.work.WorkerParameters
+import com.rebalance.backend.api.RequestsSender
 import com.rebalance.backend.api.jsonArrayToNotification
-import com.rebalance.backend.api.sendGet
 
 class NotificationIdle(val context: Context, workerParams: WorkerParameters) : Worker(
     context,
@@ -28,7 +28,7 @@ class NotificationIdle(val context: Context, workerParams: WorkerParameters) : W
             val mainLooper = Looper.getMainLooper()
 
             val notifications = jsonArrayToNotification(
-                sendGet(
+                RequestsSender.sendGet(
                     "http://${preferences.serverIp}/users/${
                         preferences.userId
                     }/notifications"

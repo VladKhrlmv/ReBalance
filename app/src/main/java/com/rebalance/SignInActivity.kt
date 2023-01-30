@@ -133,7 +133,7 @@ fun SignInScreen(context: Context, navController: NavController) {
                             println(user)
 
                             val groupsJson =
-                                sendGet("http://${preferences.serverIp}/users/${user.getId()}/groups")
+                                RequestsSender.sendGet("http://${preferences.serverIp}/users/${user.getId()}/groups")
                             val groups = jsonArrayToExpenseGroups(groupsJson)
                             for (group in groups) {
                                 if (group.getName() == "per${user.getEmail()}") {
@@ -327,9 +327,9 @@ fun SignUpMailScreen(context: Context, navController: NavController) {
                             )
                             pass.value = loginAndPassword.getPassword()
                             val userByNickname =
-                                jsonToApplicationUser(sendGet("http://${preferences.serverIp}/users/email/${email.value}"))
+                                jsonToApplicationUser(RequestsSender.sendGet("http://${preferences.serverIp}/users/email/${email.value}"))
                             println(userByNickname)
-                            val groupCreationResult = sendPost(
+                            val groupCreationResult = RequestsSender.sendPost(
                                 "http://${preferences.serverIp}/users/${userByNickname.getId()}/groups",
                                 Gson().toJson(ExpenseGroup("per${email.value}", personalCurrency.value))
                             )

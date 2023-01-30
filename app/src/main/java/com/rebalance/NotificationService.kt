@@ -9,8 +9,8 @@ import android.os.Handler
 import android.os.Looper
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.rebalance.backend.api.RequestsSender
 import com.rebalance.backend.api.jsonArrayToNotification
-import com.rebalance.backend.api.sendGet
 
 class NotificationService(
     val context: Context
@@ -28,7 +28,7 @@ class NotificationService(
             try {
                 while (true) {
                     val notifications = jsonArrayToNotification(
-                        sendGet("http://${preferences.serverIp}/users/${
+                        RequestsSender.sendGet("http://${preferences.serverIp}/users/${
                             preferences.userId}/notifications")
                     )
 

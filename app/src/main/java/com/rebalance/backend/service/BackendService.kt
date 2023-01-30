@@ -15,6 +15,11 @@ class BackendService(
 ) {
     private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
+    fun setPolicy(){
+        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+        StrictMode.setThreadPolicy(policy)
+    }
+
     //region Personal screen
     /** Returns scale items that is scrollable vertically in personal screen (day, week, month, year) **/
     fun getScaleItems(): List<ScaleItem> {
@@ -28,10 +33,9 @@ class BackendService(
 
     /** Returns scaled date items that is scrollable horizontally in personal screen **/
     fun getScaledDateItems(scale: String): List<ScaledDateItem> {
-        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-        StrictMode.setThreadPolicy(policy)
+        setPolicy()
 
-        val jsonBodyExpenses = sendGet(
+        val jsonBodyExpenses = RequestsSender.sendGet(
             "http://${preferences.serverIp}/groups/${preferences.groupId}/expenses"
         )
         val expenses: List<Expense> = jsonArrayToExpenses(jsonBodyExpenses)
@@ -103,12 +107,11 @@ class BackendService(
 
     /** Returns list of expenses grouped by category **/
     fun getPersonal(dateFrom: LocalDate, dateTo: LocalDate): List<ExpenseItem> {
-        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-        StrictMode.setThreadPolicy(policy)
+      setPolicy()
 
         val list = ArrayList<ExpenseItem>()
 
-        val jsonBodyGet = sendGet(
+        val jsonBodyGet = RequestsSender.sendGet(
             "http://${preferences.serverIp}/expenses/group/${preferences.groupId}/between/${dateFrom.format(
                 formatter)}/${dateTo.format(
                 formatter)}"
@@ -136,10 +139,9 @@ class BackendService(
     //region Add spending screen
     //TODO: change to entities
     fun getGroups(): List<ExpenseGroup> {
-        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-        StrictMode.setThreadPolicy(policy)
+        setPolicy()
 
-        val jsonBodyGroups = sendGet(
+        val jsonBodyGroups = RequestsSender.sendGet(
             "http://${preferences.serverIp}/users/${preferences.userId}/groups"
         )
         val groups: List<ExpenseGroup> = jsonArrayToExpenseGroups(jsonBodyGroups)
@@ -152,10 +154,9 @@ class BackendService(
 
     //region Group by id
     fun getGroupById(id: Long): ExpenseGroup {
-        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-        StrictMode.setThreadPolicy(policy)
+        setPolicy()
 
-        val jsonBodyGroup = sendGet(
+        val jsonBodyGroup = RequestsSender.sendGet(
             "http://${preferences.serverIp}/groups/${id}"
         )
 
@@ -166,11 +167,10 @@ class BackendService(
 
     //region Group screen
     fun getGroupVisualBarChart(groupId: Long): List<BarChartData> {
-        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-        StrictMode.setThreadPolicy(policy)
+        setPolicy()
         val entries = ArrayList<BarChartData>()
 
-        val jsonBodyGetUsersFromGroup = if (groupId == -1L) "[]" else sendGet(
+        val jsonBodyGetUsersFromGroup = if (groupId == -1L) "[]" else RequestsSender.sendGet(
             //todo change to group choice
             "http://${preferences.serverIp}/groups/${groupId}/users"
         )
@@ -180,7 +180,7 @@ class BackendService(
             if (groupId == -1L) listOf() else jsonArrayToApplicationUsers(jsonBodyGetUsersFromGroup)
         println(userList)
         for (user in userList) {
-            val jsonBodyGet = sendGet(
+            val jsonBodyGet = RequestsSender.sendGet(
                 //todo change to group choice
                 "http://${preferences.serverIp}/groups/${groupId}/users/${user.getId()}/expenses"
             )
@@ -199,10 +199,9 @@ class BackendService(
     }
 
     fun getGroupList(groupId: Long): List<Expense> {
-        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-        StrictMode.setThreadPolicy(policy)
+        setPolicy()
 
-        val responseGroupList = if (groupId == -1L) "[]" else sendGet(
+        val responseGroupList = if (groupId == -1L) "[]" else RequestsSender.sendGet(
             //todo change to group choice
             "http://${preferences.serverIp}/groups/${groupId}/expenses"
         )
@@ -245,12 +244,17 @@ data class ExpenseItem(
         other as ExpenseItem
 
         if (text != other.text) return false
+        if (amount != other.amount) return false
+        if (expenses != other.expenses) return false
 
         return true
     }
 
     override fun hashCode(): Int {
-        return text.hashCode()
+        var result = text.hashCode()
+        result = 31 * result + amount.hashCode()
+        result = 31 * result + expenses.hashCode()
+        return result
     }
 }
 //endregion
