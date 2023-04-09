@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
@@ -19,6 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.rebalance.ui.theme.ReBalanceTheme
+import com.rebalance.utils.alertUser
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -72,13 +72,7 @@ fun LoadingScreen() {
         }
     }
     else if (connected.value == -1) {
-        ContextCompat.getMainExecutor(context).execute {
-            Toast.makeText(
-                context,
-                "Can't establish connection",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
+        alertUser("Can't establish connection", context)
     }
 }
 
