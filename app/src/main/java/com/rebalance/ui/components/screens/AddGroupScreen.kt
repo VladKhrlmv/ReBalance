@@ -3,7 +3,6 @@ package com.rebalance.ui.components.screens
 import android.content.Context
 import android.graphics.Typeface
 import android.os.StrictMode
-import android.widget.Toast
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -17,6 +16,7 @@ import androidx.core.content.ContextCompat
 import com.rebalance.Preferences
 import com.rebalance.backend.api.RequestsSender
 import com.rebalance.backend.api.jsonToExpenseGroup
+import com.rebalance.utils.alertUser
 
 val currencyRegex = """[A-Z]{0,3}""".toRegex()
 
@@ -79,13 +79,7 @@ fun AddGroupScreen(
             Button(
                 onClick = {
                     if (groupCurrency.text.length != 3 || groupName.text.isBlank()) {
-                        ContextCompat.getMainExecutor(context).execute {
-                            Toast.makeText(
-                                context,
-                                "Fill in all fields!",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
+                        alertUser("Fill in all fields!", context)
                         return@Button
                     }
                     val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
@@ -94,13 +88,7 @@ fun AddGroupScreen(
                         "http://${preferences.serverIp}/users/${preferences.userId}/groups",
                         "{\"currency\": \"${groupCurrency.text}\", \"name\": \"${groupName.text}\"}"
                     ))
-                    ContextCompat.getMainExecutor(context).execute {
-                        Toast.makeText(
-                            context,
-                            "Group was created!",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+                    alertUser("Group was created!", context)
                     dialogController.value = !dialogController.value
                     onCreate(group.getId())
                 },

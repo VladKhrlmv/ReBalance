@@ -3,7 +3,6 @@ package com.rebalance.ui.components.screens
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Typeface
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -31,6 +30,7 @@ import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.entities.ExpenseGroup
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.components.DatePickerField
+import com.rebalance.utils.alertUser
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -235,7 +235,8 @@ fun AddSpendingScreen(
                 }.testTag("addCost"),
             trailingIcon = {
                 Text(
-                    text = BackendService(preferences).getGroupById(if(groupId == 0L) preferences.groupId else groupId).getCurrency()
+                    text = BackendService(preferences).getGroupById(if (groupId == 0L) preferences.groupId else groupId)
+                        .getCurrency()
                 )
             }
         )
@@ -255,8 +256,7 @@ fun AddSpendingScreen(
                     isGroupExpense = it
                     if (isGroupExpense) {
                         groupId = groupIdLast
-                    }
-                    else {
+                    } else {
                         groupIdLast = groupId
                         groupId = 0L
                     }
@@ -278,8 +278,7 @@ fun AddSpendingScreen(
                             .filter { group -> group.getId() != preferences.groupId }
                         if (isGroupExpense) {
                             groupId = groupIdLast
-                        }
-                        else {
+                        } else {
                             groupIdLast = groupId
                             groupId = 0L
                         }
@@ -384,15 +383,5 @@ fun AddSpendingScreen(
                 })
             }
         }
-    }
-}
-
-fun alertUser(message: String, context: Context){
-    ContextCompat.getMainExecutor(context).execute {
-        Toast.makeText(
-            context,
-            message,
-            Toast.LENGTH_SHORT
-        ).show()
     }
 }
