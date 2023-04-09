@@ -12,7 +12,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import com.rebalance.Preferences
 import com.rebalance.backend.api.RequestsSender
 import com.rebalance.backend.api.jsonToExpenseGroup

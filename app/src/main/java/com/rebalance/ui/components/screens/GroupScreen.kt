@@ -22,7 +22,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.core.content.ContextCompat
 import com.rebalance.backend.api.jsonToApplicationUser
 import com.rebalance.Preferences
 import com.rebalance.PreferencesData

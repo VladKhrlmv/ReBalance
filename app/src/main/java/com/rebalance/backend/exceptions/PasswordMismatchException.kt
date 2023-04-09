@@ -1,6 +1,6 @@
-package com.rebalance.backend.exceptions;
+package com.rebalance.backend.exceptions
 
-class PasswordMissmatchException : RuntimeException {
+class PasswordMismatchException : RuntimeException {
     constructor() : super("Passwords are different")
     constructor(message: String) : super(message)
 }
