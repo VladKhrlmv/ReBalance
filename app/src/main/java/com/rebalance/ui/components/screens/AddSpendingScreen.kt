@@ -24,14 +24,14 @@ import androidx.compose.ui.unit.sp
 import com.google.gson.Gson
 import com.rebalance.Preferences
 import com.rebalance.backend.api.RequestsSender
+import com.rebalance.backend.api.jsonToExpense
 import com.rebalance.backend.entities.ApplicationUser
 import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.entities.ExpenseGroup
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.components.DatePickerField
 import com.rebalance.utils.alertUser
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import com.rebalance.utils.getToday
 
 val costValueRegex = """^\d{0,12}[.,]?\d{0,2}${'$'}""".toRegex()
 
@@ -105,52 +105,34 @@ fun AddSpendingScreen(
                                         alertUser("Choose at least one member", context)
                                         return@Thread
                                     }
+                                    val jsonBodyPOST = RequestsSender.sendPost(
+                                        "http://${preferences.serverIp}/expenses/user/${preferences.userId}/group/${groupId}/${preferences.userId}",
+                                        Gson().toJson(
+                                            Expense(
+                                                costValue.text.toDouble(),
+                                                date.value.ifBlank { getToday() },
+                                                selectedCategory.text,
+                                                spendingName.text
+                                            )
+                                        )
+                                    )
+                                    val resultExpense = jsonToExpense(jsonBodyPOST)
+                                    println(jsonBodyPOST)
                                     for (member in activeMembers) {
                                         val jsonBodyPOST = RequestsSender.sendPost(
                                             "http://${preferences.serverIp}/expenses/user/${member.key.getId()}/group/${groupId}/${preferences.userId}",
                                             Gson().toJson(
                                                 Expense(
                                                     costValue.text.toDouble() / activeMembers.size * -1,
-                                                    date.value.ifBlank {
-                                                        LocalDate.now()
-                                                            .format(
-                                                                DateTimeFormatter.ofPattern(
-                                                                    "yyyy-MM-dd"
-                                                                )
-                                                            )
-                                                    },
+                                                    date.value.ifBlank { getToday() },
                                                     selectedCategory.text,
                                                     spendingName.text,
-                                                    0L
+                                                    resultExpense.getGlobalId()
                                                 )
                                             )
                                         )
                                         println(jsonBodyPOST)
                                     }
-                                    val jsonBodyPOST = RequestsSender.sendPost(
-                                        "http://${preferences.serverIp}/expenses/user/${preferences.userId}/group/${groupId}/${preferences.userId}",
-                                        Gson().toJson(
-                                            Expense(
-                                                costValue.text.toDouble(),
-                                                date.value.ifBlank {
-                                                    LocalDate.now()
-                                                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                                                },
-                                                selectedCategory.text,
-                                                spendingName.text,
-                                                0L
-                                            )
-                                        )
-                                    )
-                                    println(jsonBodyPOST)
-                                    spendingName = TextFieldValue("")
-                                    costValue = TextFieldValue("")
-                                    selectedCategory = TextFieldValue("")
-                                    date.value = ""
-                                    isGroupExpense = false
-                                    groupName = ""
-                                    groupId = 0L
-                                    membersSelection.clear()
                                 } else {
                                     val jsonBodyPOST = RequestsSender.sendPost(
                                         "http://${preferences.serverIp}/expenses/user/${preferences.userId}/group/${
@@ -159,10 +141,7 @@ fun AddSpendingScreen(
                                         Gson().toJson(
                                             Expense(
                                                 costValue.text.toDouble(),
-                                                date.value.ifBlank {
-                                                    LocalDate.now()
-                                                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                                                },
+                                                date.value.ifBlank { getToday() },
                                                 selectedCategory.text,
                                                 spendingName.text,
                                                 -1L
@@ -170,15 +149,15 @@ fun AddSpendingScreen(
                                         )
                                     )
                                     println(jsonBodyPOST)
-                                    spendingName = TextFieldValue("")
-                                    costValue = TextFieldValue("")
-                                    selectedCategory = TextFieldValue("")
-                                    date.value = ""
-                                    isGroupExpense = false
-                                    groupName = ""
-                                    groupId = 0L
-                                    membersSelection.clear()
                                 }
+                                spendingName = TextFieldValue("")
+                                costValue = TextFieldValue("")
+                                selectedCategory = TextFieldValue("")
+                                date.value = ""
+                                isGroupExpense = false
+                                groupName = ""
+                                groupId = 0L
+                                membersSelection.clear()
                                 alertUser("Expense saved!", context)
                             } catch (e: Exception) {
                                 print(e.stackTrace)
@@ -231,7 +210,8 @@ fun AddSpendingScreen(
                             .replace("""\.$""".toRegex(), ".00")
                         costValue = TextFieldValue(tempCostValue)
                     }
-                }.testTag("addCost"),
+                }
+                .testTag("addCost"),
             trailingIcon = {
                 Text(
                     text = BackendService(preferences).getGroupById(if (groupId == 0L) preferences.groupId else groupId)
@@ -263,7 +243,8 @@ fun AddSpendingScreen(
                         .filter { group -> group.getId() != preferences.groupId }
                 },
                 modifier = Modifier
-                    .align(Alignment.CenterVertically).testTag("groupExpenseCheckBox")
+                    .align(Alignment.CenterVertically)
+                    .testTag("groupExpenseCheckBox")
             )
             Text(
                 text = "Group expense",
@@ -300,7 +281,8 @@ fun AddSpendingScreen(
                     },
                     modifier = Modifier
                         .padding(10.dp)
-                        .fillMaxWidth().testTag("groupSelectExpenseDropdown")
+                        .fillMaxWidth()
+                        .testTag("groupSelectExpenseDropdown")
                 ) {
                     TextField(
                         value = groupName,
