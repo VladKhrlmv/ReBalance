@@ -94,13 +94,7 @@ fun AddSpendingScreen(
                 Button(
                     onClick = {
                         if (spendingName.text.isEmpty() || costValue.text.isEmpty() || selectedCategory.text.isEmpty()) {
-                            ContextCompat.getMainExecutor(context).execute {
-                                Toast.makeText(
-                                    context,
-                                    "Fill in all data!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
+                            alertUser("Fill in all data", context)
                             return@Button
                         }
                         Thread {
@@ -109,13 +103,7 @@ fun AddSpendingScreen(
                                     val activeMembers =
                                         membersSelection.filterValues { flag -> flag }
                                     if (activeMembers.isEmpty()) {
-                                        ContextCompat.getMainExecutor(context).execute {
-                                            Toast.makeText(
-                                                context,
-                                                "Choose at least one member",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
+                                        alertUser("Choose at least one member", context)
                                         return@Thread
                                     }
                                     for (member in activeMembers) {
@@ -192,22 +180,10 @@ fun AddSpendingScreen(
                                     groupId = 0L
                                     membersSelection.clear()
                                 }
-                                ContextCompat.getMainExecutor(context).execute {
-                                    Toast.makeText(
-                                        context,
-                                        "Expense saved!",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
+                                alertUser("Expense saved!", context)
                             } catch (e: Exception) {
                                 print(e.stackTrace)
-                                ContextCompat.getMainExecutor(context).execute {
-                                    Toast.makeText(
-                                        context,
-                                        "Unexpected error occurred",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
+                                alertUser("Unexpected error occurred", context)
                             }
                         }.start()
                     },
@@ -408,5 +384,15 @@ fun AddSpendingScreen(
                 })
             }
         }
+    }
+}
+
+fun alertUser(message: String, context: Context){
+    ContextCompat.getMainExecutor(context).execute {
+        Toast.makeText(
+            context,
+            message,
+            Toast.LENGTH_SHORT
+        ).show()
     }
 }
