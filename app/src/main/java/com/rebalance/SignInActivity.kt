@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.os.StrictMode
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
@@ -30,17 +29,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.google.gson.Gson
 import com.rebalance.backend.api.*
 import com.rebalance.backend.entities.ExpenseGroup
-import com.rebalance.backend.exceptions.PasswordMissmatchException
+import com.rebalance.backend.exceptions.PasswordMismatchException
 import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.ui.components.screens.navigation.ScreenNavigation
 import com.rebalance.ui.components.screens.navigation.ScreenNavigationItem
 import com.rebalance.ui.theme.ReBalanceTheme
+import com.rebalance.utils.alertUser
 
 val currencyRegex = """[A-Z]{0,3}""".toRegex()
 
@@ -51,7 +50,7 @@ class SignInActivity : ComponentActivity() {
             ReBalanceTheme {
 //                val preferences = Preferences(LocalContext.current).read()
 //                if (!preferences.exists()) {
-                    MainSignInScreen()
+                MainSignInScreen()
 //                } else {
 //                    val context = LocalContext.current
 //                    context.startActivity(Intent(context, MainActivity::class.java))
@@ -74,7 +73,12 @@ fun MainSignInScreen() {
         },
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
             Box(modifier = Modifier.padding(padding)) {
-                ScreenNavigation(navController, LocalContext.current, pieChartActive, ScreenNavigationItem.SignIn.route)
+                ScreenNavigation(
+                    navController,
+                    LocalContext.current,
+                    pieChartActive,
+                    ScreenNavigationItem.SignIn.route
+                )
             }
         }
     )
@@ -111,13 +115,7 @@ fun SignInScreen(context: Context, navController: NavController) {
                     CustomPasswordInput("Password", password)
                     PrimaryButton("SIGN IN", 20.dp, onClick = {
                         if (login.value.isEmpty() || password.value.isEmpty()) {
-                            ContextCompat.getMainExecutor(context).execute {
-                                Toast.makeText(
-                                    context,
-                                    "No empty fields allowed",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
+                            alertUser("No empty fields allowed", context)
                             return@PrimaryButton
                         }
                         try {
@@ -137,7 +135,8 @@ fun SignInScreen(context: Context, navController: NavController) {
                             val groups = jsonArrayToExpenseGroups(groupsJson)
                             for (group in groups) {
                                 if (group.getName() == "per${user.getEmail()}") {
-                                    val preferencesData = PreferencesData("",  user.getId().toString(), group.getId())
+                                    val preferencesData =
+                                        PreferencesData("", user.getId().toString(), group.getId())
                                     Preferences(context).write(preferencesData)
                                     println("Logged in as: ${preferences.userId}")
                                     println("Personal group: ${preferences.groupId}")
@@ -164,19 +163,15 @@ fun SignInScreen(context: Context, navController: NavController) {
                                 }
                             }
                             // Avoid multiple copies of the same destination when
-                            // reselecting the same item
+                            // re-selecting the same item
                             launchSingleTop = true
-                            // Restore state when reselecting a previously selected item
+                            // Restore state when re-selecting a previously selected item
                             restoreState = true
                         }
                     })
 
-                    if (showError.value) ContextCompat.getMainExecutor(context).execute {
-                        Toast.makeText(
-                            context,
-                            "Wrong email or password",
-                            Toast.LENGTH_SHORT,
-                        ).show()
+                    if (showError.value) {
+                        alertUser("Wrong email or password", context)
                     }
                     showError.value = false
                 }
@@ -220,9 +215,9 @@ fun SignUpScreen(navController: NavController) {
                                 }
                             }
                             // Avoid multiple copies of the same destination when
-                            // reselecting the same item
+                            // re-selecting the same item
                             launchSingleTop = true
-                            // Restore state when reselecting a previously selected item
+                            // Restore state when re-selecting a previously selected item
                             restoreState = true
                         }
                     })
@@ -237,9 +232,9 @@ fun SignUpScreen(navController: NavController) {
                                 }
                             }
                             // Avoid multiple copies of the same destination when
-                            // reselecting the same item
+                            // re-selecting the same item
                             launchSingleTop = true
-                            // Restore state when reselecting a previously selected item
+                            // Restore state when re-selecting a previously selected item
                             restoreState = true
                         }
                     })
@@ -293,27 +288,15 @@ fun SignUpMailScreen(context: Context, navController: NavController) {
                             || repeatPassword.value.isEmpty()
                             || personalCurrency.value.isEmpty()
                         ) {
-                            ContextCompat.getMainExecutor(context).execute {
-                                Toast.makeText(
-                                    context,
-                                    "No empty fields allowed",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
+                            alertUser("No empty fields allowed", context)
                             return@PrimaryButton
                         } else if (personalCurrency.value.length != 3) {
-                            ContextCompat.getMainExecutor(context).execute {
-                                Toast.makeText(
-                                    context,
-                                    "Currency must have exactly 3 symbols",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
+                            alertUser("Currency must have exactly 3 symbols", context)
                             return@PrimaryButton
                         }
                         try {
                             if (password.value != repeatPassword.value) {
-                                throw PasswordMissmatchException("Passwords do not match")
+                                throw PasswordMismatchException("Passwords do not match")
                             }
 //                            throw ServerException("Something went wrong, please try later")
                             val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
@@ -331,11 +314,20 @@ fun SignUpMailScreen(context: Context, navController: NavController) {
                             println(userByNickname)
                             val groupCreationResult = RequestsSender.sendPost(
                                 "http://${preferences.serverIp}/users/${userByNickname.getId()}/groups",
-                                Gson().toJson(ExpenseGroup("per${email.value}", personalCurrency.value))
+                                Gson().toJson(
+                                    ExpenseGroup(
+                                        "per${email.value}",
+                                        personalCurrency.value
+                                    )
+                                )
                             )
                             println(groupCreationResult)
 
-                            val preferencesData = PreferencesData("",  userByNickname.getId().toString(), jsonToExpenseGroup(groupCreationResult).getId())
+                            val preferencesData = PreferencesData(
+                                "",
+                                userByNickname.getId().toString(),
+                                jsonToExpenseGroup(groupCreationResult).getId()
+                            )
 
                             Preferences(context).write(preferencesData)
 
@@ -345,13 +337,7 @@ fun SignUpMailScreen(context: Context, navController: NavController) {
                             println("Caught a ServerException!")
                             showError.value = true
                             errorMessage.value = error.message.toString()
-                            ContextCompat.getMainExecutor(context).execute {
-                                Toast.makeText(
-                                    context,
-                                    error.message,
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
+                            alertUser(error.message.toString(), context)
                         }
 
                     })
@@ -366,28 +352,17 @@ fun SignUpMailScreen(context: Context, navController: NavController) {
                                 }
                             }
                             // Avoid multiple copies of the same destination when
-                            // reselecting the same item
+                            // re-selecting the same item
                             launchSingleTop = true
-                            // Restore state when reselecting a previously selected item
+                            // Restore state when re-selecting a previously selected item
                             restoreState = true
                         }
                     })
-//                    if (showError.value)
-//                        ContextCompat.getMainExecutor(context).execute {
-//                            Toast.makeText(
-//                                context,
-//                                errorMessage.value,
-//                                Toast.LENGTH_SHORT
-//                            ).show()
-//                        }
-//                    else
-//                        ContextCompat.getMainExecutor(context).execute {
-//                            Toast.makeText(
-//                                context,
-//                                pass.value,
-//                                Toast.LENGTH_SHORT
-//                            ).show()
-//                        }
+//                    if (showError.value) {
+//                        alertUser(errorMessage.value, context)
+//                    } else {
+//                        alertUser(pass.value, context)
+//                    }
 //                    showError.value = false
                 }
 

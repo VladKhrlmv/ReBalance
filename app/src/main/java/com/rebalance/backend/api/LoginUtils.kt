@@ -1,8 +1,5 @@
 package com.rebalance.backend.api
 
-import android.os.Build
-import android.os.StrictMode
-import androidx.annotation.RequiresApi
 import com.google.gson.Gson
 import com.rebalance.backend.entities.ApplicationUser
 import com.rebalance.backend.entities.LoginAndPassword

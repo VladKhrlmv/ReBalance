@@ -8,7 +8,7 @@ class Expense {
     private var dateStamp: String = "2000-01-01"
     private var category: String = "default"
     private var description: String = ""
-    private var globalId: Long = -1
+    private var globalId: Long? = null
 
     constructor()
 
@@ -18,7 +18,7 @@ class Expense {
         dateStamp: String,
         category: String,
         description: String,
-        globalId: Long
+        globalId: Long?
     ) {
         this.id = id
         this.amount = amount
@@ -28,7 +28,14 @@ class Expense {
         this.globalId = globalId
     }
 
-    constructor(amount: Double, dateStamp: String, category: String, description: String, globalId: Long) {
+    constructor(amount: Double, dateStamp: String, category: String, description: String) {
+        this.amount = amount
+        this.dateStamp = dateStamp
+        this.category = category
+        this.description = description
+    }
+
+    constructor(amount: Double, dateStamp: String, category: String, description: String, globalId: Long?) {
         this.amount = amount
         this.dateStamp = dateStamp
         this.category = category
@@ -67,7 +74,7 @@ class Expense {
         return this.description
     }
 
-    fun getGlobalId(): Long {
+    fun getGlobalId(): Long? {
         return this.globalId
     }
 

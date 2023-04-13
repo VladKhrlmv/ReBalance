@@ -3,7 +3,6 @@ package com.rebalance.ui.components.screens
 import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Typeface
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -22,17 +21,17 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.content.ContextCompat
 import com.google.gson.Gson
 import com.rebalance.Preferences
 import com.rebalance.backend.api.RequestsSender
+import com.rebalance.backend.api.jsonToExpense
 import com.rebalance.backend.entities.ApplicationUser
 import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.entities.ExpenseGroup
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.components.DatePickerField
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import com.rebalance.utils.alertUser
+import com.rebalance.utils.getToday
 
 val costValueRegex = """^\d{0,12}[.,]?\d{0,2}${'$'}""".toRegex()
 
@@ -94,13 +93,7 @@ fun AddSpendingScreen(
                 Button(
                     onClick = {
                         if (spendingName.text.isEmpty() || costValue.text.isEmpty() || selectedCategory.text.isEmpty()) {
-                            ContextCompat.getMainExecutor(context).execute {
-                                Toast.makeText(
-                                    context,
-                                    "Fill in all data!",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
+                            alertUser("Fill in all data", context)
                             return@Button
                         }
                         Thread {
@@ -109,61 +102,37 @@ fun AddSpendingScreen(
                                     val activeMembers =
                                         membersSelection.filterValues { flag -> flag }
                                     if (activeMembers.isEmpty()) {
-                                        ContextCompat.getMainExecutor(context).execute {
-                                            Toast.makeText(
-                                                context,
-                                                "Choose at least one member",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
+                                        alertUser("Choose at least one member", context)
                                         return@Thread
-                                    }
-                                    for (member in activeMembers) {
-                                        val jsonBodyPOST = RequestsSender.sendPost(
-                                            "http://${preferences.serverIp}/expenses/user/${member.key.getId()}/group/${groupId}/${preferences.userId}",
-                                            Gson().toJson(
-                                                Expense(
-                                                    costValue.text.toDouble() / activeMembers.size * -1,
-                                                    date.value.ifBlank {
-                                                        LocalDate.now()
-                                                            .format(
-                                                                DateTimeFormatter.ofPattern(
-                                                                    "yyyy-MM-dd"
-                                                                )
-                                                            )
-                                                    },
-                                                    selectedCategory.text,
-                                                    spendingName.text,
-                                                    0L
-                                                )
-                                            )
-                                        )
-                                        println(jsonBodyPOST)
                                     }
                                     val jsonBodyPOST = RequestsSender.sendPost(
                                         "http://${preferences.serverIp}/expenses/user/${preferences.userId}/group/${groupId}/${preferences.userId}",
                                         Gson().toJson(
                                             Expense(
                                                 costValue.text.toDouble(),
-                                                date.value.ifBlank {
-                                                    LocalDate.now()
-                                                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                                                },
+                                                date.value.ifBlank { getToday() },
                                                 selectedCategory.text,
-                                                spendingName.text,
-                                                0L
+                                                spendingName.text
                                             )
                                         )
                                     )
+                                    val resultExpense = jsonToExpense(jsonBodyPOST)
                                     println(jsonBodyPOST)
-                                    spendingName = TextFieldValue("")
-                                    costValue = TextFieldValue("")
-                                    selectedCategory = TextFieldValue("")
-                                    date.value = ""
-                                    isGroupExpense = false
-                                    groupName = ""
-                                    groupId = 0L
-                                    membersSelection.clear()
+                                    for (member in activeMembers) {
+                                        val jsonBodyPOST = RequestsSender.sendPost(
+                                            "http://${preferences.serverIp}/expenses/user/${member.key.getId()}/group/${groupId}/${preferences.userId}",
+                                            Gson().toJson(
+                                                Expense(
+                                                    costValue.text.toDouble() / activeMembers.size * -1,
+                                                    date.value.ifBlank { getToday() },
+                                                    selectedCategory.text,
+                                                    spendingName.text,
+                                                    resultExpense.getGlobalId()
+                                                )
+                                            )
+                                        )
+                                        println(jsonBodyPOST)
+                                    }
                                 } else {
                                     val jsonBodyPOST = RequestsSender.sendPost(
                                         "http://${preferences.serverIp}/expenses/user/${preferences.userId}/group/${
@@ -172,10 +141,7 @@ fun AddSpendingScreen(
                                         Gson().toJson(
                                             Expense(
                                                 costValue.text.toDouble(),
-                                                date.value.ifBlank {
-                                                    LocalDate.now()
-                                                        .format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                                                },
+                                                date.value.ifBlank { getToday() },
                                                 selectedCategory.text,
                                                 spendingName.text,
                                                 -1L
@@ -183,31 +149,19 @@ fun AddSpendingScreen(
                                         )
                                     )
                                     println(jsonBodyPOST)
-                                    spendingName = TextFieldValue("")
-                                    costValue = TextFieldValue("")
-                                    selectedCategory = TextFieldValue("")
-                                    date.value = ""
-                                    isGroupExpense = false
-                                    groupName = ""
-                                    groupId = 0L
-                                    membersSelection.clear()
                                 }
-                                ContextCompat.getMainExecutor(context).execute {
-                                    Toast.makeText(
-                                        context,
-                                        "Expense saved!",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
+                                spendingName = TextFieldValue("")
+                                costValue = TextFieldValue("")
+                                selectedCategory = TextFieldValue("")
+                                date.value = ""
+                                isGroupExpense = false
+                                groupName = ""
+                                groupId = 0L
+                                membersSelection.clear()
+                                alertUser("Expense saved!", context)
                             } catch (e: Exception) {
                                 print(e.stackTrace)
-                                ContextCompat.getMainExecutor(context).execute {
-                                    Toast.makeText(
-                                        context,
-                                        "Unexpected error occurred",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
+                                alertUser("Unexpected error occurred", context)
                             }
                         }.start()
                     },
@@ -256,10 +210,12 @@ fun AddSpendingScreen(
                             .replace("""\.$""".toRegex(), ".00")
                         costValue = TextFieldValue(tempCostValue)
                     }
-                }.testTag("addCost"),
+                }
+                .testTag("addCost"),
             trailingIcon = {
                 Text(
-                    text = BackendService(preferences).getGroupById(if(groupId == 0L) preferences.groupId else groupId).getCurrency()
+                    text = BackendService(preferences).getGroupById(if (groupId == 0L) preferences.groupId else groupId)
+                        .getCurrency()
                 )
             }
         )
@@ -279,8 +235,7 @@ fun AddSpendingScreen(
                     isGroupExpense = it
                     if (isGroupExpense) {
                         groupId = groupIdLast
-                    }
-                    else {
+                    } else {
                         groupIdLast = groupId
                         groupId = 0L
                     }
@@ -288,7 +243,8 @@ fun AddSpendingScreen(
                         .filter { group -> group.getId() != preferences.groupId }
                 },
                 modifier = Modifier
-                    .align(Alignment.CenterVertically).testTag("groupExpenseCheckBox")
+                    .align(Alignment.CenterVertically)
+                    .testTag("groupExpenseCheckBox")
             )
             Text(
                 text = "Group expense",
@@ -302,8 +258,7 @@ fun AddSpendingScreen(
                             .filter { group -> group.getId() != preferences.groupId }
                         if (isGroupExpense) {
                             groupId = groupIdLast
-                        }
-                        else {
+                        } else {
                             groupIdLast = groupId
                             groupId = 0L
                         }
@@ -326,7 +281,8 @@ fun AddSpendingScreen(
                     },
                     modifier = Modifier
                         .padding(10.dp)
-                        .fillMaxWidth().testTag("groupSelectExpenseDropdown")
+                        .fillMaxWidth()
+                        .testTag("groupSelectExpenseDropdown")
                 ) {
                     TextField(
                         value = groupName,

@@ -1,7 +1,6 @@
 package com.rebalance.ui.components.screens
 
 import android.os.StrictMode
-import android.widget.Toast
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -23,7 +22,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import androidx.core.content.ContextCompat
 import com.rebalance.backend.api.jsonToApplicationUser
 import com.rebalance.Preferences
 import com.rebalance.PreferencesData
@@ -32,6 +30,7 @@ import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.components.BarChart
+import com.rebalance.utils.alertUser
 
 @Composable
 fun GroupScreen(
@@ -189,13 +188,7 @@ private fun DisplayInviteFields(
         Button(
             onClick = {
                 if(groupId == -1L){
-                    ContextCompat.getMainExecutor(context).execute {
-                        Toast.makeText(
-                            context,
-                            "Choose a group!",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+                    alertUser("Choose a group!", context)
                     return@Button
                 }
                 try{
@@ -207,24 +200,12 @@ private fun DisplayInviteFields(
                         "http://${preferences.serverIp}/users/${user.getId()}/groups",
                         "{\"id\": ${groupId}}"
                     )
-                    ContextCompat.getMainExecutor(context).execute {
-                        Toast.makeText(
-                            context,
-                            "User in group",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+                    alertUser("User in group!", context)
                     email = TextFieldValue(text = "")
                     onUserAdd()
                 }
                 catch(e: ServerException){
-                    ContextCompat.getMainExecutor(context).execute {
-                        Toast.makeText(
-                            context,
-                            "User not found",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
+                    alertUser("User not found", context)
                     return@Button
                 }
             },
