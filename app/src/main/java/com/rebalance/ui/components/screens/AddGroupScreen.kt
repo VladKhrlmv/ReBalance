@@ -16,6 +16,7 @@ import com.rebalance.Preferences
 import com.rebalance.backend.api.RequestsSender
 import com.rebalance.backend.api.jsonToExpenseGroup
 import com.rebalance.utils.alertUser
+import com.rebalance.utils.createGroup
 
 val currencyRegex = """[A-Z]{0,3}""".toRegex()
 
@@ -77,16 +78,8 @@ fun AddGroupScreen(
             }
             Button(
                 onClick = {
-                    if (groupCurrency.text.length != 3 || groupName.text.isBlank()) {
-                        alertUser("Fill in all fields!", context)
-                        return@Button
-                    }
-                    val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-                    StrictMode.setThreadPolicy(policy)
-                    val group = jsonToExpenseGroup(RequestsSender.sendPost(
-                        "http://${preferences.serverIp}/users/${preferences.userId}/groups",
-                        "{\"currency\": \"${groupCurrency.text}\", \"name\": \"${groupName.text}\"}"
-                    ))
+                    val group =
+                        createGroup(groupCurrency, groupName, context, preferences) ?: return@Button
                     alertUser("Group was created!", context)
                     dialogController.value = !dialogController.value
                     onCreate(group.getId())
