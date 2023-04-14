@@ -116,7 +116,7 @@ fun AddSpendingScreen(
                                 alertUser("Expense saved!", context)
                             } catch (e: Exception) {
                                 print(e.stackTrace)
-                                alertUser("Unexpected error occurred", context)
+                                alertUser("Unexpected error occurred:\n" + e.message, context)
                             }
                         }.start()
                     },

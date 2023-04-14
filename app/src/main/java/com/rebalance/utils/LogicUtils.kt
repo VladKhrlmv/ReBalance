@@ -1,6 +1,7 @@
 package com.rebalance.utils
 
 import android.content.Context
+import android.os.StrictMode
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.text.input.TextFieldValue
@@ -8,8 +9,10 @@ import com.google.gson.Gson
 import com.rebalance.PreferencesData
 import com.rebalance.backend.api.RequestsSender
 import com.rebalance.backend.api.jsonToExpense
+import com.rebalance.backend.api.jsonToExpenseGroup
 import com.rebalance.backend.entities.ApplicationUser
 import com.rebalance.backend.entities.Expense
+import com.rebalance.backend.entities.ExpenseGroup
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -17,15 +20,16 @@ fun getToday(): String {
     return LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
 }
 
-fun addExpense(isGroupExpense: Boolean,
-               membersSelection: SnapshotStateMap<ApplicationUser, Boolean>,
-               context: Context,
-               preferences: PreferencesData,
-               groupId: Long,
-               costValue: TextFieldValue,
-               date: MutableState<String>,
-               selectedCategory: TextFieldValue,
-               spendingName: TextFieldValue
+fun addExpense(
+    isGroupExpense: Boolean,
+    membersSelection: SnapshotStateMap<ApplicationUser, Boolean>,
+    context: Context,
+    preferences: PreferencesData,
+    groupId: Long,
+    costValue: TextFieldValue,
+    date: MutableState<String>,
+    selectedCategory: TextFieldValue,
+    spendingName: TextFieldValue
 ) {
     if (isGroupExpense) {
         val activeMembers =
@@ -79,4 +83,26 @@ fun addExpense(isGroupExpense: Boolean,
         )
         println(jsonBodyPOST)
     }
+}
+
+fun createGroup(
+    groupCurrency: TextFieldValue,
+    groupName: TextFieldValue,
+    context: Context,
+    preferences: PreferencesData
+): ExpenseGroup? {
+    if (groupCurrency.text.length != 3 || groupName.text.isBlank()) {
+        alertUser("Fill in all fields!", context)
+        return null
+    }
+    val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
+    StrictMode.setThreadPolicy(policy)
+    val group = jsonToExpenseGroup(
+        RequestsSender.sendPost(
+            "http://${preferences.serverIp}/users/${preferences.userId}/groups",
+            "{\"currency\": \"${groupCurrency.text}\", \"name\": \"${groupName.text}\"}"
+        )
+    )
+    alertUser("Group was created!", context)
+    return group
 }
