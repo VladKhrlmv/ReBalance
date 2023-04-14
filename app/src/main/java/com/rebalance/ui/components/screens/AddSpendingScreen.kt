@@ -21,17 +21,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.gson.Gson
 import com.rebalance.Preferences
-import com.rebalance.backend.api.RequestsSender
-import com.rebalance.backend.api.jsonToExpense
 import com.rebalance.backend.entities.ApplicationUser
-import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.entities.ExpenseGroup
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.components.DatePickerField
+import com.rebalance.utils.addExpense
 import com.rebalance.utils.alertUser
-import com.rebalance.utils.getToday
 
 val costValueRegex = """^\d{0,12}[.,]?\d{0,2}${'$'}""".toRegex()
 
@@ -98,58 +94,17 @@ fun AddSpendingScreen(
                         }
                         Thread {
                             try {
-                                if (isGroupExpense) {
-                                    val activeMembers =
-                                        membersSelection.filterValues { flag -> flag }
-                                    if (activeMembers.isEmpty()) {
-                                        alertUser("Choose at least one member", context)
-                                        return@Thread
-                                    }
-                                    val jsonBodyPOST = RequestsSender.sendPost(
-                                        "http://${preferences.serverIp}/expenses/user/${preferences.userId}/group/${groupId}/${preferences.userId}",
-                                        Gson().toJson(
-                                            Expense(
-                                                costValue.text.toDouble(),
-                                                date.value.ifBlank { getToday() },
-                                                selectedCategory.text,
-                                                spendingName.text
-                                            )
-                                        )
-                                    )
-                                    val resultExpense = jsonToExpense(jsonBodyPOST)
-                                    println(jsonBodyPOST)
-                                    for (member in activeMembers) {
-                                        val jsonBodyPOST = RequestsSender.sendPost(
-                                            "http://${preferences.serverIp}/expenses/user/${member.key.getId()}/group/${groupId}/${preferences.userId}",
-                                            Gson().toJson(
-                                                Expense(
-                                                    costValue.text.toDouble() / activeMembers.size * -1,
-                                                    date.value.ifBlank { getToday() },
-                                                    selectedCategory.text,
-                                                    spendingName.text,
-                                                    resultExpense.getGlobalId()
-                                                )
-                                            )
-                                        )
-                                        println(jsonBodyPOST)
-                                    }
-                                } else {
-                                    val jsonBodyPOST = RequestsSender.sendPost(
-                                        "http://${preferences.serverIp}/expenses/user/${preferences.userId}/group/${
-                                            preferences.groupId
-                                        }/${preferences.userId}",
-                                        Gson().toJson(
-                                            Expense(
-                                                costValue.text.toDouble(),
-                                                date.value.ifBlank { getToday() },
-                                                selectedCategory.text,
-                                                spendingName.text,
-                                                -1L
-                                            )
-                                        )
-                                    )
-                                    println(jsonBodyPOST)
-                                }
+                                addExpense(
+                                    isGroupExpense,
+                                    membersSelection,
+                                    context,
+                                    preferences,
+                                    groupId,
+                                    costValue,
+                                    date,
+                                    selectedCategory,
+                                    spendingName
+                                )
                                 spendingName = TextFieldValue("")
                                 costValue = TextFieldValue("")
                                 selectedCategory = TextFieldValue("")
