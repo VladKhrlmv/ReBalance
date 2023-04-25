@@ -136,7 +136,7 @@ fun SignInScreen(context: Context, navController: NavController) {
                             for (group in groups) {
                                 if (group.getName() == "per${user.getEmail()}") {
                                     val preferencesData =
-                                        PreferencesData("", user.getId().toString(), group.getId())
+                                        PreferencesData("", user.getId().toString(), group.getId(), false)
                                     Preferences(context).write(preferencesData)
                                     println("Logged in as: ${preferences.userId}")
                                     println("Personal group: ${preferences.groupId}")
@@ -326,7 +326,8 @@ fun SignUpMailScreen(context: Context, navController: NavController) {
                             val preferencesData = PreferencesData(
                                 "",
                                 userByNickname.getId().toString(),
-                                jsonToExpenseGroup(groupCreationResult).getId()
+                                jsonToExpenseGroup(groupCreationResult).getId(),
+                                true
                             )
 
                             Preferences(context).write(preferencesData)
