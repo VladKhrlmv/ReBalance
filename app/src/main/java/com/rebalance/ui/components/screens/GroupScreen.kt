@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment.Companion.CenterEnd
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.TextFieldValue
@@ -37,6 +38,9 @@ import com.rebalance.utils.alertUser
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
 import compose.icons.evaicons.fill.Trash
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun GroupScreen(
@@ -330,7 +334,7 @@ private fun DisplayList(
                                     .padding(5.dp)
                             )
                             Text(
-                                text = "${item.getAmount()} ${groupCurrency}",
+                                text = "${item.getAmount()} $groupCurrency",
                                 fontSize = 14.sp,
                                 color = Color.hsl(358f, 0.63f, 0.49f),
                                 modifier = Modifier
@@ -406,22 +410,35 @@ private fun DisplayList(
                                 }
                             }
                         }
-                        var imgBase64 =
-                            BackendService(preferences).getExpensePicture(item.getGlobalId())
-                        if (imgBase64 != null) {
+                        val coroutineScope = rememberCoroutineScope()
+                        val imgBase64 = BackendService(preferences).getExpensePicture(item.getGlobalId())
+                        val imageBitmap = remember { mutableStateOf<ImageBitmap?>(null) }
+
+                        DisposableEffect(Unit) {
+                            if (imgBase64 != null && imageBitmap.value == null) {
+                                coroutineScope.launch {
+                                    val bitmap = withContext(Dispatchers.IO) {
+                                        BitmapFactory.decodeByteArray(
+                                            imgBase64,
+                                            0,
+                                            imgBase64.size
+                                        ).asImageBitmap()
+                                    }
+                                    imageBitmap.value = bitmap
+                                }
+                            }
+                            onDispose { }
+                        }
+
+                        if (imageBitmap.value != null) {
                             Image(
-                                bitmap = BitmapFactory.decodeByteArray(
-                                    imgBase64,
-                                    0,
-                                    imgBase64.size
-                                ).asImageBitmap(),
+                                bitmap = imageBitmap.value!!,
                                 contentDescription = "Image",
                                 modifier = Modifier
                                     .padding(horizontal = 10.dp)
                                     .fillMaxWidth()
                             )
                         }
-                        //TODO USER LIST, PAYED BY
                     }
                 }
             })
