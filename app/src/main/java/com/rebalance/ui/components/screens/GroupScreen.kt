@@ -2,6 +2,8 @@ package com.rebalance.ui.components.screens
 
 import android.os.StrictMode
 import android.content.Context
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterEnd
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -83,9 +86,10 @@ private fun DisplayGroupSelection(
 ) {
     var expandedDropdownGroups by remember { mutableStateOf(false) }
     val addGroupDialogController = remember { mutableStateOf(false) }
-    Box (
+    Box(
         modifier = Modifier
-            .fillMaxWidth().testTag("groupSelectionGroupScreen")
+            .fillMaxWidth()
+            .testTag("groupSelectionGroupScreen")
     ) {
         ExposedDropdownMenuBox(
             expanded = expandedDropdownGroups,
@@ -97,7 +101,8 @@ private fun DisplayGroupSelection(
                 .fillMaxWidth()
         ) {
             TextField(
-                value = if(groupId == -1L) "" else BackendService(preferences).getGroupById(groupId).getName(),
+                value = if (groupId == -1L) "" else BackendService(preferences).getGroupById(groupId)
+                    .getName(),
                 onValueChange = { },
                 readOnly = true,
                 label = {
@@ -119,7 +124,8 @@ private fun DisplayGroupSelection(
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                val groupList = BackendService(preferences).getGroups().filter { group -> group.getId() != preferences.groupId }
+                val groupList = BackendService(preferences).getGroups()
+                    .filter { group -> group.getId() != preferences.groupId }
                 groupList.forEach { group ->
                     DropdownMenuItem(
                         onClick = {
@@ -150,7 +156,7 @@ private fun DisplayGroupSelection(
         Dialog(
             onDismissRequest = { addGroupDialogController.value = !addGroupDialogController.value },
 
-        ) {
+            ) {
             Surface(
                 elevation = 4.dp
             ) {
@@ -187,14 +193,15 @@ private fun DisplayInviteFields(
         )
         Button(
             onClick = {
-                if(groupId == -1L){
+                if (groupId == -1L) {
                     alertUser("Choose a group!", context)
                     return@Button
                 }
-                try{
+                try {
                     val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
                     StrictMode.setThreadPolicy(policy)
-                    val getUserByEmailResponse = RequestsSender.sendGet("http://${preferences.serverIp}/users/email/${email.text}")
+                    val getUserByEmailResponse =
+                        RequestsSender.sendGet("http://${preferences.serverIp}/users/email/${email.text}")
                     val user = jsonToApplicationUser(getUserByEmailResponse)
                     RequestsSender.sendPost(
                         "http://${preferences.serverIp}/users/${user.getId()}/groups",
@@ -203,8 +210,7 @@ private fun DisplayInviteFields(
                     alertUser("User in group!", context)
                     email = TextFieldValue(text = "")
                     onUserAdd()
-                }
-                catch(e: ServerException){
+                } catch (e: ServerException) {
                     alertUser("User not found", context)
                     return@Button
                 }
@@ -277,7 +283,8 @@ private fun DisplayList(
 ) {
     Box(
         modifier = Modifier
-            .fillMaxSize().testTag("groupList"),
+            .fillMaxSize()
+            .testTag("groupList"),
         contentAlignment = Center
     ) {
         LazyColumn(
@@ -287,26 +294,88 @@ private fun DisplayList(
             verticalArrangement = Arrangement.Top
         ) {
             items(items = data, itemContent = { item ->
-                Row(
+                Box(
                     modifier = Modifier
+                        .fillMaxWidth()
                         .padding(10.dp)
-                        .background(Color.LightGray)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        text = item.getDescription(),
-                        fontSize = 14.sp,
+                    Column(
                         modifier = Modifier
-                            .padding(10.dp)
-                    )
-                    Text(
-                        text = "${item.getAmount()} ${BackendService(preferences).getGroupById(groupId).getCurrency()}",
-                        fontSize = 14.sp,
-                        color = Color.hsl(358f, 0.63f, 0.49f),
-                        modifier = Modifier
-                            .padding(10.dp)
-                    )
+                            .fillMaxWidth()
+                            .background(Color.LightGray)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = item.getDescription(),
+                                fontSize = 14.sp,
+                                modifier = Modifier
+                                    .padding(10.dp)
+                            )
+                            Text(
+                                text = "${item.getAmount()} ${
+                                    BackendService(preferences).getGroupById(
+                                        groupId
+                                    ).getCurrency()
+                                }",
+                                fontSize = 14.sp,
+                                color = Color.hsl(358f, 0.63f, 0.49f),
+                                modifier = Modifier
+                                    .padding(10.dp)
+                            )
+                        }
+                        Row(
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Category: " + item.getCategory(),
+                                fontSize = 14.sp,
+                                modifier = Modifier
+                                    .padding(10.dp)
+                            )
+                        }
+                        Row(
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = "Date: " + item.getDateStamp(),
+                                fontSize = 14.sp,
+                                modifier = Modifier
+                                    .padding(10.dp)
+                            )
+                        }
+                        var imgBase64 =
+                            BackendService(preferences).getExpensePicture(item.getGlobalId())
+                        if (imgBase64 != null) {
+                            Row(
+                                modifier = Modifier
+                                    .padding(10.dp)
+                                    .fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+
+                                Image(
+                                    bitmap = BitmapFactory.decodeByteArray(
+                                        imgBase64,
+                                        0,
+                                        imgBase64.size
+                                    ).asImageBitmap(),
+                                    contentDescription = "Image",
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        }
+                    }
                 }
             })
         }

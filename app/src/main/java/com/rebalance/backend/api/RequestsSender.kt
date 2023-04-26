@@ -16,6 +16,9 @@ class RequestsSender {
                 if (responseCode == 409 || responseCode == 400) {
                     throw ServerException()
                 }
+                if(responseCode == 500){
+                    throw ServerException()
+                }
                 inputStream.bufferedReader().use {
                     it.lines().forEach { line -> res = res.plus(line + "\n") }
                 }
