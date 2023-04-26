@@ -244,7 +244,7 @@ class BackendService(
             "http://${preferences.serverIp}/groups/${groupId}/expenses"
         )
 
-        return jsonArrayToExpenses(responseGroupList).filter { it.getAmount() > 0 }.sortedBy {
+        return jsonArrayToExpenses(responseGroupList).sortedBy {
             LocalDate.parse(it.getDateStamp(), DateTimeFormatter.ofPattern("yyyy-MM-dd"))
         }.reversed()
     }

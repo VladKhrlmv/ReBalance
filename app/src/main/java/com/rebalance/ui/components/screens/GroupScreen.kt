@@ -77,7 +77,7 @@ fun GroupScreen(
                     preferences,
                     groupId,
                     BackendService(preferences).getGroupList(groupId),
-                    onDeleteClick = {groupId = it},
+                    refreshAndOpenGroup = { groupId = it },
                     context
                 )
             }
@@ -289,9 +289,10 @@ private fun DisplayList(
     preferences: PreferencesData,
     groupId: Long,
     data: List<Expense>,
-    onDeleteClick: (Long) -> Unit,
+    refreshAndOpenGroup: (Long) -> Unit,
     context: Context
 ) {
+    val groupCurrency = if (groupId == -1L) "" else BackendService(preferences).getGroupById(groupId).getCurrency()
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -304,7 +305,8 @@ private fun DisplayList(
                 .padding(10.dp),
             verticalArrangement = Arrangement.Top
         ) {
-            items(items = data, itemContent = { item ->
+            val expensesByGlobalId: Map<Long?, List<Expense>> = data.groupBy { it.getGlobalId() }
+            items(items = data.filter { it.getAmount() >= 0 }, itemContent = { item ->
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -325,74 +327,99 @@ private fun DisplayList(
                                 text = item.getDescription(),
                                 fontSize = 14.sp,
                                 modifier = Modifier
-                                    .padding(10.dp)
+                                    .padding(5.dp)
                             )
                             Text(
-                                text = "${item.getAmount()} ${
-                                    BackendService(preferences).getGroupById(
-                                        groupId
-                                    ).getCurrency()
-                                }",
+                                text = "${item.getAmount()} ${groupCurrency}",
                                 fontSize = 14.sp,
                                 color = Color.hsl(358f, 0.63f, 0.49f),
                                 modifier = Modifier
-                                    .padding(10.dp)
+                                    .padding(5.dp)
                             )
                             IconButton(onClick = {
                                 BackendService(preferences).deleteExpenseByGlobalId(item.getGlobalId())
                                 //TODO pop-up question
-                                onDeleteClick(-1L)
+                                refreshAndOpenGroup(-1L)
+                                refreshAndOpenGroup(groupId)
                                 alertUser("Expense deleted!", context)
                             }) {
                                 Icon(EvaIcons.Fill.Trash, "Delete expense")
                             }
                         }
-                        Row(
+                        Text(
+                            text = "Category: " + item.getCategory(),
+                            fontSize = 14.sp,
                             modifier = Modifier
-                                .padding(10.dp)
-                                .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
+                                .padding(horizontal = 10.dp)
+                                .fillMaxWidth()
+                        )
+                        Text(
+                            text = "Date: " + item.getDateStamp(),
+                            fontSize = 14.sp,
+                            modifier = Modifier
+                                .padding(horizontal = 10.dp)
+                                .fillMaxWidth()
+                        )
+                        val payer = item.getUser()
+                        if (payer != null) {
                             Text(
-                                text = "Category: " + item.getCategory(),
+                                text = "Payed by: " + payer.getUsername(),
                                 fontSize = 14.sp,
                                 modifier = Modifier
-                                    .padding(10.dp)
+                                    .padding(horizontal = 10.dp)
+                                    .fillMaxWidth()
                             )
                         }
-                        Row(
-                            modifier = Modifier
+                        val toWhom = expensesByGlobalId[item.getGlobalId()]
+                        if (toWhom != null && toWhom.isNotEmpty()) {
+                            Column(modifier = Modifier
                                 .padding(10.dp)
-                                .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            Text(
-                                text = "Date: " + item.getDateStamp(),
-                                fontSize = 14.sp,
-                                modifier = Modifier
-                                    .padding(10.dp)
-                            )
+                                .background(Color.White)) {
+                                Text(
+                                    text = "To:",
+                                    fontSize = 14.sp,
+                                    modifier = Modifier
+                                        .padding(horizontal = 10.dp)
+                                        .fillMaxWidth()
+                                )
+                                for (expenseWithUser in toWhom.filter { it.getAmount() <= 0 }) {
+                                    val user = expenseWithUser.getUser()
+                                    if (user != null) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(
+                                                text = user.getUsername(),
+                                                fontSize = 14.sp,
+                                                modifier = Modifier
+                                                    .padding(horizontal = 10.dp)
+                                            )
+                                            Text(
+                                                text = "${expenseWithUser.getAmount()} $groupCurrency",
+                                                fontSize = 14.sp,
+                                                modifier = Modifier
+                                                    .padding(horizontal = 10.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
                         var imgBase64 =
                             BackendService(preferences).getExpensePicture(item.getGlobalId())
                         if (imgBase64 != null) {
-                            Row(
+                            Image(
+                                bitmap = BitmapFactory.decodeByteArray(
+                                    imgBase64,
+                                    0,
+                                    imgBase64.size
+                                ).asImageBitmap(),
+                                contentDescription = "Image",
                                 modifier = Modifier
-                                    .padding(10.dp)
-                                    .fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween
-                            ) {
-
-                                Image(
-                                    bitmap = BitmapFactory.decodeByteArray(
-                                        imgBase64,
-                                        0,
-                                        imgBase64.size
-                                    ).asImageBitmap(),
-                                    contentDescription = "Image",
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            }
+                                    .padding(horizontal = 10.dp)
+                                    .fillMaxWidth()
+                            )
                         }
                         //TODO USER LIST, PAYED BY
                     }
