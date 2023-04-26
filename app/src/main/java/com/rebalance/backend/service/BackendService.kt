@@ -267,6 +267,14 @@ class BackendService(
             null
         }
     }
+
+    fun deleteExpenseByGlobalId(globalId: Long?) {
+        setPolicy()
+        RequestsSender.sendDelete(
+            "http://${preferences.serverIp}/expenses/${globalId}"
+        )
+
+    }
     //endregion
 }
 

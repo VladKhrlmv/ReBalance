@@ -67,7 +67,7 @@ fun PersonalScreen(
                 DisplayPieChart(data)
             } else {
                 DisplayList(
-                    scaleButtonWidth, scaleButtonPadding, data
+                    scaleButtonWidth, scaleButtonPadding, data, preferences
                 )
             }
 
@@ -168,7 +168,8 @@ private fun DisplayPieChart(
 private fun DisplayList(
     scaleButtonWidth: Int,
     scaleButtonPadding: Int,
-    data: List<ExpenseItem>
+    data: List<ExpenseItem>,
+    preferences: PreferencesData
 ) {
     Box(
         modifier = Modifier
@@ -176,7 +177,7 @@ private fun DisplayList(
             .padding((scaleButtonWidth + scaleButtonPadding).dp, 0.dp, 0.dp, 0.dp).testTag("personalList"),
         contentAlignment = TopCenter
     ) {
-        ExpandableList(items = data)
+        ExpandableList(items = data, preferences)
     }
 }
 

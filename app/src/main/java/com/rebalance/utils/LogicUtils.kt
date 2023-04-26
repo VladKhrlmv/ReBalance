@@ -76,8 +76,8 @@ fun addExpense(
                     costValue.text.toDouble(),
                     date.value.ifBlank { getToday() },
                     selectedCategory.text,
-                    spendingName.text,
-                    -1L
+                    spendingName.text
+                //TODO IF globalId != -1 notifications are not working
                 )
             )
         )

@@ -34,6 +34,9 @@ import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.components.BarChart
 import com.rebalance.utils.alertUser
+import compose.icons.EvaIcons
+import compose.icons.evaicons.Fill
+import compose.icons.evaicons.fill.Trash
 
 @Composable
 fun GroupScreen(
@@ -70,7 +73,13 @@ fun GroupScreen(
                     userAddedSwitcher = !userAddedSwitcher
                 }
             } else { // if list tab
-                DisplayList(preferences, groupId, BackendService(preferences).getGroupList(groupId))
+                DisplayList(
+                    preferences,
+                    groupId,
+                    BackendService(preferences).getGroupList(groupId),
+                    onDeleteClick = {groupId = it},
+                    context
+                )
             }
         }
     }
@@ -279,7 +288,9 @@ private fun DisplayVisual(
 private fun DisplayList(
     preferences: PreferencesData,
     groupId: Long,
-    data: List<Expense>
+    data: List<Expense>,
+    onDeleteClick: (Long) -> Unit,
+    context: Context
 ) {
     Box(
         modifier = Modifier
@@ -327,6 +338,14 @@ private fun DisplayList(
                                 modifier = Modifier
                                     .padding(10.dp)
                             )
+                            IconButton(onClick = {
+                                BackendService(preferences).deleteExpenseByGlobalId(item.getGlobalId())
+                                //TODO pop-up question
+                                onDeleteClick(-1L)
+                                alertUser("Expense deleted!", context)
+                            }) {
+                                Icon(EvaIcons.Fill.Trash, "Delete expense")
+                            }
                         }
                         Row(
                             modifier = Modifier
@@ -375,6 +394,7 @@ private fun DisplayList(
                                 )
                             }
                         }
+                        //TODO USER LIST, PAYED BY
                     }
                 }
             })
