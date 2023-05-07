@@ -13,7 +13,7 @@ class RequestsSender {
             with(url.openConnection() as HttpURLConnection) {
                 requestMethod = "GET"
                 println("Sent 'GET' request to URL : $url; Response Code : $responseCode")
-                if (responseCode == 409 || responseCode == 400) {
+                if (responseCode == 409 || responseCode == 400 || responseCode == 204 || responseCode == 500 || responseCode == 404) {
                     throw ServerException()
                 }
                 inputStream.bufferedReader().use {

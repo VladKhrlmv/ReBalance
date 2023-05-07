@@ -1,14 +1,15 @@
 package com.rebalance.backend.entities
 
+
 class Expense {
 
     private var id: Long = -1
     private var amount: Double = 0.0
-
     private var dateStamp: String = "2000-01-01"
     private var category: String = "default"
     private var description: String = ""
     private var globalId: Long? = null
+    private var user: ApplicationUser? = null
 
     constructor()
 
@@ -109,6 +110,14 @@ class Expense {
 
     fun setCategory(category: String) {
         this.category = category
+    }
+
+    fun getUser(): ApplicationUser? {
+        return this.user
+    }
+
+    fun setUser(user: ApplicationUser?){
+        this.user = user
     }
 
 }

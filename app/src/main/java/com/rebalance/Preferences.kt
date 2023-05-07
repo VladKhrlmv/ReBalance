@@ -12,8 +12,10 @@ class Preferences(
 ) {
     private val gson = Gson()
     private val fileName = "preferences.txt"
-    private val serverIp = "156.17.239.158:8080"
-    //private val serverIp = "10.182.137.52:8080"
+//    private val serverIp = "156.17.239.158:8080" // Denis' dorm IP
+    private val serverIp = "156.17.239.187:8080" // Alexei's dorm IP
+//    private val serverIp = "192.168.62.115:8080" // Uni hotspot IP
+
 
     fun read(): PreferencesData {
         return try {
