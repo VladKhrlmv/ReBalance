@@ -5,6 +5,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Typeface
+import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -23,6 +24,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rebalance.Preferences
@@ -58,12 +60,22 @@ fun AddSpendingScreen(
     val membersSelection = remember { mutableStateMapOf<ApplicationUser, Boolean>() }
 
     var selectedPhoto by remember { mutableStateOf(callerPhoto) }
+    var photoName by remember { mutableStateOf("") }
 
     val galleryLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri ->
         if (uri != null) {
             val bitmap = context.contentResolver.openInputStream(uri)?.use {
                 BitmapFactory.decodeStream(it)
             }
+
+            val fileNameColumn = arrayOf(MediaStore.Images.Media.DISPLAY_NAME)
+            val cursor = context.contentResolver.query(uri, fileNameColumn, null, null, null)
+            if (cursor != null && cursor.moveToFirst()) {
+                val columnIndex = cursor.getColumnIndex(fileNameColumn[0])
+                photoName = cursor.getString(columnIndex)
+                cursor.close()
+            }
+
             if (bitmap != null) {
                 selectedPhoto = bitmap
             }
@@ -346,6 +358,15 @@ fun AddSpendingScreen(
                 .padding(top = 16.dp)
         ) {
             Text("Choose photo from gallery")
+        }
+        if (selectedPhoto != null) {
+            Text(
+                text = "Selected photo: $photoName (${selectedPhoto!!.width}x${selectedPhoto!!.height})",
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
