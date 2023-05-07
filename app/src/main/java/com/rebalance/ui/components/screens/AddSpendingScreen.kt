@@ -2,7 +2,11 @@ package com.rebalance.ui.components.screens
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Typeface
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -35,8 +39,10 @@ val costValueRegex = """^\d{0,12}[.,]?\d{0,2}${'$'}""".toRegex()
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun AddSpendingScreen(
-    context: Context
+    context: Context,
+    callerPhoto: Bitmap? = null
 ) {
+
     val preferences = rememberSaveable { Preferences(context).read() }
 
     var spendingName by remember { mutableStateOf(TextFieldValue()) }
@@ -50,6 +56,19 @@ fun AddSpendingScreen(
     var groupIdLast by remember { mutableStateOf(0L) }
     var groupList by remember { mutableStateOf(listOf<ExpenseGroup>()) }
     val membersSelection = remember { mutableStateMapOf<ApplicationUser, Boolean>() }
+
+    var selectedPhoto by remember { mutableStateOf(callerPhoto) }
+
+    val galleryLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri ->
+        if (uri != null) {
+            val bitmap = context.contentResolver.openInputStream(uri)?.use {
+                BitmapFactory.decodeStream(it)
+            }
+            if (bitmap != null) {
+                selectedPhoto = bitmap
+            }
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -103,7 +122,8 @@ fun AddSpendingScreen(
                                     costValue,
                                     date,
                                     selectedCategory,
-                                    spendingName
+                                    spendingName,
+                                    selectedPhoto
                                 )
                                 spendingName = TextFieldValue("")
                                 costValue = TextFieldValue("")
@@ -318,6 +338,14 @@ fun AddSpendingScreen(
 
                 })
             }
+        }
+        Button(
+            onClick = { galleryLauncher.launch("image/*") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp)
+        ) {
+            Text("Choose photo from gallery")
         }
     }
 }
