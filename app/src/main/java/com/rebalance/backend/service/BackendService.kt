@@ -1,5 +1,6 @@
 package com.rebalance.backend.service
 
+import android.os.Parcelable
 import android.os.StrictMode
 import android.util.Base64
 import com.google.gson.Gson
@@ -11,6 +12,7 @@ import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.entities.ExpenseGroup
 import com.rebalance.backend.entities.ExpenseImage
 import com.rebalance.backend.exceptions.ServerException
+import kotlinx.parcelize.Parcelize
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -286,11 +288,12 @@ data class ScaleItem(
 )
 
 /** Item used for selecting scaled date on personal screen (horizontal navigation) **/
+@Parcelize
 data class ScaledDateItem(
     var name: String,
     var dateFrom: LocalDate,
     var dateTo: LocalDate
-)
+): Parcelable
 
 data class ExpenseItem(
     var text: String,
