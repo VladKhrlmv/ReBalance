@@ -15,11 +15,21 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.rebalance.Preferences
+import com.rebalance.PreferencesData
 
 @Composable
-fun SoundPlayer(@RawRes soundResId: Int, soundName: String, selectedSound: MutableState<Int>, context: Context, isSystemSound: Boolean = false) {
+fun SoundPlayer(
+    @RawRes soundResId: Int,
+    soundName: String,
+    selectedSound: MutableState<String>,
+    context: Context,
+    correspondingNotificationChannel: String,
+    isSystemSound: Boolean = false
+) {
     var mediaPlayer: MediaPlayer? = null
     val ringtoneManager = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
+    val preferences: PreferencesData = Preferences(context).read()
 
     val playSound = {
         mediaPlayer?.release()
@@ -45,10 +55,19 @@ fun SoundPlayer(@RawRes soundResId: Int, soundName: String, selectedSound: Mutab
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         RadioButton(
-            selected = selectedSound.value == soundResId,
+            selected = selectedSound.value == correspondingNotificationChannel,
             onClick = {
-                selectedSound.value = soundResId
+                selectedSound.value = correspondingNotificationChannel
                 playSound()
+                Preferences(context).write(
+                    PreferencesData(
+                        preferences.serverIp,
+                        preferences.userId,
+                        preferences.groupId,
+                        preferences.firstLaunch,
+                        correspondingNotificationChannel
+                    )
+                )
             }
         )
         Text(
@@ -56,8 +75,17 @@ fun SoundPlayer(@RawRes soundResId: Int, soundName: String, selectedSound: Mutab
             modifier = Modifier
                 .padding(start = 8.dp)
                 .clickable {
-                    selectedSound.value = soundResId
+                    selectedSound.value = correspondingNotificationChannel
                     playSound()
+                    Preferences(context).write(
+                        PreferencesData(
+                            preferences.serverIp,
+                            preferences.userId,
+                            preferences.groupId,
+                            preferences.firstLaunch,
+                            correspondingNotificationChannel
+                        )
+                    )
                 }
         )
     }

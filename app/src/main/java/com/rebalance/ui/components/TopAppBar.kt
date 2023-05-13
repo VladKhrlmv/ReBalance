@@ -50,7 +50,15 @@ fun TopAppBar(
                 }
 
                 IconButton(onClick = {
-                    Preferences(context).write(PreferencesData("", "-1", -1, false))
+                    Preferences(context).write(
+                        PreferencesData(
+                            "",
+                            "-1",
+                            -1,
+                            false,
+                            Preferences(context).read().currNotificationChannel
+                        )
+                    )
                     context.startActivity(Intent(context, SignInActivity::class.java))
                 }, modifier = Modifier.testTag("logout")) {
                     Icon(EvaIcons.Fill.LogOut, "Logout")

@@ -26,12 +26,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ReBalanceTheme {
+                val notificationService = NotificationService(LocalContext.current)
+                notificationService.start()
                 val recurringWork: PeriodicWorkRequest =
                     PeriodicWorkRequest.Builder(NotificationIdle::class.java, 15, TimeUnit.MINUTES)
                         .build()
                 workManager.enqueue(recurringWork)
-                val notificationService = NotificationService(LocalContext.current)
-                notificationService.start()
 
                 MainScreen()
             }
