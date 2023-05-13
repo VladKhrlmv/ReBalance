@@ -9,6 +9,7 @@ import com.rebalance.*
 import com.rebalance.ui.components.screens.AddSpendingScreen
 import com.rebalance.ui.components.screens.GroupScreen
 import com.rebalance.ui.components.screens.PersonalScreen
+import com.rebalance.ui.components.screens.SettingsScreen
 
 @Composable
 fun ScreenNavigation(
@@ -41,6 +42,9 @@ fun ScreenNavigation(
         }
         composable("signInActivity") {
             SignInActivity()
+        }
+        composable(ScreenNavigationItem.Settings.route) {
+            SettingsScreen(navController)
         }
     }
 }

@@ -67,9 +67,14 @@ fun MainSignInScreen() {
     Scaffold(
         // TODO: Make pie-chart parameter optional
         topBar = {
-            com.rebalance.ui.components.TopAppBar(pieChartActive, onPieChartActiveChange = {
-                pieChartActive = !pieChartActive
-            }, false)
+            com.rebalance.ui.components.TopAppBar(
+                pieChartActive,
+                onPieChartActiveChange = {
+                    pieChartActive = !pieChartActive
+                },
+                false,
+                navController
+            )
         },
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
             Box(modifier = Modifier.padding(padding)) {

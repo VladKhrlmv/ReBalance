@@ -44,9 +44,14 @@ fun MainScreen() {
     val navController = rememberNavController()
     var pieChartActive by rememberSaveable { mutableStateOf(true) }
     Scaffold(
-        topBar = { TopAppBar(pieChartActive, onPieChartActiveChange = {
-            pieChartActive = !pieChartActive
-        }, true) },
+        topBar = { TopAppBar(
+            pieChartActive,
+            onPieChartActiveChange = {
+                pieChartActive = !pieChartActive
+            },
+            true,
+            navController
+        ) },
         bottomBar = { BottomNavigationBar(navController) },
         floatingActionButton = { PlusButton(navController) },
         floatingActionButtonPosition = FabPosition.Center,
