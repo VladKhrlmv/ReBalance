@@ -158,7 +158,7 @@ fun ExpandableList(
                                                     alertUser("Expense deleted!", context)
                                                     showDialog.value = false
                                                     expanded.value = false
-                                                    //TODO UPDATE
+                                                    //TODO update screen
                                                 }) {
                                                     Text("Yes")
                                                 }

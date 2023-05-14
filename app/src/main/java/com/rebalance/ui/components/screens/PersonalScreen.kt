@@ -41,7 +41,6 @@ fun PersonalScreen(
     val tabItems = rememberSaveable { mutableListOf<ScaledDateItem>() } // list of tabs
     updateTabItems(preferences, tabItems, scaleItems[selectedScaleIndex].type)
     var selectedTabIndex by rememberSaveable { mutableStateOf(tabItems.size - 1) } // selected index of tab
-
     val scaleButtonWidth = 50
     val scaleButtonPadding = 8
 
@@ -169,7 +168,6 @@ private fun DisplayList(
     data: List<ExpenseItem>,
     preferences: PreferencesData
 ) {
-    var items by remember { mutableStateOf(emptyList<ExpenseItem>()) }
     Box(
         modifier = Modifier
             .fillMaxSize()
