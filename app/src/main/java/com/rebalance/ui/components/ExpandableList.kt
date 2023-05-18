@@ -1,5 +1,6 @@
 package com.rebalance.ui.components
 
+import android.content.Context
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -18,14 +19,21 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rebalance.Preferences
 import com.rebalance.PreferencesData
 import com.rebalance.backend.service.BackendService
 import com.rebalance.backend.service.ExpenseItem
+import com.rebalance.utils.alertUser
+import compose.icons.EvaIcons
+import compose.icons.evaicons.Fill
+import compose.icons.evaicons.fill.Trash
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
-fun ExpandableList(items: List<ExpenseItem>, preferences: PreferencesData) {
+fun ExpandableList(
+    items: List<ExpenseItem>,
+    preferences: PreferencesData,
+    context: Context
+) {
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
@@ -81,6 +89,7 @@ fun ExpandableList(items: List<ExpenseItem>, preferences: PreferencesData) {
                                     modifier = Modifier
                                         .wrapContentSize()
                                         .fillMaxWidth()
+                                        .border(1.dp, Color.Black)
                                 ) {
                                     Row(
                                         modifier = Modifier
@@ -127,6 +136,39 @@ fun ExpandableList(items: List<ExpenseItem>, preferences: PreferencesData) {
                                                 modifier = Modifier.fillMaxWidth()
                                             )
                                         }
+                                    }
+                                    val showDialog = remember { mutableStateOf(false) }
+
+                                    IconButton(onClick = {
+                                        showDialog.value = true
+                                    }) {
+                                        Icon(EvaIcons.Fill.Trash, "Delete expense")
+                                    }
+
+                                    if (showDialog.value) {
+                                        AlertDialog(
+                                            onDismissRequest = { showDialog.value = false },
+                                            title = { Text("Confirmation") },
+                                            text = { Text("Are you sure you want to delete this expense?") },
+                                            confirmButton = {
+                                                TextButton(onClick = {
+                                                    BackendService(preferences).deleteExpenseByGlobalId(
+                                                        expense.getGlobalId()
+                                                    )
+                                                    alertUser("Expense deleted!", context)
+                                                    showDialog.value = false
+                                                    expanded.value = false
+                                                    //TODO update screen
+                                                }) {
+                                                    Text("Yes")
+                                                }
+                                            },
+                                            dismissButton = {
+                                                TextButton(onClick = { showDialog.value = false }) {
+                                                    Text("No")
+                                                }
+                                            }
+                                        )
                                     }
                                 }
                             }

@@ -26,12 +26,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ReBalanceTheme {
+                val notificationService = NotificationService(LocalContext.current)
+                notificationService.start()
                 val recurringWork: PeriodicWorkRequest =
                     PeriodicWorkRequest.Builder(NotificationIdle::class.java, 15, TimeUnit.MINUTES)
                         .build()
                 workManager.enqueue(recurringWork)
-                val notificationService = NotificationService(LocalContext.current)
-                notificationService.start()
 
                 MainScreen()
             }
@@ -44,9 +44,14 @@ fun MainScreen() {
     val navController = rememberNavController()
     var pieChartActive by rememberSaveable { mutableStateOf(true) }
     Scaffold(
-        topBar = { TopAppBar(pieChartActive, onPieChartActiveChange = {
-            pieChartActive = !pieChartActive
-        }, true) },
+        topBar = { TopAppBar(
+            pieChartActive,
+            onPieChartActiveChange = {
+                pieChartActive = !pieChartActive
+            },
+            true,
+            navController
+        ) },
         bottomBar = { BottomNavigationBar(navController) },
         floatingActionButton = { PlusButton(navController) },
         floatingActionButtonPosition = FabPosition.Center,

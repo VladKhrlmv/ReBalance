@@ -67,9 +67,14 @@ fun MainSignInScreen() {
     Scaffold(
         // TODO: Make pie-chart parameter optional
         topBar = {
-            com.rebalance.ui.components.TopAppBar(pieChartActive, onPieChartActiveChange = {
-                pieChartActive = !pieChartActive
-            }, false)
+            com.rebalance.ui.components.TopAppBar(
+                pieChartActive,
+                onPieChartActiveChange = {
+                    pieChartActive = !pieChartActive
+                },
+                false,
+                navController
+            )
         },
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
             Box(modifier = Modifier.padding(padding)) {
@@ -136,7 +141,7 @@ fun SignInScreen(context: Context, navController: NavController) {
                             for (group in groups) {
                                 if (group.getName() == "per${user.getEmail()}") {
                                     val preferencesData =
-                                        PreferencesData("", user.getId().toString(), group.getId(), false)
+                                        PreferencesData("", user.getId().toString(), group.getId(), false, "systemChannel")
                                     Preferences(context).write(preferencesData)
                                     println("Logged in as: ${preferences.userId}")
                                     println("Personal group: ${preferences.groupId}")
@@ -202,9 +207,9 @@ fun SignUpScreen(navController: NavController) {
                         fontSize = 35.sp
                     )
 
-                    ReferenceButton("Google", 20.dp, R.drawable.google50, onClick = {})
-                    ReferenceButton("Facebook", 20.dp, R.drawable.facebook48, onClick = {})
-                    ReferenceButton("Mail", 20.dp, R.drawable.mail, onClick = {
+//                    ReferenceButton("Google", 20.dp, R.drawable.google50, onClick = {})
+//                    ReferenceButton("Facebook", 20.dp, R.drawable.facebook48, onClick = {})
+                    ReferenceButton("Mail", 20.dp, R.drawable.mailicon, onClick = {
                         navController.navigate(ScreenNavigationItem.SignUpMail.route) {
                             // Pop up to the start destination of the graph to
                             // avoid building up a large stack of destinations
@@ -327,7 +332,8 @@ fun SignUpMailScreen(context: Context, navController: NavController) {
                                 "",
                                 userByNickname.getId().toString(),
                                 jsonToExpenseGroup(groupCreationResult).getId(),
-                                true
+                                true,
+                                "systemChannel"
                             )
 
                             Preferences(context).write(preferencesData)

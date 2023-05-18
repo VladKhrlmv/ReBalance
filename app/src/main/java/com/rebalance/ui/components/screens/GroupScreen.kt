@@ -296,7 +296,8 @@ private fun DisplayList(
     refreshAndOpenGroup: (Long) -> Unit,
     context: Context
 ) {
-    val groupCurrency = if (groupId == -1L) "" else BackendService(preferences).getGroupById(groupId).getCurrency()
+    val groupCurrency =
+        if (groupId == -1L) "" else BackendService(preferences).getGroupById(groupId).getCurrency()
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -340,14 +341,36 @@ private fun DisplayList(
                                 modifier = Modifier
                                     .padding(5.dp)
                             )
+
+                            val showDialog = remember { mutableStateOf(false) }
+
                             IconButton(onClick = {
-                                BackendService(preferences).deleteExpenseByGlobalId(item.getGlobalId())
-                                //TODO pop-up question
-                                refreshAndOpenGroup(-1L)
-                                refreshAndOpenGroup(groupId)
-                                alertUser("Expense deleted!", context)
+                                showDialog.value = true
                             }) {
                                 Icon(EvaIcons.Fill.Trash, "Delete expense")
+                            }
+                            if (showDialog.value) {
+                                AlertDialog(
+                                    onDismissRequest = { showDialog.value = false },
+                                    title = { Text("Confirmation") },
+                                    text = { Text("Are you sure you want to delete this expense?") },
+                                    confirmButton = {
+                                        TextButton(onClick = {
+                                            BackendService(preferences).deleteExpenseByGlobalId(item.getGlobalId())
+                                            alertUser("Expense deleted!", context)
+                                            showDialog.value = false
+                                            refreshAndOpenGroup(-1L)
+                                            refreshAndOpenGroup(groupId)
+                                        }) {
+                                            Text("Yes")
+                                        }
+                                    },
+                                    dismissButton = {
+                                        TextButton(onClick = { showDialog.value = false }) {
+                                            Text("No")
+                                        }
+                                    }
+                                )
                             }
                         }
                         Text(
@@ -376,9 +399,11 @@ private fun DisplayList(
                         }
                         val toWhom = expensesByGlobalId[item.getGlobalId()]
                         if (toWhom != null && toWhom.isNotEmpty()) {
-                            Column(modifier = Modifier
-                                .padding(10.dp)
-                                .background(Color.White)) {
+                            Column(
+                                modifier = Modifier
+                                    .padding(10.dp)
+                                    .background(Color.White)
+                            ) {
                                 Text(
                                     text = "To:",
                                     fontSize = 14.sp,
@@ -411,7 +436,8 @@ private fun DisplayList(
                             }
                         }
                         val coroutineScope = rememberCoroutineScope()
-                        val imgBase64 = BackendService(preferences).getExpensePicture(item.getGlobalId())
+                        val imgBase64 =
+                            BackendService(preferences).getExpensePicture(item.getGlobalId())
                         val imageBitmap = remember { mutableStateOf<ImageBitmap?>(null) }
 
                         DisposableEffect(Unit) {
