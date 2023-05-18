@@ -4,7 +4,7 @@ import android.content.Context
 import android.graphics.Typeface
 import android.os.StrictMode
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -20,6 +20,7 @@ import com.rebalance.utils.createGroup
 
 val currencyRegex = """[A-Z]{0,3}""".toRegex()
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddGroupScreen(
     context: Context,

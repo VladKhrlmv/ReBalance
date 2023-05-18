@@ -4,9 +4,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rebalance.backend.service.ExpenseItem
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpandableList(items: List<ExpenseItem>) {
     Column(
@@ -30,11 +32,11 @@ fun ExpandableList(items: List<ExpenseItem>) {
         for (item in items) {
             val expanded = remember{ mutableStateOf(false) }
             ListItem(
-                text = { Text(item.text) },
-                icon = { //TODO: change to category icon
+                headlineText = { Text(item.text) },
+                leadingContent = { //TODO: change to category icon
                     CardArrow(expanded.value)
                 },
-                trailing = {
+                trailingContent = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(text = item.amount.toString() + " PLN", fontSize = 14.sp, color = Color.hsl(358f, 0.63f, 0.49f))
                     CardArrow(expanded.value)}
@@ -67,8 +69,8 @@ fun ExpandableList(items: List<ExpenseItem>) {
                             .fillMaxWidth()) {
                             for (expense in item.expenses) {
                                 Row(modifier = Modifier.wrapContentSize().fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text(expense.getDateStamp(), style = MaterialTheme.typography.subtitle1)
-                                    Text(expense.getAmount().toString(), style = MaterialTheme.typography.subtitle1)
+                                    Text(expense.getDateStamp(), style = MaterialTheme.typography.titleMedium)
+                                    Text(expense.getAmount().toString(), style = MaterialTheme.typography.titleMedium)
                                 }
                             }
                         }
