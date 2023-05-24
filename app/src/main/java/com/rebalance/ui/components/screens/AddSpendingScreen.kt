@@ -252,6 +252,23 @@ fun AddSpendingScreen(
                     }
             )
         }
+        Button(
+            onClick = { galleryLauncher.launch("image/*") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 10.dp)
+        ) {
+            Text("Choose photo from gallery")
+        }
+        if (selectedPhoto != null) {
+            Text(
+                text = "Selected photo: $photoName (${selectedPhoto!!.width}x${selectedPhoto!!.height})",
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+        }
         AnimatedVisibility(
             visible = isGroupExpense,
             modifier = Modifier
@@ -351,23 +368,6 @@ fun AddSpendingScreen(
 
                 })
             }
-        }
-        Button(
-            onClick = { galleryLauncher.launch("image/*") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 16.dp)
-        ) {
-            Text("Choose photo from gallery")
-        }
-        if (selectedPhoto != null) {
-            Text(
-                text = "Selected photo: $photoName (${selectedPhoto!!.width}x${selectedPhoto!!.height})",
-                modifier = Modifier
-                    .padding(top = 8.dp)
-                    .fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
         }
     }
 }
