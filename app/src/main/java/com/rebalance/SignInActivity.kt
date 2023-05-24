@@ -44,7 +44,7 @@ import com.rebalance.ui.theme.ReBalanceTheme
 import com.rebalance.ui.theme.md_theme_light_onPrimary
 import com.rebalance.utils.alertUser
 
-val currencyRegex = """[A-Z]{0,3}""".toRegex()
+val currencyRegex = """[a-zA-Z]{0,3}""".toRegex()
 
 class SignInActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -486,7 +486,7 @@ fun CurrencyInput(personalCurrency: MutableState<String>) {
         value = personalCurrency.value,
         onValueChange = { newCurrency ->
             if (currencyRegex.matches(newCurrency)) {
-                personalCurrency.value = newCurrency
+                personalCurrency.value = newCurrency.uppercase()
             }
         },
         label = {
