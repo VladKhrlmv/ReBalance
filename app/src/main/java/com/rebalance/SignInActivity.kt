@@ -385,7 +385,8 @@ fun CustomInput(label: String, textState: MutableState<String>) {
         value = textState.value,
         onValueChange = { textState.value = it },
         label = { Text(text = label) },
-        modifier = Modifier.padding(8.dp)
+        modifier = Modifier.padding(8.dp),
+        singleLine = true
     )
 }
 
@@ -411,7 +412,8 @@ fun CustomPasswordInput(label: String, textState: MutableState<String>) {
             IconButton(onClick = { passwordVisible.value = !passwordVisible.value }) {
                 Icon(imageVector = image, description)
             }
-        }
+        },
+        singleLine = true
     )
 }
 
@@ -492,6 +494,7 @@ fun CurrencyInput(personalCurrency: MutableState<String>) {
         label = {
             Text(text = "Your currency")
         },
-        modifier = Modifier.padding(8.dp)
+        modifier = Modifier.padding(8.dp),
+        singleLine = true
     )
 }
