@@ -95,7 +95,7 @@ fun AddSpendingScreen(
                 modifier = Modifier
                     .padding(10.dp),
                 fontFamily = FontFamily(Typeface.DEFAULT),
-                fontSize = 32.sp,
+                fontSize = 28.sp,
             )
             Row(
                 modifier = Modifier
