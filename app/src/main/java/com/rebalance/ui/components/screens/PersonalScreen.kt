@@ -2,8 +2,10 @@ package com.rebalance.ui.components.screens
 
 import android.content.Context
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.TopCenter
@@ -138,7 +140,7 @@ private fun DisplayScaleButtons(
                         }
                     },
                 onClick = { onButtonClick(scaleIndex) },
-                colors = ButtonDefaults.buttonColors(backgroundColor = Color.Transparent)
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
             ) {
                 Text(text = scaleItem.name)
             }

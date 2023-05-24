@@ -5,9 +5,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.FabPosition
-import androidx.compose.material.Scaffold
-import androidx.compose.runtime.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -39,25 +40,21 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
     val navController = rememberNavController()
     var pieChartActive by rememberSaveable { mutableStateOf(true) }
     Scaffold(
-        topBar = { TopAppBar(
-            pieChartActive,
-            onPieChartActiveChange = {
+        topBar = {
+            com.rebalance.ui.components.TopAppBar(pieChartActive, onPieChartActiveChange = {
                 pieChartActive = !pieChartActive
-            },
-            true,
-            navController
-        ) },
+            }, true)
+        },
         bottomBar = { BottomNavigationBar(navController) },
         floatingActionButton = { PlusButton(navController) },
         floatingActionButtonPosition = FabPosition.Center,
-        isFloatingActionButtonDocked = true,
-        content = { padding ->
-
+        content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
             Box(modifier = Modifier.padding(padding)) {
                 ScreenNavigation(
                     navController,

@@ -10,7 +10,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -89,7 +89,8 @@ fun GroupScreen(
     }
 }
 
-@OptIn(ExperimentalMaterialApi::class)
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DisplayGroupSelection(
     context: Context,
@@ -141,6 +142,7 @@ private fun DisplayGroupSelection(
                     .filter { group -> group.getId() != preferences.groupId }
                 groupList.forEach { group ->
                     DropdownMenuItem(
+                        text = { Text(group.getName()) },
                         onClick = {
                             onSwitch(group.getId())
                             expandedDropdownGroups = false
@@ -148,9 +150,7 @@ private fun DisplayGroupSelection(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(10.dp)
-                    ) {
-                        Text(text = group.getName())
-                    }
+                    )
                 }
             }
         }
@@ -171,7 +171,7 @@ private fun DisplayGroupSelection(
 
             ) {
             Surface(
-                elevation = 4.dp
+                shadowElevation = 4.dp
             ) {
                 AddGroupScreen(context, addGroupDialogController) { groupId ->
                     onSwitch(groupId)
@@ -181,6 +181,7 @@ private fun DisplayGroupSelection(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DisplayInviteFields(
     preferences: PreferencesData,

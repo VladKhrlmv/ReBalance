@@ -11,15 +11,17 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.*
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -39,9 +41,10 @@ import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.ui.components.screens.navigation.ScreenNavigation
 import com.rebalance.ui.components.screens.navigation.ScreenNavigationItem
 import com.rebalance.ui.theme.ReBalanceTheme
+import com.rebalance.ui.theme.md_theme_light_onPrimary
 import com.rebalance.utils.alertUser
 
-val currencyRegex = """[A-Z]{0,3}""".toRegex()
+val currencyRegex = """[a-zA-Z]{0,3}""".toRegex()
 
 class SignInActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -60,6 +63,7 @@ class SignInActivity : ComponentActivity() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainSignInScreen() {
     var pieChartActive by rememberSaveable { mutableStateOf(true) }
@@ -89,6 +93,7 @@ fun MainSignInScreen() {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignInScreen(context: Context, navController: NavController) {
     val preferences = rememberSaveable { Preferences(context).read() }
@@ -186,9 +191,10 @@ fun SignInScreen(context: Context, navController: NavController) {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpScreen(navController: NavController) {
-    Scaffold(
+        Scaffold(
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
                 Column(
@@ -249,6 +255,7 @@ fun SignUpScreen(navController: NavController) {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpMailScreen(context: Context, navController: NavController) {
     val preferences = rememberSaveable { Preferences(context).read() }
@@ -378,16 +385,19 @@ fun SignUpMailScreen(context: Context, navController: NavController) {
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomInput(label: String, textState: MutableState<String>) {
     TextField(
         value = textState.value,
         onValueChange = { textState.value = it },
         label = { Text(text = label) },
-        modifier = Modifier.padding(8.dp)
+        modifier = Modifier.padding(8.dp),
+        singleLine = true
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomPasswordInput(label: String, textState: MutableState<String>) {
     val passwordVisible = remember { mutableStateOf(false) }
@@ -409,7 +419,8 @@ fun CustomPasswordInput(label: String, textState: MutableState<String>) {
             IconButton(onClick = { passwordVisible.value = !passwordVisible.value }) {
                 Icon(imageVector = image, description)
             }
-        }
+        },
+        singleLine = true
     )
 }
 
@@ -453,19 +464,21 @@ fun ReferenceButton(label: String, paddingTop: Dp, image: Int, onClick: () -> Un
             .width(250.dp)
             .height(45.dp),
         shape = RoundedCornerShape(40.dp),
-        border = BorderStroke(1.dp, Color.Gray),
-        colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
+//        border = BorderStroke(1.dp, Color.Gray),
+//        colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
     ) {
         Box {
             Image(
                 painterResource(id = image),
                 contentDescription = "icon",
                 modifier = Modifier
-                    .size(25.dp)
+                    .size(25.dp),
+                colorFilter = ColorFilter.tint(color = md_theme_light_onPrimary)
+
             )
             Text(
                 text = label,
-                color = Color.Gray,
+//                color = Color.Gray,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth(),
                 fontSize = 18.sp
@@ -475,18 +488,20 @@ fun ReferenceButton(label: String, paddingTop: Dp, image: Int, onClick: () -> Un
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CurrencyInput(personalCurrency: MutableState<String>) {
     TextField(
         value = personalCurrency.value,
         onValueChange = { newCurrency ->
             if (currencyRegex.matches(newCurrency)) {
-                personalCurrency.value = newCurrency
+                personalCurrency.value = newCurrency.uppercase()
             }
         },
         label = {
             Text(text = "Your currency")
         },
-        modifier = Modifier.padding(8.dp)
+        modifier = Modifier.padding(8.dp),
+        singleLine = true
     )
 }

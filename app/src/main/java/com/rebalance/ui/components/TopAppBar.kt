@@ -1,10 +1,7 @@
 package com.rebalance.ui.components
 
 import android.content.Intent
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Text
-import androidx.compose.material.TopAppBar
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
 import androidx.compose.runtime.Composable
@@ -15,6 +12,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.rebalance.*
+import com.rebalance.R
 import com.rebalance.ui.components.screens.navigation.ScreenNavigationItem
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
@@ -22,6 +20,7 @@ import compose.icons.evaicons.fill.LogOut
 import compose.icons.evaicons.fill.PieChart
 import compose.icons.evaicons.fill.Settings
 
+@ExperimentalMaterial3Api
 @Composable
 fun TopAppBar(
     pieChartActive: Boolean,
@@ -48,6 +47,7 @@ fun TopAppBar(
                 IconButton(onClick = { navController.navigate(ScreenNavigationItem.Settings.route) }) {
                     Icon(EvaIcons.Fill.Settings, "Settings")
                 }
+//TODO: fix
 
                 IconButton(onClick = {
                     Preferences(context).write(

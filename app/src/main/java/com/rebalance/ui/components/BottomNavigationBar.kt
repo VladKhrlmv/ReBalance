@@ -1,8 +1,8 @@
 package com.rebalance.ui.components
 
-import androidx.compose.material.BottomNavigation
-import androidx.compose.material.BottomNavigationItem
-import androidx.compose.material.Text
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.navigation.NavController
@@ -15,11 +15,11 @@ fun BottomNavigationBar(navController: NavController) {
         ScreenNavigationItem.Personal,
         ScreenNavigationItem.Group
     )
-    BottomNavigation {
+    NavigationBar {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
         items.forEach { item ->
-            BottomNavigationItem(
+            NavigationBarItem(
                 icon = { item.icon },
                 label = { Text(text = item.title) },
                 alwaysShowLabel = true,

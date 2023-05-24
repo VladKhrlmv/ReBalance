@@ -4,9 +4,13 @@ import android.content.Context
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ListItem
+import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -27,7 +31,7 @@ import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
 import compose.icons.evaicons.fill.Trash
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpandableList(
     items: List<ExpenseItem>,
@@ -41,11 +45,11 @@ fun ExpandableList(
         for (item in items) {
             val expanded = remember { mutableStateOf(false) }
             ListItem(
-                text = { Text(item.text) },
-                icon = { //TODO: change to category icon
+                headlineText = { Text(item.text) },
+                leadingContent = { //TODO: change to category icon
                     CardArrow(expanded.value)
                 },
-                trailing = {
+                trailingContent = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = item.amount.toString() + " PLN",
@@ -85,6 +89,10 @@ fun ExpandableList(
                                 .fillMaxWidth()
                         ) {
                             for (expense in item.expenses) {
+                                Row(modifier = Modifier.wrapContentSize().fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                                    Text(expense.getDateStamp(), style = MaterialTheme.typography.titleMedium)
+                                    Text(expense.getAmount().toString(), style = MaterialTheme.typography.titleMedium)
+//TODO: fix
                                 Column(
                                     modifier = Modifier
                                         .wrapContentSize()
