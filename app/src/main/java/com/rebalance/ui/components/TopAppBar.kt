@@ -56,7 +56,7 @@ fun TopAppBar(
                             "-1",
                             -1,
                             false,
-                            Preferences(context).read().currNotificationChannel
+                            "systemChannel"
                         )
                     )
                     context.startActivity(Intent(context, SignInActivity::class.java))
