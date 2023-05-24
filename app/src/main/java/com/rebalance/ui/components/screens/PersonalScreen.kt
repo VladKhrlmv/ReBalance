@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Modifier
@@ -139,8 +140,8 @@ private fun DisplayScaleButtons(
                             )
                         }
                     },
-                onClick = { onButtonClick(scaleIndex) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
+                onClick = { onButtonClick(scaleIndex) }
+                //colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
             ) {
                 Text(text = scaleItem.name)
             }

@@ -89,94 +89,107 @@ fun ExpandableList(
                                 .fillMaxWidth()
                         ) {
                             for (expense in item.expenses) {
-                                Row(modifier = Modifier.wrapContentSize().fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-                                    Text(expense.getDateStamp(), style = MaterialTheme.typography.titleMedium)
-                                    Text(expense.getAmount().toString(), style = MaterialTheme.typography.titleMedium)
-//TODO: fix
-                                Column(
-                                    modifier = Modifier
-                                        .wrapContentSize()
-                                        .fillMaxWidth()
-                                        .border(1.dp, Color.Black)
+                                Row(
+                                    modifier = Modifier.wrapContentSize().fillMaxWidth()
+                                        .padding(16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Row(
+                                    Text(
+                                        expense.getDateStamp(),
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                    Text(
+                                        expense.getAmount().toString(),
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+//TODO: fix
+                                    Column(
                                         modifier = Modifier
                                             .wrapContentSize()
                                             .fillMaxWidth()
-                                            .padding(16.dp),
-                                        horizontalArrangement = Arrangement.SpaceBetween
+                                            .border(1.dp, Color.Black)
                                     ) {
-                                        Text(
-                                            expense.getDateStamp(),
-                                            style = MaterialTheme.typography.subtitle1
-                                        )
-                                        Text(
-                                            expense.getAmount().toString(),
-                                            style = MaterialTheme.typography.subtitle1
-                                        )
-                                    }
-                                    Row(
-                                        modifier = Modifier
-                                            .wrapContentSize()
-                                            .fillMaxWidth()
-                                            .padding(16.dp),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text("Description: " + expense.getDescription())
-                                    }
-                                    var imgBase64 =
-                                        BackendService(preferences).getExpensePicture(expense.getGlobalId())
-                                    if (imgBase64 != null) {
                                         Row(
                                             modifier = Modifier
-                                                .padding(10.dp)
-                                                .fillMaxWidth(),
+                                                .wrapContentSize()
+                                                .fillMaxWidth()
+                                                .padding(16.dp),
                                             horizontalArrangement = Arrangement.SpaceBetween
                                         ) {
-
-                                            Image(
-                                                bitmap = BitmapFactory.decodeByteArray(
-                                                    imgBase64,
-                                                    0,
-                                                    imgBase64.size
-                                                ).asImageBitmap(),
-                                                contentDescription = "Image",
-                                                modifier = Modifier.fillMaxWidth()
+                                            Text(
+                                                expense.getDateStamp(),
+                                                style = MaterialTheme.typography.titleMedium
+                                            )
+                                            Text(
+                                                expense.getAmount().toString(),
+                                                style = MaterialTheme.typography.titleMedium
                                             )
                                         }
-                                    }
-                                    val showDialog = remember { mutableStateOf(false) }
+                                        Row(
+                                            modifier = Modifier
+                                                .wrapContentSize()
+                                                .fillMaxWidth()
+                                                .padding(16.dp),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text("Description: " + expense.getDescription())
+                                        }
+                                        var imgBase64 =
+                                            BackendService(preferences).getExpensePicture(expense.getGlobalId())
+                                        if (imgBase64 != null) {
+                                            Row(
+                                                modifier = Modifier
+                                                    .padding(10.dp)
+                                                    .fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
 
-                                    IconButton(onClick = {
-                                        showDialog.value = true
-                                    }) {
-                                        Icon(EvaIcons.Fill.Trash, "Delete expense")
-                                    }
-
-                                    if (showDialog.value) {
-                                        AlertDialog(
-                                            onDismissRequest = { showDialog.value = false },
-                                            title = { Text("Confirmation") },
-                                            text = { Text("Are you sure you want to delete this expense?") },
-                                            confirmButton = {
-                                                TextButton(onClick = {
-                                                    BackendService(preferences).deleteExpenseByGlobalId(
-                                                        expense.getGlobalId()
-                                                    )
-                                                    alertUser("Expense deleted!", context)
-                                                    showDialog.value = false
-                                                    expanded.value = false
-                                                    //TODO update screen
-                                                }) {
-                                                    Text("Yes")
-                                                }
-                                            },
-                                            dismissButton = {
-                                                TextButton(onClick = { showDialog.value = false }) {
-                                                    Text("No")
-                                                }
+                                                Image(
+                                                    bitmap = BitmapFactory.decodeByteArray(
+                                                        imgBase64,
+                                                        0,
+                                                        imgBase64.size
+                                                    ).asImageBitmap(),
+                                                    contentDescription = "Image",
+                                                    modifier = Modifier.fillMaxWidth()
+                                                )
                                             }
-                                        )
+                                        }
+                                        val showDialog = remember { mutableStateOf(false) }
+
+                                        IconButton(onClick = {
+                                            showDialog.value = true
+                                        }) {
+                                            Icon(EvaIcons.Fill.Trash, "Delete expense")
+                                        }
+
+                                        if (showDialog.value) {
+                                            AlertDialog(
+                                                onDismissRequest = { showDialog.value = false },
+                                                title = { Text("Confirmation") },
+                                                text = { Text("Are you sure you want to delete this expense?") },
+                                                confirmButton = {
+                                                    TextButton(onClick = {
+                                                        BackendService(preferences).deleteExpenseByGlobalId(
+                                                            expense.getGlobalId()
+                                                        )
+                                                        alertUser("Expense deleted!", context)
+                                                        showDialog.value = false
+                                                        expanded.value = false
+                                                        //TODO update screen
+                                                    }) {
+                                                        Text("Yes")
+                                                    }
+                                                },
+                                                dismissButton = {
+                                                    TextButton(onClick = {
+                                                        showDialog.value = false
+                                                    }) {
+                                                        Text("No")
+                                                    }
+                                                }
+                                            )
+                                        }
                                     }
                                 }
                             }

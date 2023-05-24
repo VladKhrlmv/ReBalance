@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
@@ -49,7 +50,7 @@ fun MainScreen() {
         topBar = {
             com.rebalance.ui.components.TopAppBar(pieChartActive, onPieChartActiveChange = {
                 pieChartActive = !pieChartActive
-            }, true)
+            }, true, navController)
         },
         bottomBar = { BottomNavigationBar(navController) },
         floatingActionButton = { PlusButton(navController) },
