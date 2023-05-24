@@ -45,7 +45,7 @@ fun ExpandableList(
         for (item in items) {
             val expanded = remember { mutableStateOf(false) }
             ListItem(
-                headlineText = { Text(item.text) },
+                headlineContent = { Text(item.text) },
                 leadingContent = { //TODO: change to category icon
                     CardArrow(expanded.value)
                 },
