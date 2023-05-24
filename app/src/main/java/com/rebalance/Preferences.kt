@@ -12,8 +12,10 @@ class Preferences(
 ) {
     private val gson = Gson()
     private val fileName = "preferences.txt"
-//    private val serverIp = "156.17.239.158:8080"
-    private val serverIp = "192.168.1.55:8080"
+//    private val serverIp = "156.17.239.158:8080" // Denis' dorm IP
+    private val serverIp = "156.17.239.187:8080" // Alexei's dorm IP
+//    private val serverIp = "192.168.195.115:8080" // Uni hotspot IP
+
 
     fun read(): PreferencesData {
         return try {
@@ -27,7 +29,7 @@ class Preferences(
 
             gson.fromJson(temp.toString(), PreferencesData::class.java)
         } catch (e: Exception) {
-            PreferencesData(this.serverIp, "-1",-1)
+            PreferencesData(this.serverIp, "-1",-1, false, "systemChannel")
         }
     }
 
@@ -52,7 +54,9 @@ class Preferences(
 data class PreferencesData(
     var serverIp: String,
     var userId: String,
-    var groupId: Long
+    var groupId: Long,
+    var firstLaunch: Boolean,
+    var currNotificationChannel: String
 ) : Parcelable {
     fun exists(): Boolean {
         return userId != "-1"

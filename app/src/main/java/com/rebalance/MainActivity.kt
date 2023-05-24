@@ -10,14 +10,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
-import com.rebalance.ui.components.BottomNavigationBar
-import com.rebalance.ui.components.PlusButton
+import com.rebalance.ui.components.*
 import com.rebalance.ui.components.screens.navigation.ScreenNavigation
 import com.rebalance.ui.components.screens.navigation.ScreenNavigationItem
 import com.rebalance.ui.theme.ReBalanceTheme
@@ -29,12 +27,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ReBalanceTheme {
+                val notificationService = NotificationService(LocalContext.current)
+                notificationService.start()
                 val recurringWork: PeriodicWorkRequest =
                     PeriodicWorkRequest.Builder(NotificationIdle::class.java, 15, TimeUnit.MINUTES)
                         .build()
                 workManager.enqueue(recurringWork)
-                val notificationService = NotificationService(LocalContext.current)
-                notificationService.start()
 
                 MainScreen()
             }
@@ -64,6 +62,7 @@ fun MainScreen() {
                     pieChartActive,
                     ScreenNavigationItem.Personal.route
                 )
+                ToolTipOverlay(context = LocalContext.current, navController = navController)
             }
         }
     )

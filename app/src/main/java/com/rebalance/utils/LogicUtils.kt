@@ -1,7 +1,9 @@
 package com.rebalance.utils
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.os.StrictMode
+import android.util.Base64
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.text.input.TextFieldValue
@@ -13,6 +15,7 @@ import com.rebalance.backend.api.jsonToExpenseGroup
 import com.rebalance.backend.entities.ApplicationUser
 import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.entities.ExpenseGroup
+import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -29,7 +32,8 @@ fun addExpense(
     costValue: TextFieldValue,
     date: MutableState<String>,
     selectedCategory: TextFieldValue,
-    spendingName: TextFieldValue
+    spendingName: TextFieldValue,
+    callerPhoto: Bitmap?
 ) {
     if (isGroupExpense) {
         val activeMembers =
@@ -65,6 +69,25 @@ fun addExpense(
                 )
             )
             println(jsonBodyPOST)
+            println("Photo: $callerPhoto")
+            if (callerPhoto != null) {
+                val baos = ByteArrayOutputStream()
+                callerPhoto.compress(
+                    Bitmap.CompressFormat.PNG,
+                    100,
+                    baos
+                )
+                val b = baos.toByteArray()
+                val base64String: String = Base64.encodeToString(
+                    b,
+                    Base64.DEFAULT
+                )
+                val body = """{"image": "$base64String"}""".replace("\n", "");
+                val resultAddPhoto = RequestsSender.sendPost(
+                    "http://${preferences.serverIp}/expenses/${resultExpense.getGlobalId()}/image",
+                    body
+                )
+            }
         }
     } else {
         val jsonBodyPOST = RequestsSender.sendPost(
@@ -76,12 +99,31 @@ fun addExpense(
                     costValue.text.toDouble(),
                     date.value.ifBlank { getToday() },
                     selectedCategory.text,
-                    spendingName.text,
-                    -1L
+                    spendingName.text
+                    //TODO IF globalId != -1 notifications are not working
                 )
             )
         )
+        val resultExpense = jsonToExpense(jsonBodyPOST)
         println(jsonBodyPOST)
+        if (callerPhoto != null) {
+            val baos = ByteArrayOutputStream()
+            callerPhoto.compress(
+                Bitmap.CompressFormat.PNG,
+                100,
+                baos
+            )
+            val b = baos.toByteArray()
+            val base64String: String = Base64.encodeToString(
+                b,
+                Base64.DEFAULT
+            )
+            val body = """{"image": "$base64String"}""".replace("\n", "");
+            val resultAddPhoto = RequestsSender.sendPost(
+                "http://${preferences.serverIp}/expenses/${resultExpense.getGlobalId()}/image",
+                body
+            )
+        }
     }
 }
 

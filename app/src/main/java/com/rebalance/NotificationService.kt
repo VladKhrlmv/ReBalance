@@ -5,6 +5,8 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.media.RingtoneManager
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import androidx.core.app.NotificationCompat
@@ -13,11 +15,10 @@ import com.rebalance.backend.api.RequestsSender
 import com.rebalance.backend.api.jsonArrayToNotification
 
 class NotificationService(
-    val context: Context
+    val context: Context,
+    private val preferencesData: PreferencesData = Preferences(context).read()
 ) {
-    private val channelId = "ReBalance"
     private var notificationId = 0
-
     fun start() {
         createNotificationChannel()
 
@@ -56,19 +57,36 @@ class NotificationService(
     }
 
     private fun createNotificationChannel() {
-        val name = "ReBalance"
-        val descriptionText = "ReBalance main channel"
-        val importance = NotificationManager.IMPORTANCE_DEFAULT
-        val channel = NotificationChannel(channelId, name, importance).apply {
-            description = descriptionText
+        val channel1 = NotificationChannel("channel1", "Channel 1", NotificationManager.IMPORTANCE_HIGH).apply {
+            description = "Channel 1"
+            setSound(Uri.parse("android.resource://${context.packageName}/${R.raw.sound1}"), null)
+        }
+
+        val channel2 = NotificationChannel("channel2", "Channel 2", NotificationManager.IMPORTANCE_HIGH).apply {
+            description = "Channel 2"
+            setSound(Uri.parse("android.resource://${context.packageName}/${R.raw.sound2}"), null)
+        }
+
+        val channel3 = NotificationChannel("channel3", "Channel 3", NotificationManager.IMPORTANCE_HIGH).apply {
+            description = "Channel 3"
+            setSound(Uri.parse("android.resource://${context.packageName}/${R.raw.sound3}"), null)
+        }
+
+        val systemChannel = NotificationChannel("systemChannel", "System Channel", NotificationManager.IMPORTANCE_HIGH).apply {
+            description = "System Channel"
+            setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION), null)
         }
 
         val notificationManager: NotificationManager =
             context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.createNotificationChannel(channel)
+
+        notificationManager.createNotificationChannel(channel1)
+        notificationManager.createNotificationChannel(channel2)
+        notificationManager.createNotificationChannel(channel3)
+        notificationManager.createNotificationChannel(systemChannel)
     }
 
-    private fun sendNotification(
+    fun sendNotification(
         textContent: String
     ) {
         val intent = Intent(context, LoadingActivity::class.java).apply {
@@ -77,13 +95,15 @@ class NotificationService(
 
         val pendingIntent: PendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
-        val builder = NotificationCompat.Builder(context, channelId)
+        val builder = NotificationCompat.Builder(context, preferencesData.currNotificationChannel)
             .setSmallIcon(androidx.core.R.drawable.notification_template_icon_bg)
             .setContentTitle("ReBalance")
             .setContentText(textContent)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
+            .setSmallIcon(R.drawable.mailicon)
+            .setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL)
 
         with(NotificationManagerCompat.from(context)) {
             notify(notificationId++, builder.build())

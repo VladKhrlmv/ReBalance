@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Modifier
@@ -17,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.rebalance.Preferences
@@ -43,7 +43,6 @@ fun PersonalScreen(
     val tabItems = rememberSaveable { mutableListOf<ScaledDateItem>() } // list of tabs
     updateTabItems(preferences, tabItems, scaleItems[selectedScaleIndex].type)
     var selectedTabIndex by rememberSaveable { mutableStateOf(tabItems.size - 1) } // selected index of tab
-
     val scaleButtonWidth = 50
     val scaleButtonPadding = 8
 
@@ -67,7 +66,7 @@ fun PersonalScreen(
                 DisplayPieChart(data)
             } else {
                 DisplayList(
-                    scaleButtonWidth, scaleButtonPadding, data
+                    scaleButtonWidth, scaleButtonPadding, data, preferences
                 )
             }
 
@@ -168,15 +167,17 @@ private fun DisplayPieChart(
 private fun DisplayList(
     scaleButtonWidth: Int,
     scaleButtonPadding: Int,
-    data: List<ExpenseItem>
+    data: List<ExpenseItem>,
+    preferences: PreferencesData
 ) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding((scaleButtonWidth + scaleButtonPadding).dp, 0.dp, 0.dp, 0.dp).testTag("personalList"),
+            .padding((scaleButtonWidth + scaleButtonPadding).dp, 0.dp, 0.dp, 0.dp)
+            .testTag("personalList"),
         contentAlignment = TopCenter
     ) {
-        ExpandableList(items = data)
+        ExpandableList(items = data, preferences, LocalContext.current)
     }
 }
 

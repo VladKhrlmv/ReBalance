@@ -1,6 +1,8 @@
 package com.rebalance.ui.components
 
-import androidx.compose.foundation.clickable
+import android.content.Context
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -18,19 +20,30 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.rebalance.PreferencesData
+import com.rebalance.backend.service.BackendService
 import com.rebalance.backend.service.ExpenseItem
+import com.rebalance.utils.alertUser
+import compose.icons.EvaIcons
+import compose.icons.evaicons.Fill
+import compose.icons.evaicons.fill.Trash
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ExpandableList(items: List<ExpenseItem>) {
+fun ExpandableList(
+    items: List<ExpenseItem>,
+    preferences: PreferencesData,
+    context: Context
+) {
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
-    )  {
+    ) {
         for (item in items) {
-            val expanded = remember{ mutableStateOf(false) }
+            val expanded = remember { mutableStateOf(false) }
             ListItem(
                 headlineText = { Text(item.text) },
                 leadingContent = { //TODO: change to category icon
@@ -38,9 +51,14 @@ fun ExpandableList(items: List<ExpenseItem>) {
                 },
                 trailingContent = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = item.amount.toString() + " PLN", fontSize = 14.sp, color = Color.hsl(358f, 0.63f, 0.49f))
-                    CardArrow(expanded.value)}
-                           },
+                        Text(
+                            text = item.amount.toString() + " PLN",
+                            fontSize = 14.sp,
+                            color = Color.hsl(358f, 0.63f, 0.49f)
+                        )
+                        CardArrow(expanded.value)
+                    }
+                },
                 modifier = Modifier
                     .clickable {
                         expanded.value = !expanded.value
@@ -62,15 +80,104 @@ fun ExpandableList(items: List<ExpenseItem>) {
                 Box(
                     Modifier
                         .padding(16.dp)
-                        .fillMaxWidth(), contentAlignment = Alignment.TopStart) {
+                        .fillMaxWidth(), contentAlignment = Alignment.TopStart
+                ) {
                     Surface(color = Color.hsl(103f, 0f, 0.95f)) {
-                        Column(Modifier //TODO: change to LazyColumn
-                            .padding(16.dp)
-                            .fillMaxWidth()) {
+                        Column(
+                            Modifier //TODO: change to LazyColumn
+                                .padding(15.dp)
+                                .fillMaxWidth()
+                        ) {
                             for (expense in item.expenses) {
                                 Row(modifier = Modifier.wrapContentSize().fillMaxWidth().padding(16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                                     Text(expense.getDateStamp(), style = MaterialTheme.typography.titleMedium)
                                     Text(expense.getAmount().toString(), style = MaterialTheme.typography.titleMedium)
+//TODO: fix
+                                Column(
+                                    modifier = Modifier
+                                        .wrapContentSize()
+                                        .fillMaxWidth()
+                                        .border(1.dp, Color.Black)
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .wrapContentSize()
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text(
+                                            expense.getDateStamp(),
+                                            style = MaterialTheme.typography.subtitle1
+                                        )
+                                        Text(
+                                            expense.getAmount().toString(),
+                                            style = MaterialTheme.typography.subtitle1
+                                        )
+                                    }
+                                    Row(
+                                        modifier = Modifier
+                                            .wrapContentSize()
+                                            .fillMaxWidth()
+                                            .padding(16.dp),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text("Description: " + expense.getDescription())
+                                    }
+                                    var imgBase64 =
+                                        BackendService(preferences).getExpensePicture(expense.getGlobalId())
+                                    if (imgBase64 != null) {
+                                        Row(
+                                            modifier = Modifier
+                                                .padding(10.dp)
+                                                .fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+
+                                            Image(
+                                                bitmap = BitmapFactory.decodeByteArray(
+                                                    imgBase64,
+                                                    0,
+                                                    imgBase64.size
+                                                ).asImageBitmap(),
+                                                contentDescription = "Image",
+                                                modifier = Modifier.fillMaxWidth()
+                                            )
+                                        }
+                                    }
+                                    val showDialog = remember { mutableStateOf(false) }
+
+                                    IconButton(onClick = {
+                                        showDialog.value = true
+                                    }) {
+                                        Icon(EvaIcons.Fill.Trash, "Delete expense")
+                                    }
+
+                                    if (showDialog.value) {
+                                        AlertDialog(
+                                            onDismissRequest = { showDialog.value = false },
+                                            title = { Text("Confirmation") },
+                                            text = { Text("Are you sure you want to delete this expense?") },
+                                            confirmButton = {
+                                                TextButton(onClick = {
+                                                    BackendService(preferences).deleteExpenseByGlobalId(
+                                                        expense.getGlobalId()
+                                                    )
+                                                    alertUser("Expense deleted!", context)
+                                                    showDialog.value = false
+                                                    expanded.value = false
+                                                    //TODO update screen
+                                                }) {
+                                                    Text("Yes")
+                                                }
+                                            },
+                                            dismissButton = {
+                                                TextButton(onClick = { showDialog.value = false }) {
+                                                    Text("No")
+                                                }
+                                            }
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -89,6 +196,8 @@ fun CardArrow(
     Icon(
         Icons.Default.ArrowDropDown, //TODO: change to different icons
         contentDescription = "Expandable Arrow",
-        modifier = Modifier.rotate(if (bool) 180f else 0f).size(45.dp)
+        modifier = Modifier
+            .rotate(if (bool) 180f else 0f)
+            .size(45.dp)
     )
 }

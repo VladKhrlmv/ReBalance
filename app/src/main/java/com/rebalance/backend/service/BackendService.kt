@@ -1,10 +1,18 @@
 package com.rebalance.backend.service
 
+import android.os.Parcelable
 import android.os.StrictMode
+import android.util.Base64
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.rebalance.PreferencesData
 import com.rebalance.backend.api.*
+import com.rebalance.backend.entities.ApplicationUser
 import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.entities.ExpenseGroup
+import com.rebalance.backend.entities.ExpenseImage
+import com.rebalance.backend.exceptions.ServerException
+import kotlinx.parcelize.Parcelize
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -15,7 +23,7 @@ class BackendService(
 ) {
     private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
-    fun setPolicy(){
+    fun setPolicy() {
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
         StrictMode.setThreadPolicy(policy)
     }
@@ -48,7 +56,8 @@ class BackendService(
                     val date = LocalDate.parse(ex.getDateStamp(), formatter)
                     if (list.any {
                             it.dateTo.year == date.year &&
-                                    it.dateTo.dayOfYear == date.dayOfYear }) {
+                                    it.dateTo.dayOfYear == date.dayOfYear
+                        }) {
                         continue // if not the same date
                     }
                     list.add(ScaledDateItem(ex.getDateStamp(), date, date))
@@ -62,14 +71,19 @@ class BackendService(
                                     date.dayOfYear - it.dateFrom.dayOfYear < 7 &&
                                     it.dateTo.dayOfYear - date.dayOfYear < 7 &&
                                     date.dayOfWeek >= it.dateFrom.dayOfWeek &&
-                                    date.dayOfWeek <= it.dateTo.dayOfWeek }) {
+                                    date.dayOfWeek <= it.dateTo.dayOfWeek
+                        }) {
                         continue // if not the same week
                     }
                     val dateFrom = date.with(DayOfWeek.MONDAY)
                     val dateTo = date.with(DayOfWeek.SUNDAY)
-                    list.add(ScaledDateItem(dateFrom.format(formatter) +
-                            "\n" +
-                            dateTo.format(formatter), dateFrom, dateTo))
+                    list.add(
+                        ScaledDateItem(
+                            dateFrom.format(formatter) +
+                                    "\n" +
+                                    dateTo.format(formatter), dateFrom, dateTo
+                        )
+                    )
                 }
             }
             "Month" -> {
@@ -77,13 +91,18 @@ class BackendService(
                     val date = LocalDate.parse(ex.getDateStamp(), formatter)
                     if (list.any {
                             it.dateFrom.year == date.year &&
-                                    it.dateFrom.month == date.month }) {
+                                    it.dateFrom.month == date.month
+                        }) {
                         continue // if not the same year
                     }
                     val from = date.minusDays(date.dayOfMonth.toLong() - 1)
                     val to = date.plusMonths(1).minusDays(date.dayOfMonth.toLong())
-                    list.add(ScaledDateItem(date.month.toString() + " " + date.year.toString(),
-                        from, to))
+                    list.add(
+                        ScaledDateItem(
+                            date.month.toString() + " " + date.year.toString(),
+                            from, to
+                        )
+                    )
                 }
             }
             "Year" -> {
@@ -92,14 +111,29 @@ class BackendService(
                     if (list.any { it.dateFrom.year == date.year }) {
                         continue // if not the same year
                     }
-                    val year = LocalDate.parse(date.year.toString() + "-01-01", DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-                    list.add(ScaledDateItem(year.year.toString(), year, year.plusYears(1).minusDays(1)))
+                    val year = LocalDate.parse(
+                        date.year.toString() + "-01-01",
+                        DateTimeFormatter.ofPattern("yyyy-MM-dd")
+                    )
+                    list.add(
+                        ScaledDateItem(
+                            year.year.toString(),
+                            year,
+                            year.plusYears(1).minusDays(1)
+                        )
+                    )
                 }
             }
         }
 
         if (list.isEmpty()) { // if empty list add current date otherwise app crash
-            list.add(ScaledDateItem(LocalDate.now().format(formatter), LocalDate.now(), LocalDate.now()))
+            list.add(
+                ScaledDateItem(
+                    LocalDate.now().format(formatter),
+                    LocalDate.now(),
+                    LocalDate.now()
+                )
+            )
         }
 
         return list.sortedWith(compareBy({ it.dateFrom.year }, { it.dateFrom.dayOfYear }))
@@ -107,14 +141,20 @@ class BackendService(
 
     /** Returns list of expenses grouped by category **/
     fun getPersonal(dateFrom: LocalDate, dateTo: LocalDate): List<ExpenseItem> {
-      setPolicy()
+        setPolicy()
 
         val list = ArrayList<ExpenseItem>()
 
         val jsonBodyGet = RequestsSender.sendGet(
-            "http://${preferences.serverIp}/expenses/group/${preferences.groupId}/between/${dateFrom.format(
-                formatter)}/${dateTo.format(
-                formatter)}"
+            "http://${preferences.serverIp}/expenses/group/${preferences.groupId}/between/${
+                dateFrom.format(
+                    formatter
+                )
+            }/${
+                dateTo.format(
+                    formatter
+                )
+            }"
         )
         val listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
         val categoryMap: HashMap<String, ExpenseItem> = HashMap()
@@ -206,8 +246,36 @@ class BackendService(
             "http://${preferences.serverIp}/groups/${groupId}/expenses"
         )
 
-        return jsonArrayToExpenses(responseGroupList).filter { it.getAmount() > 0 }.sortedBy {
-            LocalDate.parse(it.getDateStamp(), DateTimeFormatter.ofPattern("yyyy-MM-dd")) }.reversed()
+        return jsonArrayToExpenses(responseGroupList).sortedBy {
+            LocalDate.parse(it.getDateStamp(), DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+        }.reversed()
+    }
+
+    fun getExpensePicture(globalId: Long?): ByteArray? {
+        setPolicy()
+        if (globalId == null) {
+            return null
+        }
+
+        return try {
+            val responseJson = RequestsSender.sendGet(
+                "http://${preferences.serverIp}/expenses/${globalId}/image"
+            )
+            println(responseJson)
+            val imageClass: ExpenseImage = Gson().fromJson(responseJson, ExpenseImage::class.java)
+            Base64.decode(imageClass.getImage(), Base64.DEFAULT);
+        } catch (e: ServerException) {
+            println(e.message)
+            null
+        }
+    }
+
+    fun deleteExpenseByGlobalId(globalId: Long?) {
+        setPolicy()
+        RequestsSender.sendDelete(
+            "http://${preferences.serverIp}/expenses/${globalId}"
+        )
+
     }
     //endregion
 }
@@ -220,11 +288,12 @@ data class ScaleItem(
 )
 
 /** Item used for selecting scaled date on personal screen (horizontal navigation) **/
+@Parcelize
 data class ScaledDateItem(
     var name: String,
     var dateFrom: LocalDate,
     var dateTo: LocalDate
-)
+): Parcelable
 
 data class ExpenseItem(
     var text: String,

@@ -2,6 +2,8 @@ package com.rebalance.ui.components.screens
 
 import android.os.StrictMode
 import android.content.Context
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,7 +17,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterEnd
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.TextFieldValue
@@ -31,6 +35,12 @@ import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.components.BarChart
 import com.rebalance.utils.alertUser
+import compose.icons.EvaIcons
+import compose.icons.evaicons.Fill
+import compose.icons.evaicons.fill.Trash
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun GroupScreen(
@@ -67,7 +77,13 @@ fun GroupScreen(
                     userAddedSwitcher = !userAddedSwitcher
                 }
             } else { // if list tab
-                DisplayList(preferences, groupId, BackendService(preferences).getGroupList(groupId))
+                DisplayList(
+                    preferences,
+                    groupId,
+                    BackendService(preferences).getGroupList(groupId),
+                    refreshAndOpenGroup = { groupId = it },
+                    context
+                )
             }
         }
     }
@@ -84,9 +100,10 @@ private fun DisplayGroupSelection(
 ) {
     var expandedDropdownGroups by remember { mutableStateOf(false) }
     val addGroupDialogController = remember { mutableStateOf(false) }
-    Box (
+    Box(
         modifier = Modifier
-            .fillMaxWidth().testTag("groupSelectionGroupScreen")
+            .fillMaxWidth()
+            .testTag("groupSelectionGroupScreen")
     ) {
         ExposedDropdownMenuBox(
             expanded = expandedDropdownGroups,
@@ -98,7 +115,8 @@ private fun DisplayGroupSelection(
                 .fillMaxWidth()
         ) {
             TextField(
-                value = if(groupId == -1L) "" else BackendService(preferences).getGroupById(groupId).getName(),
+                value = if (groupId == -1L) "" else BackendService(preferences).getGroupById(groupId)
+                    .getName(),
                 onValueChange = { },
                 readOnly = true,
                 label = {
@@ -120,7 +138,8 @@ private fun DisplayGroupSelection(
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                val groupList = BackendService(preferences).getGroups().filter { group -> group.getId() != preferences.groupId }
+                val groupList = BackendService(preferences).getGroups()
+                    .filter { group -> group.getId() != preferences.groupId }
                 groupList.forEach { group ->
                     DropdownMenuItem(
                         text = { Text(group.getName()) },
@@ -150,7 +169,7 @@ private fun DisplayGroupSelection(
         Dialog(
             onDismissRequest = { addGroupDialogController.value = !addGroupDialogController.value },
 
-        ) {
+            ) {
             Surface(
                 shadowElevation = 4.dp
             ) {
@@ -188,14 +207,15 @@ private fun DisplayInviteFields(
         )
         Button(
             onClick = {
-                if(groupId == -1L){
+                if (groupId == -1L) {
                     alertUser("Choose a group!", context)
                     return@Button
                 }
-                try{
+                try {
                     val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
                     StrictMode.setThreadPolicy(policy)
-                    val getUserByEmailResponse = RequestsSender.sendGet("http://${preferences.serverIp}/users/email/${email.text}")
+                    val getUserByEmailResponse =
+                        RequestsSender.sendGet("http://${preferences.serverIp}/users/email/${email.text}")
                     val user = jsonToApplicationUser(getUserByEmailResponse)
                     RequestsSender.sendPost(
                         "http://${preferences.serverIp}/users/${user.getId()}/groups",
@@ -204,8 +224,7 @@ private fun DisplayInviteFields(
                     alertUser("User in group!", context)
                     email = TextFieldValue(text = "")
                     onUserAdd()
-                }
-                catch(e: ServerException){
+                } catch (e: ServerException) {
                     alertUser("User not found", context)
                     return@Button
                 }
@@ -274,11 +293,16 @@ private fun DisplayVisual(
 private fun DisplayList(
     preferences: PreferencesData,
     groupId: Long,
-    data: List<Expense>
+    data: List<Expense>,
+    refreshAndOpenGroup: (Long) -> Unit,
+    context: Context
 ) {
+    val groupCurrency =
+        if (groupId == -1L) "" else BackendService(preferences).getGroupById(groupId).getCurrency()
     Box(
         modifier = Modifier
-            .fillMaxSize().testTag("groupList"),
+            .fillMaxSize()
+            .testTag("groupList"),
         contentAlignment = Center
     ) {
         LazyColumn(
@@ -287,27 +311,162 @@ private fun DisplayList(
                 .padding(10.dp),
             verticalArrangement = Arrangement.Top
         ) {
-            items(items = data, itemContent = { item ->
-                Row(
+            val expensesByGlobalId: Map<Long?, List<Expense>> = data.groupBy { it.getGlobalId() }
+            items(items = data.filter { it.getAmount() >= 0 }, itemContent = { item ->
+                Box(
                     modifier = Modifier
+                        .fillMaxWidth()
                         .padding(10.dp)
-                        .background(Color.LightGray)
-                        .fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
-                        text = item.getDescription(),
-                        fontSize = 14.sp,
+                    Column(
                         modifier = Modifier
-                            .padding(10.dp)
-                    )
-                    Text(
-                        text = "${item.getAmount()} ${BackendService(preferences).getGroupById(groupId).getCurrency()}",
-                        fontSize = 14.sp,
-                        color = Color.hsl(358f, 0.63f, 0.49f),
-                        modifier = Modifier
-                            .padding(10.dp)
-                    )
+                            .fillMaxWidth()
+                            .background(Color.LightGray)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .padding(10.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                text = item.getDescription(),
+                                fontSize = 14.sp,
+                                modifier = Modifier
+                                    .padding(5.dp)
+                            )
+                            Text(
+                                text = "${item.getAmount()} $groupCurrency",
+                                fontSize = 14.sp,
+                                color = Color.hsl(358f, 0.63f, 0.49f),
+                                modifier = Modifier
+                                    .padding(5.dp)
+                            )
+
+                            val showDialog = remember { mutableStateOf(false) }
+
+                            IconButton(onClick = {
+                                showDialog.value = true
+                            }) {
+                                Icon(EvaIcons.Fill.Trash, "Delete expense")
+                            }
+                            if (showDialog.value) {
+                                AlertDialog(
+                                    onDismissRequest = { showDialog.value = false },
+                                    title = { Text("Confirmation") },
+                                    text = { Text("Are you sure you want to delete this expense?") },
+                                    confirmButton = {
+                                        TextButton(onClick = {
+                                            BackendService(preferences).deleteExpenseByGlobalId(item.getGlobalId())
+                                            alertUser("Expense deleted!", context)
+                                            showDialog.value = false
+                                            refreshAndOpenGroup(-1L)
+                                            refreshAndOpenGroup(groupId)
+                                        }) {
+                                            Text("Yes")
+                                        }
+                                    },
+                                    dismissButton = {
+                                        TextButton(onClick = { showDialog.value = false }) {
+                                            Text("No")
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                        Text(
+                            text = "Category: " + item.getCategory(),
+                            fontSize = 14.sp,
+                            modifier = Modifier
+                                .padding(horizontal = 10.dp)
+                                .fillMaxWidth()
+                        )
+                        Text(
+                            text = "Date: " + item.getDateStamp(),
+                            fontSize = 14.sp,
+                            modifier = Modifier
+                                .padding(horizontal = 10.dp)
+                                .fillMaxWidth()
+                        )
+                        val payer = item.getUser()
+                        if (payer != null) {
+                            Text(
+                                text = "Payed by: " + payer.getUsername(),
+                                fontSize = 14.sp,
+                                modifier = Modifier
+                                    .padding(horizontal = 10.dp)
+                                    .fillMaxWidth()
+                            )
+                        }
+                        val toWhom = expensesByGlobalId[item.getGlobalId()]
+                        if (toWhom != null && toWhom.isNotEmpty()) {
+                            Column(
+                                modifier = Modifier
+                                    .padding(10.dp)
+                                    .background(Color.White)
+                            ) {
+                                Text(
+                                    text = "To:",
+                                    fontSize = 14.sp,
+                                    modifier = Modifier
+                                        .padding(horizontal = 10.dp)
+                                        .fillMaxWidth()
+                                )
+                                for (expenseWithUser in toWhom.filter { it.getAmount() <= 0 }) {
+                                    val user = expenseWithUser.getUser()
+                                    if (user != null) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween
+                                        ) {
+                                            Text(
+                                                text = user.getUsername(),
+                                                fontSize = 14.sp,
+                                                modifier = Modifier
+                                                    .padding(horizontal = 10.dp)
+                                            )
+                                            Text(
+                                                text = "${expenseWithUser.getAmount()} $groupCurrency",
+                                                fontSize = 14.sp,
+                                                modifier = Modifier
+                                                    .padding(horizontal = 10.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        val coroutineScope = rememberCoroutineScope()
+                        val imgBase64 =
+                            BackendService(preferences).getExpensePicture(item.getGlobalId())
+                        val imageBitmap = remember { mutableStateOf<ImageBitmap?>(null) }
+
+                        DisposableEffect(Unit) {
+                            if (imgBase64 != null && imageBitmap.value == null) {
+                                coroutineScope.launch {
+                                    val bitmap = withContext(Dispatchers.IO) {
+                                        BitmapFactory.decodeByteArray(
+                                            imgBase64,
+                                            0,
+                                            imgBase64.size
+                                        ).asImageBitmap()
+                                    }
+                                    imageBitmap.value = bitmap
+                                }
+                            }
+                            onDispose { }
+                        }
+
+                        if (imageBitmap.value != null) {
+                            Image(
+                                bitmap = imageBitmap.value!!,
+                                contentDescription = "Image",
+                                modifier = Modifier
+                                    .padding(horizontal = 10.dp)
+                                    .fillMaxWidth()
+                            )
+                        }
+                    }
                 }
             })
         }
