@@ -1,11 +1,9 @@
 package com.rebalance.backend.api
 
 import com.rebalance.backend.api.RequestsSender.Companion.sendGet
-import com.rebalance.backend.api.RequestsSender.Companion.sendPost
-import com.rebalance.backend.entities.ApplicationUser
-import com.rebalance.backend.exceptions.FailedLoginException
 import com.rebalance.backend.exceptions.ServerException
-import org.junit.Assert.*
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Test
 
 class RequestsSenderTest {

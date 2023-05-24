@@ -82,8 +82,8 @@ fun addExpense(
                     b,
                     Base64.DEFAULT
                 )
-                val body = """{"image": "$base64String"}""".replace("\n", "");
-                val resultAddPhoto = RequestsSender.sendPost(
+                val body = """{"image": "$base64String"}""".replace("\n", "")
+                RequestsSender.sendPost(
                     "http://${preferences.serverIp}/expenses/${resultExpense.getGlobalId()}/image",
                     body
                 )
@@ -118,8 +118,8 @@ fun addExpense(
                 b,
                 Base64.DEFAULT
             )
-            val body = """{"image": "$base64String"}""".replace("\n", "");
-            val resultAddPhoto = RequestsSender.sendPost(
+            val body = """{"image": "$base64String"}""".replace("\n", "")
+            RequestsSender.sendPost(
                 "http://${preferences.serverIp}/expenses/${resultExpense.getGlobalId()}/image",
                 body
             )

@@ -4,13 +4,9 @@ import android.content.Context
 import android.graphics.BitmapFactory
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,7 +27,6 @@ import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
 import compose.icons.evaicons.fill.Trash
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExpandableList(
     items: List<ExpenseItem>,
@@ -90,7 +85,9 @@ fun ExpandableList(
                         ) {
                             for (expense in item.expenses) {
                                 Row(
-                                    modifier = Modifier.wrapContentSize().fillMaxWidth()
+                                    modifier = Modifier
+                                        .wrapContentSize()
+                                        .fillMaxWidth()
                                         .padding(16.dp),
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
@@ -134,7 +131,7 @@ fun ExpandableList(
                                         ) {
                                             Text("Description: " + expense.getDescription())
                                         }
-                                        var imgBase64 =
+                                        val imgBase64 =
                                             BackendService(preferences).getExpensePicture(expense.getGlobalId())
                                         if (imgBase64 != null) {
                                             Row(

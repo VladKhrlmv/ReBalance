@@ -11,21 +11,25 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.rebalance.Preferences
 
-data class TourStep(val screen: String, val anchor: Offset, val text: String, val isEnd: Boolean = false)
+data class TourStep(
+    val screen: String,
+    val anchor: Offset,
+    val text: String,
+    val isEnd: Boolean = false
+)
 
-class GuidedTour(private val tourSteps: List<TourStep>, context: Context) {
+class GuidedTour(private val tourSteps: List<TourStep>, val context: Context) {
     val preferences = Preferences(context).read()
     var isActive by mutableStateOf(preferences.firstLaunch)
     var currentStepIndex by mutableStateOf(0)
-    val context = context
-    val currentStep: TourStep? get() = if (isActive) tourSteps.getOrNull(currentStepIndex) else null
+    val currentStep get() = if (isActive) tourSteps.getOrNull(currentStepIndex) else null
 
     fun nextStep(navController: NavController) {
         val currentScreen = currentStep?.screen
@@ -49,8 +53,18 @@ fun ToolTipOverlay(context: Context, navController: NavController) {
     val guidedTour = remember {
         GuidedTour(
             listOf(
-                TourStep("personal", Offset(100f, 100f), "This is the personal screen.", isEnd = false),
-                TourStep("add_spending", Offset(400f, 400f), "This is another tooltip.", isEnd = false),
+                TourStep(
+                    "personal",
+                    Offset(100f, 100f),
+                    "This is the personal screen.",
+                    isEnd = false
+                ),
+                TourStep(
+                    "add_spending",
+                    Offset(400f, 400f),
+                    "This is another tooltip.",
+                    isEnd = false
+                ),
                 TourStep("group", Offset(400f, 400f), "This is the end tooltip.", isEnd = true),
             ),
             context

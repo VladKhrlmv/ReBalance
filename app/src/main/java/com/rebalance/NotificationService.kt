@@ -29,15 +29,19 @@ class NotificationService(
             try {
                 while (true) {
                     val notifications = jsonArrayToNotification(
-                        RequestsSender.sendGet("http://${preferences.serverIp}/users/${
-                            preferences.userId}/notifications")
+                        RequestsSender.sendGet(
+                            "http://${preferences.serverIp}/users/${
+                                preferences.userId
+                            }/notifications"
+                        )
                     )
 
                     if (notifications.isNotEmpty()) {
                         for (notification in notifications) {
                             if (notification.getUserId().toString() == preferences.userId &&
-                                    notification.getAmount() < 0 &&
-                                    notification.getUserFromId().toString() != preferences.userId) {
+                                notification.getAmount() < 0 &&
+                                notification.getUserFromId().toString() != preferences.userId
+                            ) {
                                 Handler(mainLooper).post {
                                     if (notification.getExpenseId() != -1L) {
                                         sendNotification("Added new expense")
@@ -52,27 +56,44 @@ class NotificationService(
 
                     Thread.sleep(5_000)
                 }
-            } catch (_: Exception) { }
+            } catch (_: Exception) {
+            }
         }.start()
     }
 
     private fun createNotificationChannel() {
-        val channel1 = NotificationChannel("channel1", "Channel 1", NotificationManager.IMPORTANCE_HIGH).apply {
+        val channel1 = NotificationChannel(
+            "channel1",
+            "Channel 1",
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
             description = "Channel 1"
             setSound(Uri.parse("android.resource://${context.packageName}/${R.raw.sound1}"), null)
         }
 
-        val channel2 = NotificationChannel("channel2", "Channel 2", NotificationManager.IMPORTANCE_HIGH).apply {
+        val channel2 = NotificationChannel(
+            "channel2",
+            "Channel 2",
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
             description = "Channel 2"
             setSound(Uri.parse("android.resource://${context.packageName}/${R.raw.sound2}"), null)
         }
 
-        val channel3 = NotificationChannel("channel3", "Channel 3", NotificationManager.IMPORTANCE_HIGH).apply {
+        val channel3 = NotificationChannel(
+            "channel3",
+            "Channel 3",
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
             description = "Channel 3"
             setSound(Uri.parse("android.resource://${context.packageName}/${R.raw.sound3}"), null)
         }
 
-        val systemChannel = NotificationChannel("systemChannel", "System Channel", NotificationManager.IMPORTANCE_HIGH).apply {
+        val systemChannel = NotificationChannel(
+            "systemChannel",
+            "System Channel",
+            NotificationManager.IMPORTANCE_HIGH
+        ).apply {
             description = "System Channel"
             setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION), null)
         }
@@ -93,7 +114,8 @@ class NotificationService(
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
 
-        val pendingIntent: PendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntent: PendingIntent =
+            PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
         val builder = NotificationCompat.Builder(context, preferencesData.currNotificationChannel)
             .setSmallIcon(androidx.core.R.drawable.notification_template_icon_bg)
@@ -106,6 +128,7 @@ class NotificationService(
             .setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL)
 
         with(NotificationManagerCompat.from(context)) {
+            //TODO: check permission
             notify(notificationId++, builder.build())
         }
     }
