@@ -27,7 +27,6 @@ fun SettingsScreen(navController: NavHostController) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(10.dp)
-            .border(1.dp, Color.Black)
     ) {
         Column(
             modifier = Modifier
@@ -70,12 +69,6 @@ fun SettingsScreen(navController: NavHostController) {
                     }
                 ) {
                     Text("Send Test Notification")
-                }
-                Button(
-                    modifier = Modifier
-                        .align(Alignment.CenterHorizontally),
-                    onClick = { navController.popBackStack() }) {
-                    Text("Exit Settings")
                 }
             }
         }

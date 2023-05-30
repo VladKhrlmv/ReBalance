@@ -17,16 +17,11 @@ import java.util.*
 @Composable
 fun DatePickerField(mDate: MutableState<String>, modifier: Modifier) {
     val mContext = LocalContext.current
-
-    val mYear: Int
-    val mMonth: Int
-    val mDay: Int
-
     val mCalendar = Calendar.getInstance()
 
-    mYear = mCalendar.get(Calendar.YEAR)
-    mMonth = mCalendar.get(Calendar.MONTH)
-    mDay = mCalendar.get(Calendar.DAY_OF_MONTH)
+    val mYear: Int = mCalendar.get(Calendar.YEAR)
+    val mMonth: Int = mCalendar.get(Calendar.MONTH)
+    val mDay: Int = mCalendar.get(Calendar.DAY_OF_MONTH)
 
     mCalendar.time = Date()
     val mDatePickerDialog = DatePickerDialog(
@@ -43,8 +38,10 @@ fun DatePickerField(mDate: MutableState<String>, modifier: Modifier) {
     Column(modifier = modifier) {
         Box {
             TextField(
-                value = mDate.value,
-                onValueChange = { },
+                value = if (mDate.value == "")
+                    "${String.format("%04d", mYear)}-${String.format("%02d", mMonth + 1)}-${String.format("%02d", mDay)}"
+                else mDate.value,
+                onValueChange = {  },
                 enabled = true,
                 readOnly = true,
                 label = {
