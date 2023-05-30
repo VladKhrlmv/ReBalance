@@ -1,4 +1,4 @@
-package com.rebalance.ui.components.screens
+package com.rebalance.ui.screen
 
 import android.content.Context
 import android.graphics.Typeface

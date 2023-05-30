@@ -1,4 +1,4 @@
-package com.rebalance.ui.components.screens
+package com.rebalance.ui.screen
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -31,7 +31,7 @@ import com.rebalance.Preferences
 import com.rebalance.backend.entities.ApplicationUser
 import com.rebalance.backend.entities.ExpenseGroup
 import com.rebalance.backend.service.BackendService
-import com.rebalance.ui.components.DatePickerField
+import com.rebalance.ui.component.DatePickerField
 import com.rebalance.utils.addExpense
 import com.rebalance.utils.alertUser
 

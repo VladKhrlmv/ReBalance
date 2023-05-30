@@ -1,7 +1,6 @@
-package com.rebalance.ui.components.screens
+package com.rebalance.ui.screen
 
 import android.graphics.Typeface
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
@@ -10,16 +9,15 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.rebalance.NotificationService
+import com.rebalance.service.notification.NotificationService
 import com.rebalance.Preferences
 import com.rebalance.R
-import com.rebalance.ui.components.SoundPlayer
+import com.rebalance.ui.component.SoundPlayer
 
 @Composable
 fun SettingsScreen(navController: NavHostController) {

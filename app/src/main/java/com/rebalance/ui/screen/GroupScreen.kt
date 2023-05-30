@@ -1,4 +1,4 @@
-package com.rebalance.ui.components.screens
+package com.rebalance.ui.screen
 
 import android.os.StrictMode
 import android.content.Context
@@ -33,7 +33,7 @@ import com.rebalance.backend.api.RequestsSender
 import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.backend.service.BackendService
-import com.rebalance.ui.components.BarChart
+import com.rebalance.ui.component.BarChart
 import com.rebalance.utils.alertUser
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill

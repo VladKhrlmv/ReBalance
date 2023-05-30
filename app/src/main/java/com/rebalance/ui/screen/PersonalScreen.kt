@@ -1,4 +1,4 @@
-package com.rebalance.ui.components.screens
+package com.rebalance.ui.screen
 
 import android.content.Context
 import androidx.compose.foundation.layout.*
@@ -26,8 +26,8 @@ import com.rebalance.backend.service.BackendService
 import com.rebalance.backend.service.ExpenseItem
 import com.rebalance.backend.service.ScaleItem
 import com.rebalance.backend.service.ScaledDateItem
-import com.rebalance.ui.components.ExpandableList
-import com.rebalance.ui.components.PieChart
+import com.rebalance.ui.component.ExpandableList
+import com.rebalance.ui.component.PieChart
 
 @Composable
 fun PersonalScreen(
@@ -174,7 +174,7 @@ private fun DisplayList(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding((scaleButtonWidth + scaleButtonPadding).dp, 0.dp, 0.dp, 0.dp)
+            .padding((scaleButtonWidth + scaleButtonPadding).dp, 0.dp, 0.dp, 0.dp) //TODO: change to offset()
             .testTag("personalList"),
         contentAlignment = TopCenter
     ) {
