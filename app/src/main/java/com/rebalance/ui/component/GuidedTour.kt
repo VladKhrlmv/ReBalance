@@ -1,4 +1,4 @@
-package com.rebalance.ui.components
+package com.rebalance.ui.component
 
 import android.content.Context
 import androidx.compose.foundation.background

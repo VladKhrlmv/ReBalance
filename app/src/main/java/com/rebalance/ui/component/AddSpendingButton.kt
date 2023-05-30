@@ -1,4 +1,4 @@
-package com.rebalance.ui.components
+package com.rebalance.ui.component
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.FloatingActionButton
@@ -11,7 +11,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.rebalance.R
-import com.rebalance.ui.components.screens.navigation.ScreenNavigationItem
+import com.rebalance.ui.navigation.ScreenNavigationItem
 import com.rebalance.ui.theme.AddSpendingButtonShape
 
 @Composable

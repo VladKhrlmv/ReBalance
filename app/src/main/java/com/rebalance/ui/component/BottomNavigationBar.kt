@@ -1,4 +1,4 @@
-package com.rebalance.ui.components
+package com.rebalance.ui.component
 
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -7,7 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.rebalance.ui.components.screens.navigation.ScreenNavigationItem
+import com.rebalance.ui.navigation.ScreenNavigationItem
 
 @Composable
 fun BottomNavigationBar(navController: NavController) {

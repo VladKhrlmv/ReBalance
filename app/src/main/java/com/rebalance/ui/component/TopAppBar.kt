@@ -1,4 +1,4 @@
-package com.rebalance.ui.components
+package com.rebalance.ui.component
 
 import android.content.Intent
 import androidx.compose.material.icons.Icons
@@ -15,7 +15,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.rebalance.*
 import com.rebalance.R
 import com.rebalance.SignInActivity
-import com.rebalance.ui.components.screens.navigation.ScreenNavigationItem
+import com.rebalance.ui.navigation.ScreenNavigationItem
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
 import compose.icons.evaicons.fill.LogOut
