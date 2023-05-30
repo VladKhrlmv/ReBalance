@@ -1,4 +1,4 @@
-package com.rebalance
+package com.rebalance.service.notification
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -11,6 +11,10 @@ import android.os.Handler
 import android.os.Looper
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.rebalance.LoadingActivity
+import com.rebalance.Preferences
+import com.rebalance.PreferencesData
+import com.rebalance.R
 import com.rebalance.backend.api.RequestsSender
 import com.rebalance.backend.api.jsonArrayToNotification
 

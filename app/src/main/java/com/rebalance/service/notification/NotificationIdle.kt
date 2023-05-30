@@ -1,10 +1,11 @@
-package com.rebalance
+package com.rebalance.service.notification
 
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
 import androidx.work.Worker
 import androidx.work.WorkerParameters
+import com.rebalance.Preferences
 import com.rebalance.backend.api.RequestsSender
 import com.rebalance.backend.api.jsonArrayToNotification
 
