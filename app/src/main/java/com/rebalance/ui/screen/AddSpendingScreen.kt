@@ -62,25 +62,26 @@ fun AddSpendingScreen(
     var selectedPhoto by remember { mutableStateOf(callerPhoto) }
     var photoName by remember { mutableStateOf("") }
 
-    val galleryLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri ->
-        if (uri != null) {
-            val bitmap = context.contentResolver.openInputStream(uri)?.use {
-                BitmapFactory.decodeStream(it)
-            }
+    val galleryLauncher =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri ->
+            if (uri != null) {
+                val bitmap = context.contentResolver.openInputStream(uri)?.use {
+                    BitmapFactory.decodeStream(it)
+                }
 
-            val fileNameColumn = arrayOf(MediaStore.Images.Media.DISPLAY_NAME)
-            val cursor = context.contentResolver.query(uri, fileNameColumn, null, null, null)
-            if (cursor != null && cursor.moveToFirst()) {
-                val columnIndex = cursor.getColumnIndex(fileNameColumn[0])
-                photoName = cursor.getString(columnIndex)
-                cursor.close()
-            }
+                val fileNameColumn = arrayOf(MediaStore.Images.Media.DISPLAY_NAME)
+                val cursor = context.contentResolver.query(uri, fileNameColumn, null, null, null)
+                if (cursor != null && cursor.moveToFirst()) {
+                    val columnIndex = cursor.getColumnIndex(fileNameColumn[0])
+                    photoName = cursor.getString(columnIndex)
+                    cursor.close()
+                }
 
-            if (bitmap != null) {
-                selectedPhoto = bitmap
+                if (bitmap != null) {
+                    selectedPhoto = bitmap
+                }
             }
         }
-    }
     Column(
         modifier = Modifier
             .fillMaxSize()

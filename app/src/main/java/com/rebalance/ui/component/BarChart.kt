@@ -4,7 +4,10 @@ import android.graphics.Typeface
 import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -14,7 +17,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.github.mikephil.charting.charts.HorizontalBarChart
 import com.github.mikephil.charting.components.XAxis
-import com.github.mikephil.charting.data.*
+import com.github.mikephil.charting.data.BarData
+import com.github.mikephil.charting.data.BarDataSet
+import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.rebalance.backend.service.BarChartData
 import com.rebalance.ui.theme.greenColor
@@ -67,7 +72,8 @@ fun BarChart(
             },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(5.dp).testTag("groupBarChart"),
+                    .padding(5.dp)
+                    .testTag("groupBarChart"),
                 update = {
                     updateBarChartWithData(it, barChartData)
                 }

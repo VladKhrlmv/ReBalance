@@ -2,7 +2,10 @@ package com.rebalance.ui.screen
 
 import android.content.Context
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -174,7 +177,12 @@ private fun DisplayList(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding((scaleButtonWidth + scaleButtonPadding).dp, 0.dp, 0.dp, 0.dp) //TODO: change to offset()
+            .padding(
+                (scaleButtonWidth + scaleButtonPadding).dp,
+                0.dp,
+                0.dp,
+                0.dp
+            ) //TODO: change to offset()
             .testTag("personalList"),
         contentAlignment = TopCenter
     ) {

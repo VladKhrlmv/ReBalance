@@ -14,9 +14,9 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.rebalance.service.notification.NotificationService
 import com.rebalance.Preferences
 import com.rebalance.R
+import com.rebalance.service.notification.NotificationService
 import com.rebalance.ui.component.SoundPlayer
 
 @Composable

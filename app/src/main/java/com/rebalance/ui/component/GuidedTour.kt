@@ -61,20 +61,85 @@ fun ToolTipOverlay(context: Context, navController: NavController) {
     val guidedTour = remember {
         GuidedTour(
             listOf(
-                TourStep("personal", Offset(100f, 200f), "Welcome to the ReBalance application", isEnd = false),
-                TourStep("personal", Offset(100f, 200f), "This is your personal screen", isEnd = false),
-                TourStep("personal", Offset(100f, 200f), "Here you can see your expenses grouped by categories and filter them by date", isEnd = false),
-                TourStep("personal", Offset(100f, 200f), "You can also see the overview for day, week, month and year", isEnd = false),
-                TourStep("personal", Offset(100f, 200f), "For the detailed view, click the list button above", isEnd = false),
-                TourStep("personal", Offset(100f, 1100f), "Here you can navigate to another screens", isEnd = false),
+                TourStep(
+                    "personal",
+                    Offset(100f, 200f),
+                    "Welcome to the ReBalance application",
+                    isEnd = false
+                ),
+                TourStep(
+                    "personal",
+                    Offset(100f, 200f),
+                    "This is your personal screen",
+                    isEnd = false
+                ),
+                TourStep(
+                    "personal",
+                    Offset(100f, 200f),
+                    "Here you can see your expenses grouped by categories and filter them by date",
+                    isEnd = false
+                ),
+                TourStep(
+                    "personal",
+                    Offset(100f, 200f),
+                    "You can also see the overview for day, week, month and year",
+                    isEnd = false
+                ),
+                TourStep(
+                    "personal",
+                    Offset(100f, 200f),
+                    "For the detailed view, click the list button above",
+                    isEnd = false
+                ),
+                TourStep(
+                    "personal",
+                    Offset(100f, 1100f),
+                    "Here you can navigate to another screens",
+                    isEnd = false
+                ),
                 TourStep("group", Offset(100f, 200f), "This is a group screen", isEnd = false),
-                TourStep("group", Offset(100f, 600f), "Here you can create groups and share expenses with your friends", isEnd = false),
-                TourStep("group", Offset(100f, 600f), "You would see the graph of balances, but you can also switch to the list view for more details", isEnd = false),
-                TourStep("group", Offset(100f, 1100f), "You can add expenses by clicking the (+) button below", isEnd = false),
-                TourStep("add_spending", Offset(100f, 200f), "To add an expense, just provide some basic information about it", isEnd = false),
-                TourStep("add_spending", Offset(100f, 1100f), "You can also create it for a group, choose who would pay and attach a photo", isEnd = false),
-                TourStep("add_spending", Offset(100f, 200f), "To save the expense, click Save button", isEnd = false),
-                TourStep("personal", Offset(100f, 200f), "That sums up the quick introduction to the app. Use with a pleasure :)", isEnd = true),
+                TourStep(
+                    "group",
+                    Offset(100f, 600f),
+                    "Here you can create groups and share expenses with your friends",
+                    isEnd = false
+                ),
+                TourStep(
+                    "group",
+                    Offset(100f, 600f),
+                    "You would see the graph of balances, but you can also switch to the list view for more details",
+                    isEnd = false
+                ),
+                TourStep(
+                    "group",
+                    Offset(100f, 1100f),
+                    "You can add expenses by clicking the (+) button below",
+                    isEnd = false
+                ),
+                TourStep(
+                    "add_spending",
+                    Offset(100f, 200f),
+                    "To add an expense, just provide some basic information about it",
+                    isEnd = false
+                ),
+                TourStep(
+                    "add_spending",
+                    Offset(100f, 1100f),
+                    "You can also create it for a group, choose who would pay and attach a photo",
+                    isEnd = false
+                ),
+                TourStep(
+                    "add_spending",
+                    Offset(100f, 200f),
+                    "To save the expense, click Save button",
+                    isEnd = false
+                ),
+                TourStep(
+                    "personal",
+                    Offset(100f, 200f),
+                    "That sums up the quick introduction to the app. Use with a pleasure :)",
+                    isEnd = true
+                ),
             ),
             context
         )

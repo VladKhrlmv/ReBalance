@@ -4,7 +4,8 @@ import android.content.Intent
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
@@ -12,9 +13,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.rebalance.*
+import com.rebalance.Preferences
+import com.rebalance.PreferencesData
 import com.rebalance.R
-import com.rebalance.SignInActivity
+import com.rebalance.activity.SignInActivity
 import com.rebalance.ui.navigation.ScreenNavigationItem
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
@@ -48,15 +50,17 @@ fun TopAppBar(
 
                     }
                 }
-                IconButton(onClick = { navController.navigate(ScreenNavigationItem.Settings.route) {
-                    navController.graph.startDestinationRoute?.let { route ->
-                        popUpTo(route) {
-                            saveState = true
+                IconButton(onClick = {
+                    navController.navigate(ScreenNavigationItem.Settings.route) {
+                        navController.graph.startDestinationRoute?.let { route ->
+                            popUpTo(route) {
+                                saveState = true
+                            }
                         }
+                        launchSingleTop = true
+                        restoreState = true
                     }
-                    launchSingleTop = true
-                    restoreState = true
-                } }) {
+                }) {
                     Icon(EvaIcons.Fill.Settings, "Settings")
                 }
 

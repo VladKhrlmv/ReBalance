@@ -1,8 +1,8 @@
 package com.rebalance.ui.screen
 
-import android.os.StrictMode
 import android.content.Context
 import android.graphics.BitmapFactory
+import android.os.StrictMode
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -17,19 +17,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.CenterEnd
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.rebalance.backend.api.jsonToApplicationUser
 import com.rebalance.Preferences
 import com.rebalance.PreferencesData
 import com.rebalance.backend.api.RequestsSender
+import com.rebalance.backend.api.jsonToApplicationUser
 import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.backend.service.BackendService

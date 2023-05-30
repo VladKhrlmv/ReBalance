@@ -39,9 +39,14 @@ fun DatePickerField(mDate: MutableState<String>, modifier: Modifier) {
         Box {
             TextField(
                 value = if (mDate.value == "")
-                    "${String.format("%04d", mYear)}-${String.format("%02d", mMonth + 1)}-${String.format("%02d", mDay)}"
+                    "${String.format("%04d", mYear)}-${
+                        String.format(
+                            "%02d",
+                            mMonth + 1
+                        )
+                    }-${String.format("%02d", mDay)}"
                 else mDate.value,
-                onValueChange = {  },
+                onValueChange = { },
                 enabled = true,
                 readOnly = true,
                 label = {
