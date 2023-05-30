@@ -1,4 +1,4 @@
-package com.rebalance
+package com.rebalance.activity
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -16,9 +16,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.compose.rememberNavController
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
-import com.rebalance.ui.components.*
-import com.rebalance.ui.components.screens.navigation.ScreenNavigation
-import com.rebalance.ui.components.screens.navigation.ScreenNavigationItem
+import com.rebalance.service.notification.NotificationIdle
+import com.rebalance.service.notification.NotificationService
+import com.rebalance.ui.component.*
+import com.rebalance.ui.navigation.ScreenNavigation
+import com.rebalance.ui.navigation.ScreenNavigationItem
 import com.rebalance.ui.theme.ReBalanceTheme
 import java.util.concurrent.TimeUnit
 
@@ -54,7 +56,7 @@ fun MainScreen() {
         },
         bottomBar = { BottomNavigationBar(navController) },
         floatingActionButton = { PlusButton(navController) },
-        floatingActionButtonPosition = FabPosition.Center,
+        floatingActionButtonPosition = FabPosition.End,
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
             Box(modifier = Modifier.padding(padding)) {
                 ScreenNavigation(

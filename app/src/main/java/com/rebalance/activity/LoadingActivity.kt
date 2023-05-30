@@ -1,4 +1,4 @@
-package com.rebalance
+package com.rebalance.activity
 
 import android.content.Intent
 import android.os.Bundle

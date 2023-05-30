@@ -1,4 +1,4 @@
-package com.rebalance
+package com.rebalance.activity
 
 import android.content.Context
 import android.content.Intent
@@ -35,8 +35,8 @@ import com.rebalance.backend.api.*
 import com.rebalance.backend.entities.ExpenseGroup
 import com.rebalance.backend.exceptions.PasswordMismatchException
 import com.rebalance.backend.exceptions.ServerException
-import com.rebalance.ui.components.screens.navigation.ScreenNavigation
-import com.rebalance.ui.components.screens.navigation.ScreenNavigationItem
+import com.rebalance.ui.navigation.ScreenNavigation
+import com.rebalance.ui.navigation.ScreenNavigationItem
 import com.rebalance.ui.theme.ReBalanceTheme
 import com.rebalance.ui.theme.md_theme_light_onPrimary
 import com.rebalance.utils.alertUser
@@ -68,7 +68,7 @@ fun MainSignInScreen() {
     Scaffold(
         // TODO: Make pie-chart parameter optional
         topBar = {
-            com.rebalance.ui.components.TopAppBar(
+            com.rebalance.ui.component.TopAppBar(
                 pieChartActive,
                 onPieChartActiveChange = {
                     pieChartActive = !pieChartActive
