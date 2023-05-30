@@ -1,4 +1,4 @@
-package com.rebalance.ui.components.screens.navigation
+package com.rebalance.ui.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add

@@ -1,4 +1,4 @@
-package com.rebalance.ui.components.screens.navigation
+package com.rebalance.ui.navigation
 
 import android.content.Context
 import androidx.compose.runtime.Composable
@@ -6,10 +6,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.rebalance.*
-import com.rebalance.ui.components.screens.AddSpendingScreen
-import com.rebalance.ui.components.screens.GroupScreen
-import com.rebalance.ui.components.screens.PersonalScreen
-import com.rebalance.ui.components.screens.SettingsScreen
+import com.rebalance.ui.screen.AddSpendingScreen
+import com.rebalance.ui.screen.GroupScreen
+import com.rebalance.ui.screen.PersonalScreen
+import com.rebalance.ui.screen.SettingsScreen
 
 @Composable
 fun ScreenNavigation(
