@@ -115,7 +115,7 @@ fun AddSpendingScreen(
                     modifier = Modifier
                         .padding(1.dp)
                 ) {
-                    Text("Cancel")
+                    Text("Clear")
                 }
                 Button(
                     onClick = {
