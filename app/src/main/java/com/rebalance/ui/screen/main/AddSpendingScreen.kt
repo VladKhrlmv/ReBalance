@@ -104,22 +104,6 @@ fun AddSpendingScreen(
             ) {
                 Button(
                     onClick = {
-                        spendingName = TextFieldValue("")
-                        costValue = TextFieldValue("")
-                        selectedCategory = TextFieldValue("")
-                        date.value = ""
-                        isGroupExpense = false
-                        groupName = ""
-                        groupId = 0L
-                        membersSelection.clear()
-                    },
-                    modifier = Modifier
-                        .padding(1.dp)
-                ) {
-                    Text("Cancel")
-                }
-                Button(
-                    onClick = {
                         if (spendingName.text.isEmpty() || costValue.text.isEmpty() || selectedCategory.text.isEmpty()) {
                             alertUser("Fill in all data", context)
                             return@Button
