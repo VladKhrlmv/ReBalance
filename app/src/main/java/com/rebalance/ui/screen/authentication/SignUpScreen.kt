@@ -9,14 +9,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.rebalance.R
 import com.rebalance.ui.component.authentication.ReferenceButton
 import com.rebalance.ui.component.authentication.SecondaryButton
-import com.rebalance.ui.navigation.ScreenNavigationItem
+import com.rebalance.ui.navigation.Routes
+import com.rebalance.ui.navigation.navigateTo
 
 @Composable
-fun SignUpScreen(navController: NavController) {
+fun SignUpScreen(navHostController: NavHostController) {
     Scaffold(
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
@@ -39,38 +40,10 @@ fun SignUpScreen(navController: NavController) {
 //                    ReferenceButton("Google", 20.dp, R.drawable.google50, onClick = {})
 //                    ReferenceButton("Facebook", 20.dp, R.drawable.facebook48, onClick = {})
                     ReferenceButton("Mail", 20.dp, R.drawable.mailicon, onClick = {
-                        navController.navigate(ScreenNavigationItem.SignUpMail.route) {
-                            // Pop up to the start destination of the graph to
-                            // avoid building up a large stack of destinations
-                            // on the back stack as users select items
-                            navController.graph.startDestinationRoute?.let { route ->
-                                popUpTo(route) {
-                                    saveState = true
-                                }
-                            }
-                            // Avoid multiple copies of the same destination when
-                            // re-selecting the same item
-                            launchSingleTop = true
-                            // Restore state when re-selecting a previously selected item
-                            restoreState = true
-                        }
+                        navigateTo(navHostController, Routes.RegisterMail)
                     })
                     SecondaryButton("SIGN IN", 20.dp, onClick = {
-                        navController.navigate(ScreenNavigationItem.SignIn.route) {
-                            // Pop up to the start destination of the graph to
-                            // avoid building up a large stack of destinations
-                            // on the back stack as users select items
-                            navController.graph.startDestinationRoute?.let { route ->
-                                popUpTo(route) {
-                                    saveState = true
-                                }
-                            }
-                            // Avoid multiple copies of the same destination when
-                            // re-selecting the same item
-                            launchSingleTop = true
-                            // Restore state when re-selecting a previously selected item
-                            restoreState = true
-                        }
+                        navigateTo(navHostController, Routes.Login)
                     })
                 }
             }

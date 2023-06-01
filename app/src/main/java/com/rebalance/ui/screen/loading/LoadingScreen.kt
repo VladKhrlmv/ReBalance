@@ -22,6 +22,7 @@ import com.rebalance.Preferences
 import com.rebalance.PreferencesData
 import com.rebalance.activity.MainActivity
 import com.rebalance.activity.AuthenticationActivity
+import com.rebalance.ui.navigation.switchActivityTo
 import com.rebalance.utils.alertUser
 import java.net.HttpURLConnection
 import java.net.URL
@@ -58,9 +59,9 @@ fun LoadingScreen() {
 
     if (connected.value == 1) {
         if (!preferences.exists()) {
-            context.startActivity(Intent(context, AuthenticationActivity::class.java))
+            switchActivityTo(context, AuthenticationActivity::class)
         } else {
-            context.startActivity(Intent(context, MainActivity::class.java))
+            switchActivityTo(context, MainActivity::class)
         }
     } else if (connected.value == -1) {
         alertUser("Can't establish connection", context)

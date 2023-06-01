@@ -4,10 +4,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.compose.rememberNavController
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import com.rebalance.service.notification.NotificationIdle
 import com.rebalance.service.notification.NotificationService
+import com.rebalance.ui.navigation.Routes
+import com.rebalance.ui.navigation.initNavHost
 import com.rebalance.ui.screen.MainScreen
 import com.rebalance.ui.theme.ReBalanceTheme
 import java.util.concurrent.TimeUnit
@@ -18,7 +21,13 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ReBalanceTheme {
-                val notificationService = NotificationService(LocalContext.current)
+                // initialize nav controller
+                // the start route is loading screen, so it will be processed first
+                val context = LocalContext.current
+                val navHostController = rememberNavController()
+                val navHost = initNavHost(context, navHostController, Routes.Main)
+
+                val notificationService = NotificationService(context)
                 notificationService.start()
                 val recurringWork: PeriodicWorkRequest =
                     PeriodicWorkRequest.Builder(NotificationIdle::class.java, 15, TimeUnit.MINUTES)

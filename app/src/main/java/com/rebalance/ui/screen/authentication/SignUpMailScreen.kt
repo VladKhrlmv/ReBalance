@@ -1,7 +1,6 @@
 package com.rebalance.ui.screen.authentication
 
 import android.content.Context
-import android.content.Intent
 import android.os.StrictMode
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Scaffold
@@ -15,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.google.gson.Gson
 import com.rebalance.Preferences
 import com.rebalance.PreferencesData
@@ -28,11 +27,13 @@ import com.rebalance.backend.entities.ExpenseGroup
 import com.rebalance.backend.exceptions.PasswordMismatchException
 import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.ui.component.authentication.*
-import com.rebalance.ui.navigation.ScreenNavigationItem
+import com.rebalance.ui.navigation.Routes
+import com.rebalance.ui.navigation.navigateTo
+import com.rebalance.ui.navigation.switchActivityTo
 import com.rebalance.utils.alertUser
 
 @Composable
-fun SignUpMailScreen(context: Context, navController: NavController) {
+fun SignUpMailScreen(context: Context, navHostController: NavHostController) {
     val preferences = rememberSaveable { Preferences(context).read() }
 
     val email = remember { mutableStateOf("") }
@@ -121,7 +122,7 @@ fun SignUpMailScreen(context: Context, navController: NavController) {
                             Preferences(context).write(preferencesData)
 
 
-                            context.startActivity(Intent(context, MainActivity::class.java))
+                            switchActivityTo(context, MainActivity::class)
                         } catch (error: ServerException) {
                             println("Caught a ServerException!")
                             showError.value = true
@@ -131,21 +132,7 @@ fun SignUpMailScreen(context: Context, navController: NavController) {
 
                     })
                     SecondaryButton("SIGN IN", 5.dp, onClick = {
-                        navController.navigate(ScreenNavigationItem.SignIn.route) {
-                            // Pop up to the start destination of the graph to
-                            // avoid building up a large stack of destinations
-                            // on the back stack as users select items
-                            navController.graph.startDestinationRoute?.let { route ->
-                                popUpTo(route) {
-                                    saveState = true
-                                }
-                            }
-                            // Avoid multiple copies of the same destination when
-                            // re-selecting the same item
-                            launchSingleTop = true
-                            // Restore state when re-selecting a previously selected item
-                            restoreState = true
-                        }
+                        navigateTo(navHostController, Routes.Login)
                     })
 //                    if (showError.value) {
 //                        alertUser(errorMessage.value, context)

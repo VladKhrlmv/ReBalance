@@ -1,7 +1,6 @@
 package com.rebalance.ui.screen.authentication
 
 import android.content.Context
-import android.content.Intent
 import android.os.StrictMode
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Scaffold
@@ -15,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.rebalance.Preferences
 import com.rebalance.PreferencesData
 import com.rebalance.activity.MainActivity
@@ -26,11 +25,13 @@ import com.rebalance.ui.component.authentication.CustomInput
 import com.rebalance.ui.component.authentication.CustomPasswordInput
 import com.rebalance.ui.component.authentication.PrimaryButton
 import com.rebalance.ui.component.authentication.SecondaryButton
-import com.rebalance.ui.navigation.ScreenNavigationItem
+import com.rebalance.ui.navigation.Routes
+import com.rebalance.ui.navigation.navigateTo
+import com.rebalance.ui.navigation.switchActivityTo
 import com.rebalance.utils.alertUser
 
 @Composable
-fun SignInScreen(context: Context, navController: NavController) {
+fun SignInScreen(context: Context, navHostController: NavHostController) {
     val preferences = rememberSaveable { Preferences(context).read() }
 
     val login = remember { mutableStateOf("") }
@@ -95,7 +96,7 @@ fun SignInScreen(context: Context, navController: NavController) {
                             }
 //                             throw FailedLoginException("Invalid password for email")
 
-                            context.startActivity(Intent(context, MainActivity::class.java))
+                            switchActivityTo(context, MainActivity::class)
                         } catch (error: Exception) {
                             println("Caught a FailedLoginException! You should see the error message on the screen")
                             showError.value = true
@@ -104,21 +105,7 @@ fun SignInScreen(context: Context, navController: NavController) {
 
                     })
                     SecondaryButton("SIGN UP", 5.dp, onClick = {
-                        navController.navigate(ScreenNavigationItem.SignUp.route) {
-                            // Pop up to the start destination of the graph to
-                            // avoid building up a large stack of destinations
-                            // on the back stack as users select items
-                            navController.graph.startDestinationRoute?.let { route ->
-                                popUpTo(route) {
-                                    saveState = true
-                                }
-                            }
-                            // Avoid multiple copies of the same destination when
-                            // re-selecting the same item
-                            launchSingleTop = true
-                            // Restore state when re-selecting a previously selected item
-                            restoreState = true
-                        }
+                        navigateTo(navHostController, Routes.Register)
                     })
 
                     if (showError.value) {
