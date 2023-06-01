@@ -7,7 +7,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.rememberNavController
 import com.rebalance.ui.component.ToolTipOverlay
 import com.rebalance.ui.component.main.BottomNavigationBar
 import com.rebalance.ui.component.main.PlusButton
@@ -20,7 +19,6 @@ fun MainScreen(
     navHostController: NavHostController
 ) {
     val context = LocalContext.current
-    val navController = rememberNavController()
     var pieChartActive by rememberSaveable { mutableStateOf(true) }
     Scaffold(
         topBar = {
@@ -28,7 +26,7 @@ fun MainScreen(
                 pieChartActive = !pieChartActive
             }, true, navHostController)
         },
-        bottomBar = { BottomNavigationBar(navController) },
+        bottomBar = { BottomNavigationBar(navHostController) },
         floatingActionButton = { PlusButton(navHostController) }, //TODO: hide it if in add spending screen
         floatingActionButtonPosition = FabPosition.End,
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.

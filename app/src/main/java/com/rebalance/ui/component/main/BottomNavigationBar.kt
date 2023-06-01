@@ -1,47 +1,40 @@
 package com.rebalance.ui.component.main
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.rebalance.ui.navigation.ScreenNavigationItem
+import com.rebalance.ui.navigation.Routes
+import com.rebalance.ui.navigation.navigateSingleTo
 
 @Composable
-fun BottomNavigationBar(navController: NavController) {
-    val items = listOf(
-        ScreenNavigationItem.Personal,
-        ScreenNavigationItem.Group
-    )
+fun BottomNavigationBar(navHostController: NavHostController) {
     NavigationBar {
-        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val navBackStackEntry by navHostController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
-        items.forEach { item ->
-            NavigationBarItem(
-                icon = { item.icon },
-                label = { Text(text = item.title) },
-                alwaysShowLabel = true,
-                selected = currentRoute == item.route,
-                onClick = {
-                    navController.navigate(item.route) {
-                        // Pop up to the start destination of the graph to
-                        // avoid building up a large stack of destinations
-                        // on the back stack as users select items
-                        navController.graph.startDestinationRoute?.let { route ->
-                            popUpTo(route) {
-                                saveState = true
-                            }
-                        }
-                        // Avoid multiple copies of the same destination when
-                        // re-selecting the same item
-                        launchSingleTop = true
-                        // Restore state when re-selecting a previously selected item
-                        restoreState = true
-                    }
-                }
-            )
-        }
+        NavigationBarItem(
+            icon = { Icons.Filled.Person },
+            label = { Text(text = "Personal") },
+            alwaysShowLabel = true,
+            selected = currentRoute == Routes.Personal.route,
+            onClick = {
+                navigateSingleTo(navHostController, Routes.Personal)
+            }
+        )
+        NavigationBarItem(
+            icon = { Icons.Outlined.Person },
+            label = { Text(text = "Group") },
+            alwaysShowLabel = true,
+            selected = currentRoute == Routes.Group.route,
+            onClick = {
+                navigateSingleTo(navHostController, Routes.Group)
+            }
+        )
     }
 }

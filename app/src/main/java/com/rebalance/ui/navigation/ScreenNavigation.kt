@@ -7,13 +7,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
+import com.rebalance.ui.screen.authentication.SignInScreen
+import com.rebalance.ui.screen.authentication.SignUpMailScreen
+import com.rebalance.ui.screen.authentication.SignUpScreen
 import com.rebalance.ui.screen.main.AddSpendingScreen
 import com.rebalance.ui.screen.main.GroupScreen
 import com.rebalance.ui.screen.main.PersonalScreen
 import com.rebalance.ui.screen.main.SettingsScreen
-import com.rebalance.ui.screen.authentication.SignInScreen
-import com.rebalance.ui.screen.authentication.SignUpMailScreen
-import com.rebalance.ui.screen.authentication.SignUpScreen
 
 @Composable
 fun initNavHost(context: Context, navHostController: NavHostController, startRoute: Routes) {
