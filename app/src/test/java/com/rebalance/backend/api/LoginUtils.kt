@@ -4,9 +4,9 @@ import com.rebalance.backend.entities.ApplicationUser
 import com.rebalance.backend.entities.LoginAndPassword
 import com.rebalance.backend.exceptions.FailedLoginException
 import com.rebalance.backend.exceptions.ServerException
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertThrows
 import org.junit.Test
-
-import org.junit.Assert.*
 
 class LoginUtilsTest {
     @Test
@@ -28,7 +28,10 @@ class LoginUtilsTest {
         val expected = ApplicationUser(1, "Aliaskei", "user.1@gmail.com")
         expected.setPassword("pass1")
 
-        assertThrows("Invalid password for email: user.1@gmail.com", FailedLoginException::class.java) {
+        assertThrows(
+            "Invalid password for email: user.1@gmail.com",
+            FailedLoginException::class.java
+        ) {
             login(
                 "http://192.168.148.253:8080/users/login",
                 "user.1@gmail.com",
@@ -42,7 +45,7 @@ class LoginUtilsTest {
         val expected = LoginAndPassword("user.1@gmail.com", "")
 
         assertEquals(
-            expected, com.rebalance.backend.api.register(
+            expected, register(
                 "http://192.168.148.253:8080/users/login",
                 "user.1@gmail.com",
                 "Aliaksei",

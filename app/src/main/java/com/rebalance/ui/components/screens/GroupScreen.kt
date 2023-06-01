@@ -181,7 +181,6 @@ private fun DisplayGroupSelection(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DisplayInviteFields(
     preferences: PreferencesData,

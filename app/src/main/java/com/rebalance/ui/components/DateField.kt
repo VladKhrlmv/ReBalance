@@ -1,22 +1,19 @@
 package com.rebalance.ui.components
 
 import android.app.DatePickerDialog
+import android.widget.DatePicker
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalContext
-import android.widget.DatePicker
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.runtime.MutableState
-import java.util.Calendar
-import java.util.Date
+import java.util.*
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DatePickerField(mDate: MutableState<String>, modifier: Modifier) {
     val mContext = LocalContext.current
@@ -30,7 +27,12 @@ fun DatePickerField(mDate: MutableState<String>, modifier: Modifier) {
     val mDatePickerDialog = DatePickerDialog(
         mContext,
         { _: DatePicker, year: Int, month: Int, dayOfMonth: Int ->
-            mDate.value = "${String.format("%04d", year)}-${String.format("%02d", month + 1)}-${String.format("%02d", dayOfMonth)}"
+            mDate.value = "${String.format("%04d", year)}-${String.format("%02d", month + 1)}-${
+                String.format(
+                    "%02d",
+                    dayOfMonth
+                )
+            }"
         }, mYear, mMonth, mDay
     )
     Column(modifier = modifier) {

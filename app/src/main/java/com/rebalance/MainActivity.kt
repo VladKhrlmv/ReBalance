@@ -48,7 +48,7 @@ fun MainScreen() {
     var pieChartActive by rememberSaveable { mutableStateOf(true) }
     Scaffold(
         topBar = {
-            com.rebalance.ui.components.TopAppBar(pieChartActive, onPieChartActiveChange = {
+            TopAppBar(pieChartActive, onPieChartActiveChange = {
                 pieChartActive = !pieChartActive
             }, true, navController)
         },

@@ -2,9 +2,13 @@ package com.rebalance.ui.components.screens
 
 import android.content.Context
 import android.graphics.Typeface
-import android.os.StrictMode
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
@@ -13,14 +17,11 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rebalance.Preferences
-import com.rebalance.backend.api.RequestsSender
-import com.rebalance.backend.api.jsonToExpenseGroup
 import com.rebalance.utils.alertUser
 import com.rebalance.utils.createGroup
 
 val currencyRegex = """[A-Z]{0,3}""".toRegex()
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddGroupScreen(
     context: Context,

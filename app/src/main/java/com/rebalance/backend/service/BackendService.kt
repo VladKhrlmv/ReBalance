@@ -4,10 +4,8 @@ import android.os.Parcelable
 import android.os.StrictMode
 import android.util.Base64
 import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
 import com.rebalance.PreferencesData
 import com.rebalance.backend.api.*
-import com.rebalance.backend.entities.ApplicationUser
 import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.entities.ExpenseGroup
 import com.rebalance.backend.entities.ExpenseImage
@@ -16,7 +14,6 @@ import kotlinx.parcelize.Parcelize
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import kotlin.collections.ArrayList
 
 class BackendService(
     private val preferences: PreferencesData
@@ -263,7 +260,7 @@ class BackendService(
             )
             println(responseJson)
             val imageClass: ExpenseImage = Gson().fromJson(responseJson, ExpenseImage::class.java)
-            Base64.decode(imageClass.getImage(), Base64.DEFAULT);
+            Base64.decode(imageClass.getImage(), Base64.DEFAULT)
         } catch (e: ServerException) {
             println(e.message)
             null
@@ -293,7 +290,7 @@ data class ScaledDateItem(
     var name: String,
     var dateFrom: LocalDate,
     var dateTo: LocalDate
-): Parcelable
+) : Parcelable
 
 data class ExpenseItem(
     var text: String,

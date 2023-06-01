@@ -1,9 +1,9 @@
 package com.rebalance.ui.components
 
 import android.content.Intent
-import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -14,6 +14,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.rebalance.*
 import com.rebalance.R
+import com.rebalance.SignInActivity
 import com.rebalance.ui.components.screens.navigation.ScreenNavigationItem
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
@@ -58,7 +59,6 @@ fun TopAppBar(
                 } }) {
                     Icon(EvaIcons.Fill.Settings, "Settings")
                 }
-//TODO: fix
 
                 IconButton(onClick = {
                     Preferences(context).write(

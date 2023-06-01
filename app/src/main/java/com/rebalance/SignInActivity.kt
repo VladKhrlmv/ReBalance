@@ -6,21 +6,18 @@ import android.os.Bundle
 import android.os.StrictMode
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -93,7 +90,6 @@ fun MainSignInScreen() {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignInScreen(context: Context, navController: NavController) {
     val preferences = rememberSaveable { Preferences(context).read() }
@@ -146,7 +142,13 @@ fun SignInScreen(context: Context, navController: NavController) {
                             for (group in groups) {
                                 if (group.getName() == "per${user.getEmail()}") {
                                     val preferencesData =
-                                        PreferencesData("", user.getId().toString(), group.getId(), false, "systemChannel")
+                                        PreferencesData(
+                                            "",
+                                            user.getId().toString(),
+                                            group.getId(),
+                                            false,
+                                            "systemChannel"
+                                        )
                                     Preferences(context).write(preferencesData)
                                     println("Logged in as: ${preferences.userId}")
                                     println("Personal group: ${preferences.groupId}")
@@ -191,10 +193,9 @@ fun SignInScreen(context: Context, navController: NavController) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpScreen(navController: NavController) {
-        Scaffold(
+    Scaffold(
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
                 Column(
@@ -255,7 +256,6 @@ fun SignUpScreen(navController: NavController) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignUpMailScreen(context: Context, navController: NavController) {
     val preferences = rememberSaveable { Preferences(context).read() }
@@ -385,7 +385,6 @@ fun SignUpMailScreen(context: Context, navController: NavController) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomInput(label: String, textState: MutableState<String>) {
     TextField(
@@ -397,7 +396,6 @@ fun CustomInput(label: String, textState: MutableState<String>) {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CustomPasswordInput(label: String, textState: MutableState<String>) {
     val passwordVisible = remember { mutableStateOf(false) }
@@ -488,7 +486,6 @@ fun ReferenceButton(label: String, paddingTop: Dp, image: Int, onClick: () -> Un
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CurrencyInput(personalCurrency: MutableState<String>) {
     TextField(
