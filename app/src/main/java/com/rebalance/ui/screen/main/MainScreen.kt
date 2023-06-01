@@ -8,9 +8,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
+import com.rebalance.ui.component.ToolTipOverlay
 import com.rebalance.ui.component.main.BottomNavigationBar
 import com.rebalance.ui.component.main.PlusButton
-import com.rebalance.ui.component.ToolTipOverlay
 import com.rebalance.ui.navigation.Routes
 import com.rebalance.ui.navigation.initNavHost
 
@@ -29,7 +29,7 @@ fun MainScreen(
             }, true, navHostController)
         },
         bottomBar = { BottomNavigationBar(navController) },
-        floatingActionButton = { PlusButton(navController) },
+        floatingActionButton = { PlusButton(navHostController) }, //TODO: hide it if in add spending screen
         floatingActionButtonPosition = FabPosition.End,
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
             Box(modifier = Modifier.padding(padding)) {

@@ -9,32 +9,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.rebalance.R
-import com.rebalance.ui.navigation.ScreenNavigationItem
+import com.rebalance.ui.navigation.Routes
+import com.rebalance.ui.navigation.navigateSingleTo
 import com.rebalance.ui.theme.AddSpendingButtonShape
 
 @Composable
-fun PlusButton(navController: NavController) {
+fun PlusButton(navHostController: NavHostController) {
     FloatingActionButton(
         shape = AddSpendingButtonShape,
         modifier = Modifier.size(65.dp),
         onClick = {
-            navController.navigate(ScreenNavigationItem.AddSpending.route) {
-                // Pop up to the start destination of the graph to
-                // avoid building up a large stack of destinations
-                // on the back stack as users select items
-                navController.graph.startDestinationRoute?.let { route ->
-                    popUpTo(route) {
-                        saveState = true
-                    }
-                }
-                // Avoid multiple copies of the same destination when
-                // re-selecting the same item
-                launchSingleTop = true
-                // Restore state when re-selecting a previously selected item
-                restoreState = true
-            }
+            navigateSingleTo(navHostController, Routes.AddSpending)
         }
     ) {
         Icon(
