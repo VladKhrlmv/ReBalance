@@ -1,4 +1,4 @@
-package com.rebalance.ui.component
+package com.rebalance.ui.component.main
 
 import android.app.DatePickerDialog
 import android.widget.DatePicker

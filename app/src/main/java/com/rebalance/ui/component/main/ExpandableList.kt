@@ -1,4 +1,4 @@
-package com.rebalance.ui.component
+package com.rebalance.ui.component.main
 
 import android.content.Context
 import android.graphics.BitmapFactory

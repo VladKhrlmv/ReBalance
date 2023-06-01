@@ -1,4 +1,4 @@
-package com.rebalance.ui.screen
+package com.rebalance.ui.screen.main
 
 import android.content.Context
 import androidx.compose.foundation.layout.*
@@ -29,8 +29,8 @@ import com.rebalance.backend.service.BackendService
 import com.rebalance.backend.service.ExpenseItem
 import com.rebalance.backend.service.ScaleItem
 import com.rebalance.backend.service.ScaledDateItem
-import com.rebalance.ui.component.ExpandableList
-import com.rebalance.ui.component.PieChart
+import com.rebalance.ui.component.main.ExpandableList
+import com.rebalance.ui.component.main.PieChart
 
 @Composable
 fun PersonalScreen(

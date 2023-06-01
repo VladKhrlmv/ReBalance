@@ -9,7 +9,7 @@ import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import com.rebalance.service.notification.NotificationIdle
 import com.rebalance.service.notification.NotificationService
-import com.rebalance.ui.screen.MainScreen
+import com.rebalance.ui.screen.main.MainScreen
 import com.rebalance.ui.theme.ReBalanceTheme
 import java.util.concurrent.TimeUnit
 

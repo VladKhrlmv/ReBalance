@@ -1,6 +1,5 @@
 package com.rebalance.ui.screen.loading
 
-import android.content.Intent
 import android.os.Handler
 import android.os.Looper
 import androidx.compose.foundation.layout.Arrangement
@@ -20,8 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rebalance.Preferences
 import com.rebalance.PreferencesData
-import com.rebalance.activity.MainActivity
 import com.rebalance.activity.AuthenticationActivity
+import com.rebalance.activity.MainActivity
 import com.rebalance.ui.navigation.switchActivityTo
 import com.rebalance.utils.alertUser
 import java.net.HttpURLConnection

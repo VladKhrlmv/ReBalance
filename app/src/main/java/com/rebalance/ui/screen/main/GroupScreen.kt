@@ -1,4 +1,4 @@
-package com.rebalance.ui.screen
+package com.rebalance.ui.screen.main
 
 import android.content.Context
 import android.graphics.BitmapFactory
@@ -33,7 +33,7 @@ import com.rebalance.backend.api.jsonToApplicationUser
 import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.backend.service.BackendService
-import com.rebalance.ui.component.BarChart
+import com.rebalance.ui.component.main.BarChart
 import com.rebalance.utils.alertUser
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill

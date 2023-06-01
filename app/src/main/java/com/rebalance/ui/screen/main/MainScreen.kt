@@ -1,4 +1,4 @@
-package com.rebalance.ui.screen
+package com.rebalance.ui.screen.main
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
@@ -8,8 +8,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.rebalance.ui.component.BottomNavigationBar
-import com.rebalance.ui.component.PlusButton
+import com.rebalance.ui.component.main.BottomNavigationBar
+import com.rebalance.ui.component.main.PlusButton
 import com.rebalance.ui.component.ToolTipOverlay
 import com.rebalance.ui.navigation.Routes
 import com.rebalance.ui.navigation.initNavHost

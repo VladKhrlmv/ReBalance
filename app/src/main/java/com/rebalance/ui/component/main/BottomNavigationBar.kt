@@ -1,4 +1,4 @@
-package com.rebalance.ui.component
+package com.rebalance.ui.component.main
 
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
