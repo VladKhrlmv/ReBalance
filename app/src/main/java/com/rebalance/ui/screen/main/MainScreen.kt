@@ -10,7 +10,7 @@ import androidx.navigation.compose.rememberNavController
 import com.rebalance.ui.component.BottomNavigationBar
 import com.rebalance.ui.component.PlusButton
 import com.rebalance.ui.component.ToolTipOverlay
-import com.rebalance.ui.navigation.ScreenNavigation
+import com.rebalance.ui.navigation.initNavHost
 import com.rebalance.ui.navigation.ScreenNavigationItem
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,12 +29,12 @@ fun MainScreen() {
         floatingActionButtonPosition = FabPosition.End,
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
             Box(modifier = Modifier.padding(padding)) {
-                ScreenNavigation(
-                    navController,
-                    LocalContext.current,
-                    pieChartActive,
-                    ScreenNavigationItem.Personal.route
-                )
+//                initNavHost(
+//                    navController,
+//                    LocalContext.current,
+//                    pieChartActive,
+//                    ScreenNavigationItem.Personal.route
+//                )
                 ToolTipOverlay(context = LocalContext.current, navController = navController)
             }
         }
