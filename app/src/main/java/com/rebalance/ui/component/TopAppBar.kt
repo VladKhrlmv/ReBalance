@@ -16,7 +16,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.rebalance.Preferences
 import com.rebalance.PreferencesData
 import com.rebalance.R
-import com.rebalance.activity.SignInActivity
+import com.rebalance.activity.AuthenticationActivity
 import com.rebalance.ui.navigation.ScreenNavigationItem
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
@@ -74,7 +74,7 @@ fun TopAppBar(
                             "systemChannel"
                         )
                     )
-                    context.startActivity(Intent(context, SignInActivity::class.java))
+                    context.startActivity(Intent(context, AuthenticationActivity::class.java))
                 }, modifier = Modifier.testTag("logout")) {
                     Icon(EvaIcons.Fill.LogOut, "Logout")
                 }
