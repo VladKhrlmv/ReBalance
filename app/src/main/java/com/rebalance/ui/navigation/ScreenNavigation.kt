@@ -46,7 +46,7 @@ fun initNavHost(context: Context, navHostController: NavHostController, startRou
                 GroupScreen(context)
             }
             composable(Routes.AddSpending.route) {
-                AddSpendingScreen(context)
+                AddSpendingScreen(context, navHostController)
             }
             composable(Routes.Settings.route) {
                 SettingsScreen(navHostController)
@@ -88,4 +88,8 @@ fun navigateWithoutBack(
             inclusive = true
         }
     }
+}
+
+fun navigateUp(navHostController: NavHostController) {
+    navHostController.navigateUp()
 }

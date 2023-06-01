@@ -27,11 +27,13 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHostController
 import com.rebalance.Preferences
 import com.rebalance.backend.entities.ApplicationUser
 import com.rebalance.backend.entities.ExpenseGroup
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.main.DatePickerField
+import com.rebalance.ui.navigation.navigateUp
 import com.rebalance.utils.addExpense
 import com.rebalance.utils.alertUser
 
@@ -42,6 +44,7 @@ val costValueRegex = """^\d{0,12}[.,]?\d{0,2}${'$'}""".toRegex()
 @Composable
 fun AddSpendingScreen(
     context: Context,
+    navHostController: NavHostController,
     callerPhoto: Bitmap? = null
 ) {
 
@@ -136,6 +139,7 @@ fun AddSpendingScreen(
                                 alertUser("Unexpected error occurred:\n" + e.message, context)
                             }
                         }.start()
+                        navigateUp(navHostController)
                     },
                     modifier = Modifier
                         .padding(1.dp)
