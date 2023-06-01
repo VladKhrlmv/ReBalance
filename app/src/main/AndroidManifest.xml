@@ -31,7 +31,7 @@
                 android:value="" />
         </activity>
         <activity
-            android:name=".activity.SignInActivity"
+            android:name=".activity.AuthenticationActivity"
             android:exported="true"
             android:theme="@style/Theme.ReBalance">
             <intent-filter>
