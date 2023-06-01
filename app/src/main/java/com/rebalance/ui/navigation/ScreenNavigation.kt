@@ -2,47 +2,90 @@ package com.rebalance.ui.navigation
 
 import android.content.Context
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.rebalance.activity.MainActivity
-import com.rebalance.activity.SignInActivity
-import com.rebalance.ui.screen.*
+import androidx.navigation.compose.navigation
+import com.rebalance.ui.screen.AddSpendingScreen
+import com.rebalance.ui.screen.GroupScreen
+import com.rebalance.ui.screen.PersonalScreen
+import com.rebalance.ui.screen.SettingsScreen
+import com.rebalance.ui.screen.authentication.SignInScreen
+import com.rebalance.ui.screen.authentication.SignUpMailScreen
+import com.rebalance.ui.screen.authentication.SignUpScreen
 
 @Composable
-fun ScreenNavigation(
-    navController: NavHostController,
-    context: Context,
-    pieChart: Boolean,
-    startDestination: String
+fun initNavHost(context: Context, navHostController: NavHostController, startRoute: Routes) {
+    return NavHost(
+        navHostController,
+        startDestination = startRoute.route
+    ) {
+        navigation(
+            startDestination = Routes.Login.route,
+            route = Routes.Authentication.route
+        ) {
+            composable(Routes.Login.route) {
+                SignInScreen(context, navHostController)
+            }
+            composable(Routes.Register.route) {
+                SignUpScreen(navHostController)
+            }
+            composable(Routes.RegisterMail.route) {
+                SignUpMailScreen(context, navHostController)
+            }
+        }
+        navigation(
+            startDestination = Routes.Personal.route,
+            route = Routes.Main.route
+        ) {
+            composable(Routes.Personal.route) {
+                PersonalScreen(context, true)
+            }
+            composable(Routes.Group.route) {
+                GroupScreen(context)
+            }
+            composable(Routes.AddSpending.route) {
+                AddSpendingScreen(context)
+            }
+            composable(Routes.Settings.route) {
+                SettingsScreen(navHostController)
+            }
+        }
+    }
+}
+
+fun navigateTo(navHostController: NavHostController, route: Routes) {
+    navHostController.navigate(route.route) {
+        // Restore state when reselecting a previously selected item
+        restoreState = true
+    }
+}
+
+fun navigateSingleTo(navHostController: NavHostController, route: Routes) {
+    navHostController.navigate(route.route) {
+        // Pop up to the start destination of the graph to
+        // avoid building up a large stack of destinations
+        // on the back stack as users select items
+        popUpTo(navHostController.graph.findStartDestination().id) {
+            saveState = true
+        }
+        // Avoid multiple copies of the same destination when
+        // reselecting the same item
+        launchSingleTop = true
+        // Restore state when reselecting a previously selected item
+        restoreState = true
+    }
+}
+
+fun navigateWithoutBack(
+    navHostController: NavHostController,
+    route: Routes,
+    forgetRoute: Routes
 ) {
-    NavHost(navController, startDestination = startDestination) {
-        composable(ScreenNavigationItem.Personal.route) {
-            PersonalScreen(context, pieChart)
-        }
-        composable(ScreenNavigationItem.Group.route) {
-            GroupScreen(context)
-        }
-        composable(ScreenNavigationItem.AddSpending.route) {
-            AddSpendingScreen(context)
-        }
-        composable(ScreenNavigationItem.SignIn.route) {
-            SignInScreen(context, navController)
-        }
-        composable(ScreenNavigationItem.SignUp.route) {
-            SignUpScreen(navController)
-        }
-        composable(ScreenNavigationItem.SignUpMail.route) {
-            SignUpMailScreen(context, navController)
-        }
-        composable("mainActivity") {
-            MainActivity()
-        }
-        composable("signInActivity") {
-            SignInActivity()
-        }
-        composable(ScreenNavigationItem.Settings.route) {
-            SettingsScreen(navController)
+    navHostController.navigate(route.route) {
+        popUpTo(forgetRoute.route) {
+            inclusive = true
         }
     }
 }
