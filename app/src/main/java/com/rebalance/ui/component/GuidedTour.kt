@@ -15,37 +15,35 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.rebalance.Preferences
+import com.rebalance.ui.navigation.Routes
+import com.rebalance.ui.navigation.navigateSingleTo
 
 data class TourStep(
-    val screen: String,
+    val screen: Routes,
     val anchor: Offset,
     val text: String,
     val isEnd: Boolean = false
 )
 
-class GuidedTour(private val tourSteps: List<TourStep>, val context: Context) {
+class GuidedTour(
+    private val tourSteps: List<TourStep>,
+    val context: Context,
+    val navHostController: NavHostController
+) {
     val preferences = Preferences(context).read()
     var isActive by mutableStateOf(preferences.firstLaunch)
     var currentStepIndex by mutableStateOf(0)
     val currentStep get() = if (isActive) tourSteps.getOrNull(currentStepIndex) else null
 
-    fun nextStep(navController: NavController) {
+    fun nextStep() {
         val currentScreen = currentStep?.screen
         currentStepIndex++
         val nextScreen = currentStep?.screen
 
         if (currentScreen != nextScreen) {
-            navController.navigate(nextScreen ?: return) {
-                navController.graph.startDestinationRoute?.let { route ->
-                    popUpTo(route) {
-                        saveState = true
-                    }
-                }
-                launchSingleTop = true
-                restoreState = true
-            }
+            navigateSingleTo(navHostController, nextScreen ?: return)
         }
     }
 
@@ -57,98 +55,91 @@ class GuidedTour(private val tourSteps: List<TourStep>, val context: Context) {
 }
 
 @Composable
-fun ToolTipOverlay(context: Context, navController: NavController) {
+fun ToolTipOverlay(context: Context, navHostController: NavHostController) {
+    val tooltips = listOf(
+        TourStep(
+            Routes.Personal,
+            Offset(100f, 200f),
+            "Welcome to the ReBalance application"
+        ),
+        TourStep(
+            Routes.Personal,
+            Offset(100f, 200f),
+            "This is your personal screen"
+        ),
+        TourStep(
+            Routes.Personal,
+            Offset(100f, 200f),
+            "Here you can see your expenses grouped by categories and filter them by date"
+        ),
+        TourStep(
+            Routes.Personal,
+            Offset(100f, 200f),
+            "You can also see the overview for day, week, month and year"
+        ),
+        TourStep(
+            Routes.Personal,
+            Offset(100f, 200f),
+            "For the detailed view, click the list button above"
+        ),
+        TourStep(
+            Routes.Personal,
+            Offset(100f, 1100f),
+            "Here you can navigate to another screens"
+        ),
+        TourStep(
+            Routes.Group,
+            Offset(100f, 200f),
+            "This is a group screen"
+        ),
+        TourStep(
+            Routes.Group,
+            Offset(100f, 600f),
+            "Here you can create groups and share expenses with your friends"
+        ),
+        TourStep(
+            Routes.Group,
+            Offset(100f, 600f),
+            "You would see the graph of balances, but you can also switch to the list view for more details"
+        ),
+        TourStep(
+            Routes.Group,
+            Offset(100f, 1100f),
+            "You can add expenses by clicking the (+) button below"
+        ),
+        TourStep(
+            Routes.AddSpending,
+            Offset(100f, 200f),
+            "To add an expense, just provide some basic information about it"
+        ),
+        TourStep(
+            Routes.AddSpending,
+            Offset(100f, 1100f),
+            "You can also create it for a group, choose who would pay and attach a photo"
+        ),
+        TourStep(
+            Routes.AddSpending,
+            Offset(100f, 200f),
+            "To save the expense, click Save button"
+        ),
+        TourStep(
+            Routes.Personal,
+            Offset(100f, 200f),
+            "That sums up the quick introduction to the app. Use with a pleasure :)",
+            isEnd = true
+        ),
+    )
     val guidedTour = remember {
         GuidedTour(
-            listOf(
-                TourStep(
-                    "personal",
-                    Offset(100f, 200f),
-                    "Welcome to the ReBalance application",
-                    isEnd = false
-                ),
-                TourStep(
-                    "personal",
-                    Offset(100f, 200f),
-                    "This is your personal screen",
-                    isEnd = false
-                ),
-                TourStep(
-                    "personal",
-                    Offset(100f, 200f),
-                    "Here you can see your expenses grouped by categories and filter them by date",
-                    isEnd = false
-                ),
-                TourStep(
-                    "personal",
-                    Offset(100f, 200f),
-                    "You can also see the overview for day, week, month and year",
-                    isEnd = false
-                ),
-                TourStep(
-                    "personal",
-                    Offset(100f, 200f),
-                    "For the detailed view, click the list button above",
-                    isEnd = false
-                ),
-                TourStep(
-                    "personal",
-                    Offset(100f, 1100f),
-                    "Here you can navigate to another screens",
-                    isEnd = false
-                ),
-                TourStep("group", Offset(100f, 200f), "This is a group screen", isEnd = false),
-                TourStep(
-                    "group",
-                    Offset(100f, 600f),
-                    "Here you can create groups and share expenses with your friends",
-                    isEnd = false
-                ),
-                TourStep(
-                    "group",
-                    Offset(100f, 600f),
-                    "You would see the graph of balances, but you can also switch to the list view for more details",
-                    isEnd = false
-                ),
-                TourStep(
-                    "group",
-                    Offset(100f, 1100f),
-                    "You can add expenses by clicking the (+) button below",
-                    isEnd = false
-                ),
-                TourStep(
-                    "add_spending",
-                    Offset(100f, 200f),
-                    "To add an expense, just provide some basic information about it",
-                    isEnd = false
-                ),
-                TourStep(
-                    "add_spending",
-                    Offset(100f, 1100f),
-                    "You can also create it for a group, choose who would pay and attach a photo",
-                    isEnd = false
-                ),
-                TourStep(
-                    "add_spending",
-                    Offset(100f, 200f),
-                    "To save the expense, click Save button",
-                    isEnd = false
-                ),
-                TourStep(
-                    "personal",
-                    Offset(100f, 200f),
-                    "That sums up the quick introduction to the app. Use with a pleasure :)",
-                    isEnd = true
-                ),
-            ),
-            context
+            tooltips,
+            context,
+            navHostController
         )
     }
     if (guidedTour.isActive) {
         guidedTour.currentStep?.let { currentStep ->
-            if (currentStep.screen == navController.currentBackStackEntry?.destination?.route) {
+            if (currentStep.screen.route == navHostController.currentBackStackEntry?.destination?.route) {
                 ToolTipStep(
-                    navController = navController,
                     anchor = currentStep.anchor,
                     text = currentStep.text,
                     isEnd = currentStep.isEnd,
@@ -161,7 +152,6 @@ fun ToolTipOverlay(context: Context, navController: NavController) {
 
 @Composable
 fun ToolTipStep(
-    navController: NavController,
     anchor: Offset,
     text: String,
     isEnd: Boolean,
@@ -191,7 +181,7 @@ fun ToolTipStep(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (!isEnd) {
-                        Button(onClick = { guidedTour.nextStep(navController) }) {
+                        Button(onClick = { guidedTour.nextStep() }) {
                             Text("Next")
                         }
                         Spacer(modifier = Modifier.width(8.dp))

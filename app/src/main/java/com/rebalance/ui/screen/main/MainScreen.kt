@@ -36,7 +36,7 @@ fun MainScreen(
                 // initialize nav graph here so navigation will be inside scaffold
                 val navHost = initNavHost(context, navHostController, Routes.Main)
 
-                ToolTipOverlay(context = context, navController = navController)
+                ToolTipOverlay(context, navHostController)
             }
         }
     )
