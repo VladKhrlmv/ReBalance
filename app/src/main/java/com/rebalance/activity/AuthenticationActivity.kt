@@ -3,8 +3,9 @@ package com.rebalance.activity
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import com.rebalance.ui.screen.authentication.AuthenticationScreen
+import androidx.navigation.compose.rememberNavController
 import com.rebalance.ui.theme.ReBalanceTheme
+import com.rebalance.ui.screen.authentication.AuthenticationScreen
 
 
 class AuthenticationActivity : ComponentActivity() {
@@ -12,7 +13,9 @@ class AuthenticationActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             ReBalanceTheme {
-                AuthenticationScreen()
+                val navHostController = rememberNavController()
+
+                AuthenticationScreen(navHostController)
             }
         }
     }
