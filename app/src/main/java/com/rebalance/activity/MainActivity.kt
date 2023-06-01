@@ -9,8 +9,6 @@ import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import com.rebalance.service.notification.NotificationIdle
 import com.rebalance.service.notification.NotificationService
-import com.rebalance.ui.navigation.Routes
-import com.rebalance.ui.navigation.initNavHost
 import com.rebalance.ui.screen.MainScreen
 import com.rebalance.ui.theme.ReBalanceTheme
 import java.util.concurrent.TimeUnit
@@ -25,7 +23,6 @@ class MainActivity : ComponentActivity() {
                 // the start route is loading screen, so it will be processed first
                 val context = LocalContext.current
                 val navHostController = rememberNavController()
-                val navHost = initNavHost(context, navHostController, Routes.Main)
 
                 val notificationService = NotificationService(context)
                 notificationService.start()
@@ -34,7 +31,7 @@ class MainActivity : ComponentActivity() {
                         .build()
                 workManager.enqueue(recurringWork)
 
-                MainScreen()
+                MainScreen(navHostController)
             }
         }
     }

@@ -6,16 +6,20 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.rebalance.ui.component.BottomNavigationBar
 import com.rebalance.ui.component.PlusButton
 import com.rebalance.ui.component.ToolTipOverlay
+import com.rebalance.ui.navigation.Routes
 import com.rebalance.ui.navigation.initNavHost
-import com.rebalance.ui.navigation.ScreenNavigationItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen() {
+fun MainScreen(
+    navHostController: NavHostController
+) {
+    val context = LocalContext.current
     val navController = rememberNavController()
     var pieChartActive by rememberSaveable { mutableStateOf(true) }
     Scaffold(
@@ -29,13 +33,10 @@ fun MainScreen() {
         floatingActionButtonPosition = FabPosition.End,
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
             Box(modifier = Modifier.padding(padding)) {
-//                initNavHost(
-//                    navController,
-//                    LocalContext.current,
-//                    pieChartActive,
-//                    ScreenNavigationItem.Personal.route
-//                )
-                ToolTipOverlay(context = LocalContext.current, navController = navController)
+                // initialize nav graph here so navigation will be inside scaffold
+                val navHost = initNavHost(context, navHostController, Routes.Main)
+
+                ToolTipOverlay(context = context, navController = navController)
             }
         }
     )
