@@ -1,4 +1,4 @@
-package com.rebalance.ui.screen
+package com.rebalance.ui.screen.loading
 
 import android.content.Intent
 import android.os.Handler
@@ -21,7 +21,7 @@ import androidx.compose.ui.unit.sp
 import com.rebalance.Preferences
 import com.rebalance.PreferencesData
 import com.rebalance.activity.MainActivity
-import com.rebalance.activity.SignInActivity
+import com.rebalance.activity.AuthenticationActivity
 import com.rebalance.utils.alertUser
 import java.net.HttpURLConnection
 import java.net.URL
@@ -58,7 +58,7 @@ fun LoadingScreen() {
 
     if (connected.value == 1) {
         if (!preferences.exists()) {
-            context.startActivity(Intent(context, SignInActivity::class.java))
+            context.startActivity(Intent(context, AuthenticationActivity::class.java))
         } else {
             context.startActivity(Intent(context, MainActivity::class.java))
         }
