@@ -26,7 +26,7 @@ fun MainScreen(
         topBar = {
             com.rebalance.ui.component.TopAppBar(pieChartActive, onPieChartActiveChange = {
                 pieChartActive = !pieChartActive
-            }, true, navController)
+            }, true, navHostController)
         },
         bottomBar = { BottomNavigationBar(navController) },
         floatingActionButton = { PlusButton(navController) },

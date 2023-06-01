@@ -17,7 +17,8 @@ import com.rebalance.Preferences
 import com.rebalance.PreferencesData
 import com.rebalance.R
 import com.rebalance.activity.AuthenticationActivity
-import com.rebalance.ui.navigation.ScreenNavigationItem
+import com.rebalance.ui.navigation.Routes
+import com.rebalance.ui.navigation.navigateSingleTo
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
 import compose.icons.evaicons.fill.LogOut
@@ -26,14 +27,14 @@ import compose.icons.evaicons.fill.Settings
 
 @ExperimentalMaterial3Api
 @Composable
-fun TopAppBar(
+fun TopAppBar( //TODO: pass additional buttons from parameters
     pieChartActive: Boolean,
     onPieChartActiveChange: () -> Unit,
     logout: Boolean,
-    navController: NavHostController
+    navHostController: NavHostController
 ) {
     val context = LocalContext.current
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val navBackStackEntry by navHostController.currentBackStackEntryAsState()
     TopAppBar(
         title = { Text(text = stringResource(R.string.app_name), fontSize = 18.sp) },
         actions = {
@@ -51,15 +52,7 @@ fun TopAppBar(
                     }
                 }
                 IconButton(onClick = {
-                    navController.navigate(ScreenNavigationItem.Settings.route) {
-                        navController.graph.startDestinationRoute?.let { route ->
-                            popUpTo(route) {
-                                saveState = true
-                            }
-                        }
-                        launchSingleTop = true
-                        restoreState = true
-                    }
+                    navigateSingleTo(navHostController, Routes.Settings)
                 }) {
                     Icon(EvaIcons.Fill.Settings, "Settings")
                 }
