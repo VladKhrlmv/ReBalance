@@ -70,26 +70,18 @@ fun ExpandableList(
                                 .fillMaxWidth()
                         ) {
                             for (expense in item.expenses) {
-                                Row(
+                                Column(
                                     modifier = Modifier
                                         .wrapContentSize()
                                         .fillMaxWidth()
                                         .padding(16.dp),
-                                    horizontalArrangement = Arrangement.SpaceBetween
+                                    horizontalAlignment = Alignment.Start
                                 ) {
-                                    Text(
-                                        expense.getDateStamp(),
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
-                                    Text(
-                                        expense.getAmount().toString(),
-                                        style = MaterialTheme.typography.titleMedium
-                                    )
                                     Column(
                                         modifier = Modifier
                                             .wrapContentSize()
                                             .fillMaxWidth()
-                                            .border(1.dp, Color.Black)
+                                            .border(1.dp, MaterialTheme.colorScheme.onBackground)
                                     ) {
                                         Row(
                                             modifier = Modifier
