@@ -84,7 +84,7 @@ fun SignUpMailScreen(context: Context, navHostController: NavHostController) {
                         }
                         try {
                             if (password.value != repeatPassword.value) {
-                                throw PasswordMismatchException("Passwords do not match")
+                                alertUser("Passwords mismatch!", context)
                                 return@PrimaryButton
                             }
 //                            throw ServerException("Something went wrong, please try later")
