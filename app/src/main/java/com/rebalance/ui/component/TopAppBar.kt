@@ -39,7 +39,7 @@ fun TopAppBar( //TODO: pass additional buttons from parameters
         title = { Text(text = stringResource(R.string.app_name), fontSize = 18.sp) },
         actions = {
             if (logout) {
-                if (navBackStackEntry?.destination?.route == "personal") {
+                if (navBackStackEntry?.destination?.route == Routes.Personal.route) {
                     IconButton(
                         onClick = onPieChartActiveChange,
                         modifier = Modifier.testTag("viewSwitcher")

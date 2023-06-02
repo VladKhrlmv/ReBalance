@@ -16,7 +16,7 @@ import com.rebalance.ui.screen.main.PersonalScreen
 import com.rebalance.ui.screen.main.SettingsScreen
 
 @Composable
-fun initNavHost(context: Context, navHostController: NavHostController, startRoute: Routes) {
+fun initNavHost(context: Context, navHostController: NavHostController, startRoute: Routes, pieChartActive: Boolean = true) {
     return NavHost(
         navHostController,
         startDestination = startRoute.route
@@ -40,7 +40,7 @@ fun initNavHost(context: Context, navHostController: NavHostController, startRou
             route = Routes.Main.route
         ) {
             composable(Routes.Personal.route) {
-                PersonalScreen(context, true)
+                PersonalScreen(context, pieChartActive)
             }
             composable(Routes.Group.route) {
                 GroupScreen(context)
