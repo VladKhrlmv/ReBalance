@@ -85,6 +85,7 @@ fun SignUpMailScreen(context: Context, navHostController: NavHostController) {
                         try {
                             if (password.value != repeatPassword.value) {
                                 throw PasswordMismatchException("Passwords do not match")
+                                return@PrimaryButton
                             }
 //                            throw ServerException("Something went wrong, please try later")
                             val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
