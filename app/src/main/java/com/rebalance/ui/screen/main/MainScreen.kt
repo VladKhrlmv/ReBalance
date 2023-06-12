@@ -2,6 +2,7 @@ package com.rebalance.ui.screen.main
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -17,6 +18,7 @@ import com.rebalance.ui.component.main.scaffold.AddSpendingButton
 import com.rebalance.ui.component.main.scaffold.BottomNavigationBar
 import com.rebalance.ui.navigation.Routes
 import com.rebalance.ui.navigation.initNavHost
+import com.rebalance.ui.navigation.navigateUp
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
 import compose.icons.evaicons.fill.PieChart
@@ -32,11 +34,18 @@ fun MainScreen(
 
     Scaffold(
         topBar = {
-            com.rebalance.ui.component.main.scaffold.TopAppBar(true, navHostController) {
-                DisplayPieChartButton(navBackStackEntry, pieChartActive) {
-                    pieChartActive = !pieChartActive
+            com.rebalance.ui.component.main.scaffold.TopAppBar(
+                true,
+                navHostController,
+                backButton = {
+                    DisplayBackButton(navBackStackEntry, navHostController)
+                },
+                content = {
+                    DisplayPieChartButton(navBackStackEntry, pieChartActive) {
+                        pieChartActive = !pieChartActive
+                    }
                 }
-            }
+            )
         },
         bottomBar = { BottomNavigationBar(navHostController) },
         floatingActionButton = {
@@ -48,10 +57,31 @@ fun MainScreen(
                 // initialize nav graph here so navigation will be inside scaffold
                 val navHost = initNavHost(context, navHostController, Routes.Main, pieChartActive)
 
+                // start guided tour
                 ToolTipOverlay(context, navHostController)
             }
         }
     )
+}
+
+@Composable
+private fun DisplayBackButton(
+    navBackStackEntry: NavBackStackEntry?,
+    navHostController: NavHostController
+) {
+    // display back button only on Settings or Add Spending screen
+    if (navBackStackEntry?.destination?.route == Routes.AddSpending.route ||
+        navBackStackEntry?.destination?.route == Routes.Settings.route
+    ) {
+        IconButton(onClick = {
+            navigateUp(navHostController)
+        }) {
+            Icon(
+                imageVector = Icons.Filled.ArrowBack,
+                contentDescription = "Go back"
+            )
+        }
+    }
 }
 
 @Composable

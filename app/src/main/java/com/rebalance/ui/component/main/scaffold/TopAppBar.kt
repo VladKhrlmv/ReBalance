@@ -25,11 +25,15 @@ import compose.icons.evaicons.fill.Settings
 fun TopAppBar(
     logout: Boolean,
     navHostController: NavHostController,
+    backButton: @Composable () -> Unit = {},
     content: @Composable () -> Unit = {}
 ) {
     val context = LocalContext.current
     TopAppBar(
         title = { Text(text = stringResource(R.string.app_name), fontSize = 18.sp) },
+        navigationIcon = {
+            backButton()
+        },
         actions = {
             if (logout) {
                 content()
