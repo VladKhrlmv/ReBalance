@@ -11,7 +11,7 @@ import androidx.compose.runtime.getValue
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.rebalance.ui.navigation.Routes
-import com.rebalance.ui.navigation.navigateSingleTo
+import com.rebalance.ui.navigation.navigateTo
 
 @Composable
 fun BottomNavigationBar(navHostController: NavHostController) {
@@ -24,7 +24,7 @@ fun BottomNavigationBar(navHostController: NavHostController) {
             alwaysShowLabel = true,
             selected = currentRoute == Routes.Personal.route,
             onClick = {
-                navigateSingleTo(navHostController, Routes.Personal)
+                navigateTo(navHostController, Routes.Personal)
             }
         )
         NavigationBarItem(
@@ -33,7 +33,7 @@ fun BottomNavigationBar(navHostController: NavHostController) {
             alwaysShowLabel = true,
             selected = currentRoute == Routes.Group.route,
             onClick = {
-                navigateSingleTo(navHostController, Routes.Group)
+                navigateTo(navHostController, Routes.Group)
             }
         )
     }
