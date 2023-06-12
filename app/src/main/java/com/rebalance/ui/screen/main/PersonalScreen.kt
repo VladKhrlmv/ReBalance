@@ -30,7 +30,7 @@ import com.rebalance.backend.service.ExpenseItem
 import com.rebalance.backend.service.ScaleItem
 import com.rebalance.backend.service.ScaledDateItem
 import com.rebalance.ui.component.main.ExpandableList
-import com.rebalance.ui.component.main.PieChart
+import com.rebalance.ui.component.main.scaffold.PieChart
 
 @Composable
 fun PersonalScreen(

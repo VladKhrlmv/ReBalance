@@ -1,4 +1,4 @@
-package com.rebalance.ui.component.main
+package com.rebalance.ui.component.main.scaffold
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Person

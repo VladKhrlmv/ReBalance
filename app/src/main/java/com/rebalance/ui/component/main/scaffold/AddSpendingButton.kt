@@ -1,4 +1,4 @@
-package com.rebalance.ui.component.main
+package com.rebalance.ui.component.main.scaffold
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons

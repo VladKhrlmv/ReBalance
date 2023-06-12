@@ -17,7 +17,7 @@ fun AuthenticationScreen(navHostController: NavHostController) {
     Scaffold(
         // TODO: Make pie-chart parameter optional
         topBar = {
-            com.rebalance.ui.component.TopAppBar(
+            com.rebalance.ui.component.main.scaffold.TopAppBar(
                 false,
                 rememberNavController() //TODO: fix
             )

@@ -1,4 +1,4 @@
-package com.rebalance.ui.component
+package com.rebalance.ui.component.main.scaffold
 
 import android.content.Intent
 import androidx.compose.material3.*

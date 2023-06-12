@@ -13,8 +13,8 @@ import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.rebalance.ui.component.ToolTipOverlay
-import com.rebalance.ui.component.main.AddSpendingButton
-import com.rebalance.ui.component.main.BottomNavigationBar
+import com.rebalance.ui.component.main.scaffold.AddSpendingButton
+import com.rebalance.ui.component.main.scaffold.BottomNavigationBar
 import com.rebalance.ui.navigation.Routes
 import com.rebalance.ui.navigation.initNavHost
 import compose.icons.EvaIcons
@@ -32,7 +32,7 @@ fun MainScreen(
 
     Scaffold(
         topBar = {
-            com.rebalance.ui.component.TopAppBar(true, navHostController) {
+            com.rebalance.ui.component.main.scaffold.TopAppBar(true, navHostController) {
                 DisplayPieChartButton(navBackStackEntry, pieChartActive) {
                     pieChartActive = !pieChartActive
                 }

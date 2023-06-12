@@ -1,4 +1,4 @@
-package com.rebalance.ui.component.main
+package com.rebalance.ui.component.main.scaffold
 
 import android.graphics.Typeface
 import android.view.ViewGroup
