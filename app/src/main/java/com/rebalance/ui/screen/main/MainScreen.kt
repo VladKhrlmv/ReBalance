@@ -7,9 +7,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.rebalance.ui.component.ToolTipOverlay
+import com.rebalance.ui.component.main.AddSpendingButton
 import com.rebalance.ui.component.main.BottomNavigationBar
-import com.rebalance.ui.component.main.PlusButton
 import com.rebalance.ui.navigation.Routes
 import com.rebalance.ui.navigation.initNavHost
 
@@ -20,6 +21,7 @@ fun MainScreen(
 ) {
     val context = LocalContext.current
     var pieChartActive by rememberSaveable { mutableStateOf(true) }
+
     Scaffold(
         topBar = {
             com.rebalance.ui.component.TopAppBar(pieChartActive, onPieChartActiveChange = {
@@ -27,8 +29,13 @@ fun MainScreen(
             }, true, navHostController)
         },
         bottomBar = { BottomNavigationBar(navHostController) },
-        floatingActionButton = { PlusButton(navHostController) }, //TODO: hide it if in add spending screen
-        floatingActionButtonPosition = FabPosition.End,
+        floatingActionButton = {
+            val navBackStackEntry by navHostController.currentBackStackEntryAsState()
+            if (navBackStackEntry?.destination?.route != Routes.AddSpending.route) {
+                AddSpendingButton(navHostController)
+            }
+        },
+        floatingActionButtonPosition = FabPosition.Center,
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
             Box(modifier = Modifier.padding(padding)) {
                 // initialize nav graph here so navigation will be inside scaffold

@@ -16,7 +16,9 @@ import com.rebalance.ui.navigation.navigateSingleTo
 import com.rebalance.ui.theme.AddSpendingButtonShape
 
 @Composable
-fun PlusButton(navHostController: NavHostController) {
+fun AddSpendingButton(
+    navHostController: NavHostController
+) {
     FloatingActionButton(
         shape = AddSpendingButtonShape,
         modifier = Modifier.size(65.dp),
