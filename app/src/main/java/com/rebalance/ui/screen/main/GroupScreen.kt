@@ -100,6 +100,8 @@ private fun DisplayGroupSelection(
 ) {
     var expandedDropdownGroups by remember { mutableStateOf(false) }
     val addGroupDialogController = remember { mutableStateOf(false) }
+    val groupList = BackendService(preferences).getGroups()
+        .filter { group -> group.getId() != preferences.groupId }
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -109,10 +111,7 @@ private fun DisplayGroupSelection(
             expanded = expandedDropdownGroups,
             onExpandedChange = {
                 expandedDropdownGroups = !expandedDropdownGroups
-            },
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .fillMaxWidth()
+            }
         ) {
             TextField(
                 value = if (groupId == -1L) "" else BackendService(preferences).getGroupById(groupId)
@@ -129,17 +128,13 @@ private fun DisplayGroupSelection(
                 },
                 colors = ExposedDropdownMenuDefaults.textFieldColors(),
                 modifier = Modifier
-                    .fillMaxWidth()
+                    .menuAnchor()
                     .padding(top = 10.dp, bottom = 10.dp, start = 10.dp, end = 100.dp)
             )
             ExposedDropdownMenu(
                 expanded = expandedDropdownGroups,
                 onDismissRequest = { expandedDropdownGroups = false },
-                modifier = Modifier
-                    .fillMaxWidth()
             ) {
-                val groupList = BackendService(preferences).getGroups()
-                    .filter { group -> group.getId() != preferences.groupId }
                 groupList.forEach { group ->
                     DropdownMenuItem(
                         text = { Text(group.getName()) },
