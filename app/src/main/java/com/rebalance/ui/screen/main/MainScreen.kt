@@ -60,9 +60,10 @@ private fun DisplayPieChartButton(
     pieChartActive: Boolean,
     onPieChartClick: () -> Unit
 ) {
+    // display button only if on Personal screen
     if (navBackStackEntry?.destination?.route == Routes.Personal.route) {
         IconButton(
-            onClick = { onPieChartClick() },
+            onClick = { onPieChartClick() }, // invoke callback to switch state of pie chart
             modifier = Modifier.testTag("viewSwitcher")
         ) {
             Icon(
@@ -78,6 +79,7 @@ private fun DisplayAddSpendingButton(
     navBackStackEntry: NavBackStackEntry?,
     navHostController: NavHostController
 ) {
+    // if we are on Add Spending screen, hide this button
     if (navBackStackEntry?.destination?.route != Routes.AddSpending.route) {
         AddSpendingButton(navHostController)
     }
