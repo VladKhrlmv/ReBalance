@@ -40,9 +40,7 @@ fun MainScreen(
         },
         bottomBar = { BottomNavigationBar(navHostController) },
         floatingActionButton = {
-            if (navBackStackEntry?.destination?.route != Routes.AddSpending.route) {
-                AddSpendingButton(navHostController)
-            }
+            DisplayAddSpendingButton(navBackStackEntry, navHostController)
         },
         floatingActionButtonPosition = FabPosition.Center,
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
@@ -72,5 +70,15 @@ private fun DisplayPieChartButton(
                 "Pie chart or list"
             )
         }
+    }
+}
+
+@Composable
+private fun DisplayAddSpendingButton(
+    navBackStackEntry: NavBackStackEntry?,
+    navHostController: NavHostController
+) {
+    if (navBackStackEntry?.destination?.route != Routes.AddSpending.route) {
+        AddSpendingButton(navHostController)
     }
 }
