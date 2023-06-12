@@ -33,13 +33,13 @@ import com.rebalance.backend.entities.ApplicationUser
 import com.rebalance.backend.entities.ExpenseGroup
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.main.DatePickerField
+import com.rebalance.ui.component.main.GroupSelection
 import com.rebalance.ui.navigation.navigateUp
 import com.rebalance.utils.addExpense
 import com.rebalance.utils.alertUser
 
 val costValueRegex = """^\d{0,12}[.,]?\d{0,2}${'$'}""".toRegex()
 
-@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun AddSpendingScreen(
@@ -55,7 +55,6 @@ fun AddSpendingScreen(
     var costValue by remember { mutableStateOf(TextFieldValue()) }
     val date = remember { mutableStateOf("") }
     var isGroupExpense by remember { mutableStateOf(false) }
-    var expandedDropdownGroups by remember { mutableStateOf(false) }
     var groupName by remember { mutableStateOf("") }
     var groupId by remember { mutableStateOf(0L) }
     var groupIdLast by remember { mutableStateOf(0L) }
@@ -267,58 +266,15 @@ fun AddSpendingScreen(
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                ExposedDropdownMenuBox(
-                    expanded = expandedDropdownGroups,
-                    onExpandedChange = {
-                        expandedDropdownGroups = !expandedDropdownGroups
-                    },
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .fillMaxWidth()
-                        .testTag("groupSelectExpenseDropdown")
-                ) {
-                    TextField(
-                        value = groupName,
-                        onValueChange = { },
-                        readOnly = true,
-                        label = {
-                            Text(text = "Group")
-                        },
-                        trailingIcon = {
-                            ExposedDropdownMenuDefaults.TrailingIcon(
-                                expanded = expandedDropdownGroups
-                            )
-                        },
-                        colors = ExposedDropdownMenuDefaults.textFieldColors(),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = expandedDropdownGroups,
-                        onDismissRequest = { expandedDropdownGroups = false },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                    ) {
-                        groupList.forEach { group ->
-                            DropdownMenuItem(
-                                text = {
-                                    Text(text = group.getName())
-                                },
-                                onClick = {
-                                    groupName = group.getName()
-                                    groupId = group.getId()
-                                    membersSelection.clear()
-                                    group.getUsers().forEach { member ->
-                                        membersSelection[member] = false
-                                    }
-                                    expandedDropdownGroups = false
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                            )
-                        }
+                GroupSelection(preferences, groupName, onSwitch = {
+                    groupId = it
+                    val group = BackendService(preferences).getGroupById(groupId)
+                    groupName = group.getName()
+                    membersSelection.clear()
+                    group.getUsers().forEach { member ->
+                        membersSelection[member] = false
                     }
-                }
+                })
             }
         }
         AnimatedVisibility(
