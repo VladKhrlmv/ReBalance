@@ -1,11 +1,15 @@
 package com.rebalance.ui.screen.main
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.testTag
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.rebalance.ui.component.ToolTipOverlay
@@ -13,6 +17,9 @@ import com.rebalance.ui.component.main.AddSpendingButton
 import com.rebalance.ui.component.main.BottomNavigationBar
 import com.rebalance.ui.navigation.Routes
 import com.rebalance.ui.navigation.initNavHost
+import compose.icons.EvaIcons
+import compose.icons.evaicons.Fill
+import compose.icons.evaicons.fill.PieChart
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -21,16 +28,18 @@ fun MainScreen(
 ) {
     val context = LocalContext.current
     var pieChartActive by rememberSaveable { mutableStateOf(true) }
+    val navBackStackEntry by navHostController.currentBackStackEntryAsState()
 
     Scaffold(
         topBar = {
-            com.rebalance.ui.component.TopAppBar(pieChartActive, onPieChartActiveChange = {
-                pieChartActive = !pieChartActive
-            }, true, navHostController)
+            com.rebalance.ui.component.TopAppBar(true, navHostController) {
+                DisplayPieChartButton(navBackStackEntry, pieChartActive) {
+                    pieChartActive = !pieChartActive
+                }
+            }
         },
         bottomBar = { BottomNavigationBar(navHostController) },
         floatingActionButton = {
-            val navBackStackEntry by navHostController.currentBackStackEntryAsState()
             if (navBackStackEntry?.destination?.route != Routes.AddSpending.route) {
                 AddSpendingButton(navHostController)
             }
@@ -45,4 +54,23 @@ fun MainScreen(
             }
         }
     )
+}
+
+@Composable
+private fun DisplayPieChartButton(
+    navBackStackEntry: NavBackStackEntry?,
+    pieChartActive: Boolean,
+    onPieChartClick: () -> Unit
+) {
+    if (navBackStackEntry?.destination?.route == Routes.Personal.route) {
+        IconButton(
+            onClick = { onPieChartClick() },
+            modifier = Modifier.testTag("viewSwitcher")
+        ) {
+            Icon(
+                if (pieChartActive) Icons.Filled.List else EvaIcons.Fill.PieChart,
+                "Pie chart or list"
+            )
+        }
+    }
 }
