@@ -13,7 +13,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
-import androidx.compose.ui.Alignment.Companion.CenterEnd
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
@@ -128,25 +127,30 @@ private fun DisplayGroupSelection(
 ) {
     var showAddGroupDialog by remember { mutableStateOf(false) }
 
-    Box(
+    Row(
         modifier = Modifier
             .fillMaxWidth()
-            .testTag("groupSelectionGroupScreen")
+            .testTag("groupSelectionGroupScreen"),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        // show group selection
+        // show group selection with 2.5 times longer width than button below
         GroupSelection(
             preferences,
             if (groupId == -1L) "" else BackendService(preferences).getGroupById(groupId).getName(),
+            Modifier
+                .padding(10.dp)
+                .weight(2.5f),
             onSwitch
         )
 
+        // show button to create new group
         Button(
             onClick = {
                 showAddGroupDialog = true
             },
             modifier = Modifier
                 .padding(10.dp)
-                .align(Alignment.CenterEnd)
+                .weight(1f)
         ) {
             Text(text = "Create")
         }
