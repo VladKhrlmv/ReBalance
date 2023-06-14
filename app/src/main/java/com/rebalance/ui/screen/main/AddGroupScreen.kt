@@ -25,7 +25,7 @@ val currencyRegex = """[A-Z]{0,3}""".toRegex()
 @Composable
 fun AddGroupScreen(
     context: Context,
-    dialogController: MutableState<Boolean>,
+    onCancel: () -> Unit,
     onCreate: (Long) -> Unit
 ) {
     val preferences = rememberSaveable { Preferences(context).read() }
@@ -71,7 +71,7 @@ fun AddGroupScreen(
         ) {
             Button(
                 onClick = {
-                    dialogController.value = !dialogController.value
+                    onCancel()
                 },
                 modifier = Modifier
                     .padding(1.dp)
@@ -83,7 +83,7 @@ fun AddGroupScreen(
                     val group =
                         createGroup(groupCurrency, groupName, context, preferences) ?: return@Button
                     alertUser("Group was created!", context)
-                    dialogController.value = !dialogController.value
+                    onCancel()
                     onCreate(group.getId())
                 },
                 modifier = Modifier

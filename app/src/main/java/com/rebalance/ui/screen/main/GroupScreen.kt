@@ -126,21 +126,23 @@ private fun DisplayGroupSelection(
     groupId: Long,
     onSwitch: (Long) -> Unit
 ) {
-    val addGroupDialogController = remember { mutableStateOf(false) }
+    var showAddGroupDialog by remember { mutableStateOf(false) }
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .testTag("groupSelectionGroupScreen")
     ) {
+        // show group selection
         GroupSelection(
             preferences,
             if (groupId == -1L) "" else BackendService(preferences).getGroupById(groupId).getName(),
             onSwitch
         )
+
         Button(
             onClick = {
-                addGroupDialogController.value = !addGroupDialogController.value
+                showAddGroupDialog = true
             },
             modifier = Modifier
                 .padding(10.dp)
@@ -149,17 +151,26 @@ private fun DisplayGroupSelection(
             Text(text = "Create")
         }
     }
-    if (addGroupDialogController.value) {
-        Dialog(
-            onDismissRequest = { addGroupDialogController.value = !addGroupDialogController.value },
 
-            ) {
+    // if button create group pressed, show dialog
+    if (showAddGroupDialog) {
+        Dialog(
+            onDismissRequest = {
+                showAddGroupDialog = false
+            },
+        ) {
             Surface(
                 shadowElevation = 4.dp
             ) {
-                AddGroupScreen(context, addGroupDialogController) { groupId ->
-                    onSwitch(groupId)
-                }
+                AddGroupScreen(
+                    context,
+                    onCancel = {
+                        showAddGroupDialog = false
+                    },
+                    onCreate = { groupId ->
+                        onSwitch(groupId)
+                    }
+                )
             }
         }
     }
