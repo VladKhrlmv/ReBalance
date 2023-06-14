@@ -132,6 +132,7 @@ private fun DisplayGroupSelection(
             Modifier
                 .padding(start = 10.dp)
                 .weight(1f),
+            Modifier,
             onSwitch
         )
 
