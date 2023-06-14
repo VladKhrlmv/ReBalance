@@ -64,7 +64,9 @@ fun PersonalScreen(
 
         // content
         Row(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(5.dp)
         ) {
             // scale buttons
             DisplayScaleButtons(
