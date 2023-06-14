@@ -64,6 +64,7 @@ fun GroupScreen(
             selectedTabIndex = tabIndex
         }
 
+        // selection of groups
         DisplayGroupSelection(context, preferences, groupId) { newGroupId ->
             groupId = newGroupId
         }
@@ -86,6 +87,28 @@ fun GroupScreen(
                     context
                 )
             }
+        }
+    }
+}
+
+
+@Composable
+private fun DisplayTabs(
+    tabs: List<String>,
+    selectedTabIndex: Int,
+    onTabClick: (Int) -> Unit
+) {
+    TabRow(
+        selectedTabIndex = selectedTabIndex
+    ) {
+        tabs.forEachIndexed { tabIndex, tab ->
+            Tab(
+                selected = selectedTabIndex == tabIndex,
+                onClick = { onTabClick(tabIndex) },
+                text = { Text(tab) },
+                modifier = Modifier
+                    .height(45.dp)
+            )
         }
     }
 }
@@ -188,27 +211,6 @@ private fun DisplayInviteFields(
                 .align(CenterEnd)
         ) {
             Text(text = "Invite")
-        }
-    }
-}
-
-@Composable
-private fun DisplayTabs(
-    tabs: List<String>,
-    selectedTabIndex: Int,
-    onTabClick: (Int) -> Unit
-) {
-    TabRow(
-        selectedTabIndex = selectedTabIndex
-    ) {
-        tabs.forEachIndexed { tabIndex, tab ->
-            Tab(
-                selected = selectedTabIndex == tabIndex,
-                onClick = { onTabClick(tabIndex) },
-                text = { Text(tab) },
-                modifier = Modifier
-                    .height(45.dp)
-            )
         }
     }
 }
