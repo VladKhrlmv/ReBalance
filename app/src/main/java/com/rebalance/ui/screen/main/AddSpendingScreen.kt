@@ -5,6 +5,8 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Typeface
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -104,12 +106,14 @@ fun AddSpendingScreen(
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
             ) {
+                val mainLooper = Looper.getMainLooper()
                 Button(
                     onClick = {
                         if (spendingName.text.isEmpty() || costValue.text.isEmpty() || selectedCategory.text.isEmpty()) {
                             alertUser("Fill in all data", context)
                             return@Button
                         }
+
                         Thread {
                             try {
                                 addExpense(
@@ -133,12 +137,13 @@ fun AddSpendingScreen(
                                 groupId = 0L
                                 membersSelection.clear()
                                 alertUser("Expense saved!", context)
+                                Handler(mainLooper).post {
+                                    navigateUp(navHostController)
+                                }
                             } catch (e: Exception) {
-                                print(e.stackTrace)
                                 alertUser("Unexpected error occurred:\n" + e.message, context)
                             }
                         }.start()
-                        navigateUp(navHostController)
                     },
                     modifier = Modifier
                         .padding(1.dp)
