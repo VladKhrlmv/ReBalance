@@ -1,23 +1,17 @@
 package com.rebalance.ui.component.main
 
 import android.content.Context
-import android.graphics.BitmapFactory
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -31,9 +25,6 @@ import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
 import compose.icons.evaicons.fill.Image
 import compose.icons.evaicons.fill.Trash
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 @Composable
 fun GroupSpendingList(
@@ -57,8 +48,8 @@ fun GroupSpendingList(
         val filteredData = data.filter { it.getAmount() >= 0 }
         items(
             items = filteredData,
-            itemContent = { expense -> //TODO: apply filter previously
-                val expanded = remember { mutableStateOf(false) }
+            itemContent = { expense ->
+                val expanded = rememberSaveable { mutableStateOf(false) }
                 Card(
                     modifier = Modifier
                         .padding(10.dp)
