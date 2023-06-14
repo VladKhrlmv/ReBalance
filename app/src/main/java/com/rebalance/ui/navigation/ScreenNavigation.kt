@@ -73,6 +73,21 @@ fun navigateTo(navHostController: NavHostController, route: Routes) {
     }
 }
 
+fun navigateTabs(navHostController: NavHostController, route: Routes, forgetRoute: Routes) {
+    // remove add spending and settings screens from stack
+    navHostController.popBackStack(Routes.AddSpending.route, inclusive = true)
+    navHostController.popBackStack(Routes.Settings.route, inclusive = true)
+    navHostController.navigate(route.route) {
+        // remove previous routes from stack
+        popUpTo(forgetRoute.route) {
+            saveState = true
+            inclusive = true
+        }
+        // Restore state when reselecting a previously selected tab
+        restoreState = true
+    }
+}
+
 fun navigateSingleTo(navHostController: NavHostController, route: Routes) {
     navHostController.navigate(route.route) {
         // Avoid multiple copies of the same destination when
