@@ -187,22 +187,26 @@ private fun DisplayInviteFields(
     onUserAdd: () -> Unit
 ) {
     val context = LocalContext.current
-    Box(
+    Row(
         modifier = Modifier
-            .fillMaxWidth()
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
     ) {
         var email by remember { mutableStateOf(TextFieldValue()) }
+
+        // show email input with 2.5 times longer width than button below
         TextField(
             value = email,
             onValueChange = { newEmail -> email = newEmail },
             modifier = Modifier
-                .align(Alignment.CenterStart)
-                .fillMaxWidth()
-                .padding(top = 10.dp, bottom = 10.dp, start = 10.dp, end = 100.dp),
+                .padding(start = 10.dp, end = 10.dp)
+                .weight(2.5f),
             label = {
                 Text(text = "Email")
             }
         )
+
+        // show button to add user to group
         Button(
             onClick = {
                 try {
@@ -225,7 +229,7 @@ private fun DisplayInviteFields(
             },
             modifier = Modifier
                 .padding(10.dp)
-                .align(CenterEnd)
+                .weight(1f)
         ) {
             Text(text = "Invite")
         }
