@@ -26,7 +26,7 @@ fun AddSpendingButton(
         onClick = {
             navigateSingleTo(navHostController, Routes.AddSpending)
         },
-        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f)
+//        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f)
     ) {
         Icon(
             Icons.Filled.Add,
