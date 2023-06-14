@@ -57,29 +57,48 @@ fun PersonalScreen(
         }
 
         // content
-        Box(
+        Row(
             modifier = Modifier.fillMaxSize()
         ) {
-            val data = BackendService(preferences).getPersonal(
-                tabItems[selectedTabIndex].dateFrom,
-                tabItems[selectedTabIndex].dateTo
-            )
-            if (pieChartActive) {
-                DisplayPieChart(data)
-            } else {
-                DisplayList(
-                    scaleButtonWidth, scaleButtonPadding, data, preferences
-                )
-            }
-
             // scale buttons
             DisplayScaleButtons(
-                scaleItems, selectedScaleIndex, scaleButtonWidth, scaleButtonPadding
+                scaleItems, selectedScaleIndex,
             ) { scaleIndex ->
                 selectedScaleIndex = scaleIndex
 //                personalViewModel.updateTabItems(scaleItem.type)
                 updateTabItems(preferences, tabItems, scaleItems[selectedScaleIndex].type)
                 selectedTabIndex = (tabItems.size - 1)
+            }
+
+            // pie chart or list
+            // initialize data
+            val data = rememberSaveable {
+                mutableListOf<ExpenseItem>()
+            }
+
+            // declare function to update data
+            fun updateData() {
+                data.clear()
+                data.addAll(
+                    BackendService(preferences).getPersonal(
+                        tabItems[selectedTabIndex].dateFrom,
+                        tabItems[selectedTabIndex].dateTo
+                    )
+                )
+            }
+            // fill initial data
+            updateData()
+            // display pie chart or list
+            if (pieChartActive) {
+                DisplayPieChart(data)
+            } else {
+                DisplayList(
+                    data,
+                    preferences,
+                    updateData = {
+                        updateData()
+                    }
+                )
             }
         }
     }
@@ -165,7 +184,8 @@ private fun DisplayPieChart(
 @Composable
 private fun DisplayList(
     data: List<ExpenseItem>,
-    preferences: PreferencesData
+    preferences: PreferencesData,
+    updateData: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -173,7 +193,7 @@ private fun DisplayList(
             .testTag("personalList"),
         contentAlignment = TopCenter
     ) {
-        ExpandableList(items = data, preferences, LocalContext.current)
+        ExpandableList(items = data, preferences, LocalContext.current, updateData)
     }
 }
 
