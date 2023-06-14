@@ -47,8 +47,6 @@ fun PersonalScreen(
     val tabItems = rememberSaveable { mutableListOf<ScaledDateItem>() } // list of tabs
     updateTabItems(preferences, tabItems, scaleItems[selectedScaleIndex].type)
     var selectedTabIndex by rememberSaveable { mutableStateOf(tabItems.size - 1) } // selected index of tab
-    val scaleButtonWidth = 50
-    val scaleButtonPadding = 8
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -115,8 +113,6 @@ private fun DisplayTabs(
 private fun DisplayScaleButtons(
     scaleItems: List<ScaleItem>,
     selectedScaleIndex: Int,
-    scaleButtonWidth: Int,
-    scaleButtonPadding: Int,
     onButtonClick: (Int) -> Unit
 ) {
     Column( //TODO: move to function
@@ -125,8 +121,7 @@ private fun DisplayScaleButtons(
         scaleItems.forEachIndexed { scaleIndex, scaleItem ->
             TextButton(
                 modifier = Modifier
-                    .padding(scaleButtonPadding.dp, 5.dp, 0.dp, 5.dp)
-                    .width(scaleButtonWidth.dp)
+                    .width(50.dp)
                     .height(50.dp)
                     .drawWithContent {
                         drawContent()
@@ -169,20 +164,12 @@ private fun DisplayPieChart(
 
 @Composable
 private fun DisplayList(
-    scaleButtonWidth: Int,
-    scaleButtonPadding: Int,
     data: List<ExpenseItem>,
     preferences: PreferencesData
 ) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(
-                (scaleButtonWidth + scaleButtonPadding).dp,
-                0.dp,
-                0.dp,
-                0.dp
-            ) //TODO: change to offset()
             .testTag("personalList"),
         contentAlignment = TopCenter
     ) {
