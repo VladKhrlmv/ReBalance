@@ -10,6 +10,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -53,7 +55,14 @@ fun MainScreen(
         },
         floatingActionButtonPosition = FabPosition.End,
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
-            Box(modifier = Modifier.padding(padding)) {
+            Box(
+                modifier = Modifier.padding(
+                    start = padding.calculateStartPadding(layoutDirection = LayoutDirection.Ltr),
+                    end = padding.calculateEndPadding(layoutDirection = LayoutDirection.Ltr),
+                    top = padding.calculateTopPadding(),
+                    bottom = padding.calculateBottomPadding() - 10.dp
+                )
+            ) {
                 // initialize nav graph here so navigation will be inside scaffold
                 val navHost = initNavHost(context, navHostController, Routes.Main, pieChartActive)
 
