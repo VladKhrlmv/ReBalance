@@ -4,10 +4,7 @@ import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.ScrollableTabRow
-import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -154,7 +151,7 @@ private fun DisplayScaleButtons(
                     .width(50.dp)
                     .height(50.dp)
                     .background(
-                        if (scaleIndex == selectedScaleIndex) Color.Blue.copy(alpha = 0.5f) else Color.Transparent, //TODO: change to theme color
+                        if (scaleIndex == selectedScaleIndex) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
                         shape = CircleShape
                     ),
                 onClick = { onButtonClick(scaleIndex) }
