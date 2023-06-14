@@ -42,7 +42,16 @@ fun PersonalScreen(
 
     // initialize tabs
     val tabItems = rememberSaveable { mutableListOf<ScaledDateItem>() } // list of tabs
-    updateTabItems(preferences, tabItems, scaleItems[selectedScaleIndex].type)
+
+    // declare function to update tab items
+    fun updateTabItems(
+        type: String
+    ) {
+        tabItems.clear()
+        tabItems.addAll(BackendService(preferences).getScaledDateItems(type))
+    }
+    // fill initial tabs
+    updateTabItems(scaleItems[selectedScaleIndex].type)
     var selectedTabIndex by rememberSaveable { mutableStateOf(tabItems.size - 1) } // selected index of tab
 
     Column(
@@ -63,7 +72,7 @@ fun PersonalScreen(
             ) { scaleIndex ->
                 selectedScaleIndex = scaleIndex
 //                personalViewModel.updateTabItems(scaleItem.type)
-                updateTabItems(preferences, tabItems, scaleItems[selectedScaleIndex].type)
+                updateTabItems(scaleItems[selectedScaleIndex].type)
                 selectedTabIndex = (tabItems.size - 1)
             }
 
@@ -85,6 +94,7 @@ fun PersonalScreen(
             }
             // fill initial data
             updateData()
+
             // display pie chart or list
             if (pieChartActive) {
                 DisplayPieChart(data)
@@ -182,13 +192,4 @@ private fun DisplayList(
     ) {
         ExpandableList(items = data, preferences, LocalContext.current, updateData)
     }
-}
-
-private fun updateTabItems(
-    preferences: PreferencesData,
-    tabItems: MutableList<ScaledDateItem>,
-    type: String
-) {
-    tabItems.clear()
-    tabItems.addAll(BackendService(preferences).getScaledDateItems(type))
 }
