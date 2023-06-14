@@ -29,6 +29,7 @@ import compose.icons.evaicons.Fill
 import compose.icons.evaicons.fill.Image
 import compose.icons.evaicons.fill.Settings
 import compose.icons.evaicons.fill.Trash
+import androidx.compose.foundation.layout.width
 
 @Composable
 fun ExpandableList(
@@ -40,9 +41,20 @@ fun ExpandableList(
     LazyColumn {
         items(items = items, itemContent = { item ->
             val expanded = remember { mutableStateOf(false) }
+
+            Card(
+                modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxWidth()
+                    .wrapContentHeight(),
+                shape = MaterialTheme.shapes.medium,
+                elevation = CardDefaults.cardElevation(8.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            ) {
             ListItem(
                 headlineContent = { Text(item.text) },
-                leadingContent = { //TODO: change to category icon
+                leadingContent = {
+                    //TODO: change to category icon
                 },
                 trailingContent = {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -61,14 +73,9 @@ fun ExpandableList(
             )
 
             if (expanded.value) {
-//                Box(
-//                    Modifier
-//                        .padding(16.dp)
-//                        .fillMaxWidth(), contentAlignment = Alignment.TopStart
-//                ) {
-                Column(
-                ) {
+                Column {
                     for ((index, expense) in item.expenses.withIndex()) {
+                        Divider()
                         ListItem(
                             headlineContent = {
                                 Row(
@@ -106,7 +113,8 @@ fun ExpandableList(
                                     Text(
                                         expense.getDateStamp(),
                                         style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.outline
+                                        color = MaterialTheme.colorScheme.outline,
+                                        modifier = Modifier.padding(bottom = 5.dp, top = 2.dp)
                                     )
                                 }
                             },
@@ -160,14 +168,22 @@ fun ExpandableList(
                                 }
                             },
                         )
-                        if (index != item.expenses.size - 1) {
-                            Divider()
-                        }
+//                        if (index != item.expenses.size - 1) {
+//                            Divider()
+//                        }
                     }
                 }
+            }}
+
+            if (items.indexOf(item) == items.lastIndex) {
+                Box(
+                    modifier = Modifier
+                        .height(100.dp)
+                )
             }
         })
     }
+
 }
 
 
