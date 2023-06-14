@@ -8,8 +8,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -53,7 +51,6 @@ fun GroupScreen(
     val tabItems = listOf("Visual", "List")
     var selectedTabIndex by rememberSaveable { mutableStateOf(0) } // selected index of tab
     var groupId by rememberSaveable { mutableStateOf(-1L) }
-    var userAddedSwitcher by rememberSaveable { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -70,23 +67,32 @@ fun GroupScreen(
         }
 
         // content
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            if (selectedTabIndex == 0) { // if visual tab
-                DisplayVisual(preferences, groupId, userAddedSwitcher) {
-                    userAddedSwitcher = !userAddedSwitcher
+        if (selectedTabIndex == 0) { // if visual tab
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
+                if (groupId != -1L) { // if group selected, show invite field
+                    DisplayInviteFields(preferences, groupId) {
+                        // set group id to -1 and back to start recomposing with updated data
+                        val prevGroupId = groupId
+                        groupId = -1L
+                        groupId = prevGroupId
+                    }
                 }
-            } else { // if list tab
-                DisplayList(
-                    preferences,
-                    groupId,
-                    BackendService(preferences).getGroupList(groupId),
-                    refreshAndOpenGroup = { groupId = it },
-                    context
-                )
+
+                // show bar chart
+                DisplayVisual(preferences, groupId)
             }
+        } else { // if list tab
+            // show list
+            DisplayList(
+                preferences,
+                groupId,
+                BackendService(preferences).getGroupList(groupId),
+                refreshAndOpenGroup = { groupId = it },
+                context
+            )
         }
     }
 }
@@ -184,10 +190,6 @@ private fun DisplayInviteFields(
         )
         Button(
             onClick = {
-                if (groupId == -1L) {
-                    alertUser("Choose a group!", context)
-                    return@Button
-                }
                 try {
                     val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
                     StrictMode.setThreadPolicy(policy)
@@ -219,29 +221,16 @@ private fun DisplayInviteFields(
 private fun DisplayVisual(
     preferences: PreferencesData,
     groupId: Long,
-    userAdded: Boolean,
-    onUserAdd: () -> Unit
 ) {
     val data = BackendService(preferences).getGroupVisualBarChart(groupId)
 
-    Column(
+    Box(
         modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(
-                rememberScrollState(),
-                flingBehavior = null // TODO: disable
-            )
+            .fillMaxWidth()
+            .wrapContentHeight(),
+        contentAlignment = Center
     ) {
-        DisplayInviteFields(preferences, groupId, onUserAdd)
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight()
-                .align(Alignment.CenterHorizontally),
-            contentAlignment = Center
-        ) {
-            BarChart(data)
-        }
+        BarChart(data)
     }
 }
 
