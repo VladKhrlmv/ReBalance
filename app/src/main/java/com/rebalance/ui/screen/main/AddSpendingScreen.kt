@@ -155,7 +155,9 @@ fun AddSpendingScreen(
         TextField(
             value = spendingName,
             onValueChange = { newSpendingName -> spendingName = newSpendingName },
-            placeholder = { Text(text = "Title") },
+            label = {
+                Text(text = "Title")
+            },
             modifier = Modifier
                 .padding(10.dp)
                 .fillMaxWidth()
@@ -178,7 +180,9 @@ fun AddSpendingScreen(
                 }
             },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            placeholder = { Text(text = "0.00") },
+            label = {
+                Text(text = "Cost")
+            },
             modifier = Modifier
                 .padding(10.dp)
                 .fillMaxWidth()
