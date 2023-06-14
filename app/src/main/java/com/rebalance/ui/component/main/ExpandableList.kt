@@ -34,7 +34,8 @@ import compose.icons.evaicons.fill.Trash
 fun ExpandableList(
     items: List<ExpenseItem>,
     preferences: PreferencesData,
-    context: Context
+    context: Context,
+    updateData: () -> Unit
 ) {
     LazyColumn {
         items(items = items, itemContent = { item ->
@@ -143,7 +144,7 @@ fun ExpandableList(
                                                 alertUser("Expense deleted!", context)
                                                 showDialog.value = false
                                                 expanded.value = false
-                                                //TODO update screen
+                                                updateData()
                                             }) {
                                                 Text("Yes")
                                             }

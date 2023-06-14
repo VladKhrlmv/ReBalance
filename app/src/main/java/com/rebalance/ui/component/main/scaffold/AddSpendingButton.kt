@@ -1,10 +1,11 @@
-package com.rebalance.ui.component.main
+package com.rebalance.ui.component.main.scaffold
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -16,13 +17,16 @@ import com.rebalance.ui.navigation.navigateSingleTo
 import com.rebalance.ui.theme.AddSpendingButtonShape
 
 @Composable
-fun PlusButton(navHostController: NavHostController) {
+fun AddSpendingButton(
+    navHostController: NavHostController
+) {
     FloatingActionButton(
         shape = AddSpendingButtonShape,
         modifier = Modifier.size(65.dp),
         onClick = {
             navigateSingleTo(navHostController, Routes.AddSpending)
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.75f)
     ) {
         Icon(
             Icons.Filled.Add,
