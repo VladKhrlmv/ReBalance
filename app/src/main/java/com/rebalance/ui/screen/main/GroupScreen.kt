@@ -34,6 +34,7 @@ import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.main.BarChart
+import com.rebalance.ui.component.main.GroupSelection
 import com.rebalance.utils.alertUser
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
@@ -89,8 +90,6 @@ fun GroupScreen(
     }
 }
 
-
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DisplayGroupSelection(
     context: Context,
@@ -98,69 +97,25 @@ private fun DisplayGroupSelection(
     groupId: Long,
     onSwitch: (Long) -> Unit
 ) {
-    var expandedDropdownGroups by remember { mutableStateOf(false) }
     val addGroupDialogController = remember { mutableStateOf(false) }
+
     Box(
         modifier = Modifier
             .fillMaxWidth()
             .testTag("groupSelectionGroupScreen")
     ) {
-        ExposedDropdownMenuBox(
-            expanded = expandedDropdownGroups,
-            onExpandedChange = {
-                expandedDropdownGroups = !expandedDropdownGroups
-            },
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .fillMaxWidth()
-        ) {
-            TextField(
-                value = if (groupId == -1L) "" else BackendService(preferences).getGroupById(groupId)
-                    .getName(),
-                onValueChange = { },
-                readOnly = true,
-                label = {
-                    Text(text = "Group")
-                },
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(
-                        expanded = expandedDropdownGroups
-                    )
-                },
-                colors = ExposedDropdownMenuDefaults.textFieldColors(),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 10.dp, bottom = 10.dp, start = 10.dp, end = 100.dp)
-            )
-            ExposedDropdownMenu(
-                expanded = expandedDropdownGroups,
-                onDismissRequest = { expandedDropdownGroups = false },
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                val groupList = BackendService(preferences).getGroups()
-                    .filter { group -> group.getId() != preferences.groupId }
-                groupList.forEach { group ->
-                    DropdownMenuItem(
-                        text = { Text(group.getName()) },
-                        onClick = {
-                            onSwitch(group.getId())
-                            expandedDropdownGroups = false
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(10.dp)
-                    )
-                }
-            }
-        }
+        GroupSelection(
+            preferences,
+            if (groupId == -1L) "" else BackendService(preferences).getGroupById(groupId).getName(),
+            onSwitch
+        )
         Button(
             onClick = {
                 addGroupDialogController.value = !addGroupDialogController.value
             },
             modifier = Modifier
                 .padding(10.dp)
-                .align(CenterEnd)
+                .align(Alignment.CenterEnd)
         ) {
             Text(text = "Create")
         }
