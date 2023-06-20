@@ -25,13 +25,13 @@ class MainActivity : ComponentActivity() {
                 val navHostController = rememberNavController()
 
                 // start receiving notifications
-                val notificationService = NotificationService(context)
-                notificationService.start()
-                //TODO: move to utils
-                val recurringWork: PeriodicWorkRequest =
-                    PeriodicWorkRequest.Builder(NotificationIdle::class.java, 15, TimeUnit.MINUTES)
-                        .build()
-                workManager.enqueue(recurringWork)
+//                val notificationService = NotificationService(context)
+//                notificationService.start()
+//                //TODO: move to utils
+//                val recurringWork: PeriodicWorkRequest =
+//                    PeriodicWorkRequest.Builder(NotificationIdle::class.java, 15, TimeUnit.MINUTES)
+//                        .build()
+//                workManager.enqueue(recurringWork)
 
                 MainScreen(navHostController)
             }
