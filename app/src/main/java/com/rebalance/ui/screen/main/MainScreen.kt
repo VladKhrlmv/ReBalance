@@ -55,7 +55,7 @@ fun MainScreen(
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
             Box(modifier = Modifier.padding(padding)) {
                 // initialize nav graph here so navigation will be inside scaffold
-                val navHost = initNavHost(context, navHostController, Routes.Main, pieChartActive)
+                initNavHost(context, navHostController, Routes.Main, pieChartActive)
 
                 // start guided tour
                 ToolTipOverlay(context, navHostController)
