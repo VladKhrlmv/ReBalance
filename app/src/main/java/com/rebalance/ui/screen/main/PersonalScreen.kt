@@ -1,11 +1,10 @@
 package com.rebalance.ui.screen.main
 
 import android.content.Context
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.ScrollableTabRow
-import androidx.compose.material3.Tab
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -14,12 +13,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.drawWithContent
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -30,7 +24,7 @@ import com.rebalance.backend.service.ExpenseItem
 import com.rebalance.backend.service.ScaleItem
 import com.rebalance.backend.service.ScaledDateItem
 import com.rebalance.ui.component.main.ExpandableList
-import com.rebalance.ui.component.main.PieChart
+import com.rebalance.ui.component.main.scaffold.PieChart
 
 @Composable
 fun PersonalScreen(
@@ -45,10 +39,17 @@ fun PersonalScreen(
 
     // initialize tabs
     val tabItems = rememberSaveable { mutableListOf<ScaledDateItem>() } // list of tabs
-    updateTabItems(preferences, tabItems, scaleItems[selectedScaleIndex].type)
+
+    // declare function to update tab items
+    fun updateTabItems(
+        type: String
+    ) {
+        tabItems.clear()
+        tabItems.addAll(BackendService(preferences).getScaledDateItems(type))
+    }
+    // fill initial tabs
+    updateTabItems(scaleItems[selectedScaleIndex].type)
     var selectedTabIndex by rememberSaveable { mutableStateOf(tabItems.size - 1) } // selected index of tab
-    val scaleButtonWidth = 50
-    val scaleButtonPadding = 8
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -59,29 +60,51 @@ fun PersonalScreen(
         }
 
         // content
-        Box(
-            modifier = Modifier.fillMaxSize()
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(5.dp)
         ) {
-            val data = BackendService(preferences).getPersonal(
-                tabItems[selectedTabIndex].dateFrom,
-                tabItems[selectedTabIndex].dateTo
-            )
+            // scale buttons
+            DisplayScaleButtons(
+                scaleItems, selectedScaleIndex,
+            ) { scaleIndex ->
+                selectedScaleIndex = scaleIndex
+//                personalViewModel.updateTabItems(scaleItem.type)
+                updateTabItems(scaleItems[selectedScaleIndex].type)
+                selectedTabIndex = (tabItems.size - 1)
+            }
+
+            // pie chart or list
+            // initialize data
+            val data = rememberSaveable {
+                mutableListOf<ExpenseItem>()
+            }
+
+            // declare function to update data
+            fun updateData() {
+                data.clear()
+                data.addAll(
+                    BackendService(preferences).getPersonal(
+                        tabItems[selectedTabIndex].dateFrom,
+                        tabItems[selectedTabIndex].dateTo
+                    )
+                )
+            }
+            // fill initial data
+            updateData()
+
+            // display pie chart or list
             if (pieChartActive) {
                 DisplayPieChart(data)
             } else {
                 DisplayList(
-                    scaleButtonWidth, scaleButtonPadding, data, preferences
+                    data,
+                    preferences,
+                    updateData = {
+                        updateData()
+                    }
                 )
-            }
-
-            // scale buttons
-            DisplayScaleButtons(
-                scaleItems, selectedScaleIndex, scaleButtonWidth, scaleButtonPadding
-            ) { scaleIndex ->
-                selectedScaleIndex = scaleIndex
-//                personalViewModel.updateTabItems(scaleItem.type)
-                updateTabItems(preferences, tabItems, scaleItems[selectedScaleIndex].type)
-                selectedTabIndex = (tabItems.size - 1)
             }
         }
     }
@@ -93,7 +116,7 @@ private fun DisplayTabs(
     selectedTabIndex: Int,
     onTabClick: (Int) -> Unit
 ) {
-    ScrollableTabRow( // TODO: make it lazy (LazyRow with horizontal scroll and stitching)
+    ScrollableTabRow(
         selectedTabIndex = selectedTabIndex,
         edgePadding = 110.dp
     ) {
@@ -115,36 +138,23 @@ private fun DisplayTabs(
 private fun DisplayScaleButtons(
     scaleItems: List<ScaleItem>,
     selectedScaleIndex: Int,
-    scaleButtonWidth: Int,
-    scaleButtonPadding: Int,
     onButtonClick: (Int) -> Unit
 ) {
-    Column( //TODO: move to function
-        modifier = Modifier.fillMaxHeight(), verticalArrangement = Arrangement.Center
+    Column(
+        modifier = Modifier
+            .fillMaxHeight(),
+        verticalArrangement = Arrangement.Center
     ) {
         scaleItems.forEachIndexed { scaleIndex, scaleItem ->
             TextButton(
                 modifier = Modifier
-                    .padding(scaleButtonPadding.dp, 5.dp, 0.dp, 5.dp)
-                    .width(scaleButtonWidth.dp)
+                    .width(50.dp)
                     .height(50.dp)
-                    .drawWithContent {
-                        drawContent()
-
-                        if (selectedScaleIndex == scaleIndex) {
-                            val strokeWidth = Stroke.DefaultMiter * 2
-
-                            drawLine(
-                                brush = SolidColor(Color.Black),
-                                strokeWidth = strokeWidth,
-                                cap = StrokeCap.Square,
-                                start = Offset.Zero,
-                                end = Offset(0f, size.height)
-                            )
-                        }
-                    },
+                    .background(
+                        if (scaleIndex == selectedScaleIndex) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+                        shape = CircleShape
+                    ),
                 onClick = { onButtonClick(scaleIndex) }
-                //colors = ButtonDefaults.buttonColors(containerColor = Color.Transparent)
             ) {
                 Text(text = scaleItem.name)
             }
@@ -169,32 +179,16 @@ private fun DisplayPieChart(
 
 @Composable
 private fun DisplayList(
-    scaleButtonWidth: Int,
-    scaleButtonPadding: Int,
     data: List<ExpenseItem>,
-    preferences: PreferencesData
+    preferences: PreferencesData,
+    updateData: () -> Unit
 ) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(
-                (scaleButtonWidth + scaleButtonPadding).dp,
-                0.dp,
-                0.dp,
-                0.dp
-            ) //TODO: change to offset()
             .testTag("personalList"),
         contentAlignment = TopCenter
     ) {
-        ExpandableList(items = data, preferences, LocalContext.current)
+        ExpandableList(items = data, preferences, LocalContext.current, updateData)
     }
-}
-
-private fun updateTabItems(
-    preferences: PreferencesData,
-    tabItems: MutableList<ScaledDateItem>,
-    type: String
-) {
-    tabItems.clear()
-    tabItems.addAll(BackendService(preferences).getScaledDateItems(type))
 }

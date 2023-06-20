@@ -16,7 +16,12 @@ import com.rebalance.ui.screen.main.PersonalScreen
 import com.rebalance.ui.screen.main.SettingsScreen
 
 @Composable
-fun initNavHost(context: Context, navHostController: NavHostController, startRoute: Routes, pieChartActive: Boolean = true) {
+fun initNavHost(
+    context: Context,
+    navHostController: NavHostController,
+    startRoute: Routes,
+    pieChartActive: Boolean = true
+) {
     return NavHost(
         navHostController,
         startDestination = startRoute.route
@@ -57,6 +62,12 @@ fun initNavHost(context: Context, navHostController: NavHostController, startRou
 
 fun navigateTo(navHostController: NavHostController, route: Routes) {
     navHostController.navigate(route.route) {
+        // Pop up to the start destination of the graph to
+        // avoid building up a large stack of destinations
+        // on the back stack as users select items
+        popUpTo(navHostController.graph.findStartDestination().id) {
+            saveState = true
+        }
         // Restore state when reselecting a previously selected item
         restoreState = true
     }
@@ -64,12 +75,6 @@ fun navigateTo(navHostController: NavHostController, route: Routes) {
 
 fun navigateSingleTo(navHostController: NavHostController, route: Routes) {
     navHostController.navigate(route.route) {
-        // Pop up to the start destination of the graph to
-        // avoid building up a large stack of destinations
-        // on the back stack as users select items
-        popUpTo(navHostController.graph.findStartDestination().id) {
-            saveState = true
-        }
         // Avoid multiple copies of the same destination when
         // reselecting the same item
         launchSingleTop = true

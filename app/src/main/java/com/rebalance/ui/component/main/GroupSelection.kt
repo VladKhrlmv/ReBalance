@@ -1,11 +1,8 @@
 package com.rebalance.ui.component.main
 
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import com.rebalance.PreferencesData
 import com.rebalance.backend.service.BackendService
 
@@ -15,6 +12,7 @@ import com.rebalance.backend.service.BackendService
 fun GroupSelection(
     preferences: PreferencesData,
     groupName: String,
+    modifier: Modifier = Modifier,
     onSwitch: (Long) -> Unit
 ) {
     var expandedDropdownGroups by remember { mutableStateOf(false) }
@@ -25,7 +23,8 @@ fun GroupSelection(
         expanded = expandedDropdownGroups,
         onExpandedChange = {
             expandedDropdownGroups = !expandedDropdownGroups
-        }
+        },
+        modifier = modifier
     ) {
         TextField(
             value = groupName,
@@ -42,7 +41,6 @@ fun GroupSelection(
             colors = ExposedDropdownMenuDefaults.textFieldColors(),
             modifier = Modifier
                 .menuAnchor()
-                .padding(top = 10.dp, bottom = 10.dp, start = 10.dp, end = 100.dp)
         )
         ExposedDropdownMenu(
             expanded = expandedDropdownGroups,
@@ -54,10 +52,7 @@ fun GroupSelection(
                     onClick = {
                         onSwitch(group.getId())
                         expandedDropdownGroups = false
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(10.dp)
+                    }
                 )
             }
         }
