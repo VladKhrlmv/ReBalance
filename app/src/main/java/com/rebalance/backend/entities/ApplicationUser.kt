@@ -1,26 +1,29 @@
 package com.rebalance.backend.entities
 
-class ApplicationUser {
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
+
+@Parcelize
+class ApplicationUser() : Parcelable {
 
     private var id: Long = -1
     private var username: String = ""
     private var email: String = ""
     private var password: String = ""
 
-    constructor()
 
-    constructor(id: Long, username: String, email: String) {
+    constructor(id: Long, username: String, email: String) : this() {
         this.id = id
         this.username = username
         this.email = email
     }
 
-    constructor(username: String, email: String) {
+    constructor(username: String, email: String) : this() {
         this.username = username
         this.email = email
     }
 
-    constructor(username: String, email: String, password: String) {
+    constructor(username: String, email: String, password: String) : this() {
         this.username = username
         this.email = email
         this.password = password
@@ -54,7 +57,7 @@ class ApplicationUser {
         return this.email
     }
 
-    fun getId(): Long{
+    fun getId(): Long {
         return this.id
     }
 
