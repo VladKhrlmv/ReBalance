@@ -1,7 +1,11 @@
 package com.rebalance.backend.entities
 
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 
-class Expense {
+
+@Parcelize
+class Expense() : Parcelable {
 
     private var id: Long = -1
     private var amount: Double = 0.0
@@ -11,8 +15,6 @@ class Expense {
     private var globalId: Long? = null
     private var user: ApplicationUser? = null
 
-    constructor()
-
     constructor(
         id: Long,
         amount: Double,
@@ -20,7 +22,7 @@ class Expense {
         category: String,
         description: String,
         globalId: Long?
-    ) {
+    ) : this() {
         this.id = id
         this.amount = amount
         this.dateStamp = dateStamp
@@ -29,14 +31,20 @@ class Expense {
         this.globalId = globalId
     }
 
-    constructor(amount: Double, dateStamp: String, category: String, description: String) {
+    constructor(amount: Double, dateStamp: String, category: String, description: String) : this() {
         this.amount = amount
         this.dateStamp = dateStamp
         this.category = category
         this.description = description
     }
 
-    constructor(amount: Double, dateStamp: String, category: String, description: String, globalId: Long?) {
+    constructor(
+        amount: Double,
+        dateStamp: String,
+        category: String,
+        description: String,
+        globalId: Long?
+    ) : this() {
         this.amount = amount
         this.dateStamp = dateStamp
         this.category = category
@@ -116,7 +124,7 @@ class Expense {
         return this.user
     }
 
-    fun setUser(user: ApplicationUser?){
+    fun setUser(user: ApplicationUser?) {
         this.user = user
     }
 

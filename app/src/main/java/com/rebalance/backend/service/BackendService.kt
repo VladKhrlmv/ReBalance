@@ -292,11 +292,12 @@ data class ScaledDateItem(
     var dateTo: LocalDate
 ) : Parcelable
 
+@Parcelize
 data class ExpenseItem(
     var text: String,
     var amount: Double,
     var expenses: ArrayList<Expense>
-) {
+): Parcelable {
     constructor(expense: Expense) : this(
         expense.getCategory(),
         expense.getAmount(),
