@@ -37,6 +37,7 @@ import com.rebalance.ui.component.main.GroupSelection
 import com.rebalance.ui.navigation.navigateUp
 import com.rebalance.utils.addExpense
 import com.rebalance.utils.alertUser
+import com.rebalance.utils.compressImage
 
 val costValueRegex = """^\d{0,12}[.,]?\d{0,2}${'$'}""".toRegex()
 
@@ -128,7 +129,7 @@ fun AddSpendingScreen(
                                     date,
                                     selectedCategory,
                                     spendingName,
-                                    selectedPhoto
+                                    compressImage(selectedPhoto, context)
                                 )
                                 spendingName = TextFieldValue("")
                                 costValue = TextFieldValue("")
