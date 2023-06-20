@@ -130,8 +130,9 @@ private fun DisplayGroupSelection(
             preferences,
             if (groupId == -1L) "" else BackendService(preferences).getGroupById(groupId).getName(),
             Modifier
-                .padding(10.dp)
+                .padding(start = 10.dp)
                 .weight(1f),
+            Modifier,
             onSwitch
         )
 
@@ -191,7 +192,7 @@ private fun DisplayInviteFields(
             value = email,
             onValueChange = { newEmail -> email = newEmail },
             modifier = Modifier
-                .padding(start = 10.dp, end = 10.dp)
+                .padding(start = 10.dp)
                 .weight(1f),
             label = {
                 Text(text = "Email")

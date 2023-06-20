@@ -5,14 +5,14 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Typeface
+import android.os.Handler
+import android.os.Looper
 import android.provider.MediaStore
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -84,11 +84,15 @@ fun AddSpendingScreen(
                 }
             }
         }
+
+    // scroll state of column
+    val scrollState = rememberScrollState()
+
+    // outer column
     Column(
         modifier = Modifier
-            .fillMaxSize()
-            .padding(10.dp)
     ) {
+        // title and button Save
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -104,12 +108,14 @@ fun AddSpendingScreen(
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
             ) {
+                val mainLooper = Looper.getMainLooper()
                 Button(
                     onClick = {
                         if (spendingName.text.isEmpty() || costValue.text.isEmpty() || selectedCategory.text.isEmpty()) {
                             alertUser("Fill in all data", context)
                             return@Button
                         }
+
                         Thread {
                             try {
                                 addExpense(
@@ -133,12 +139,13 @@ fun AddSpendingScreen(
                                 groupId = 0L
                                 membersSelection.clear()
                                 alertUser("Expense saved!", context)
+                                Handler(mainLooper).post {
+                                    navigateUp(navHostController)
+                                }
                             } catch (e: Exception) {
-                                print(e.stackTrace)
                                 alertUser("Unexpected error occurred:\n" + e.message, context)
                             }
                         }.start()
-                        navigateUp(navHostController)
                     },
                     modifier = Modifier
                         .padding(1.dp)
@@ -147,148 +154,162 @@ fun AddSpendingScreen(
                 }
             }
         }
-        TextField(
-            value = spendingName,
-            onValueChange = { newSpendingName -> spendingName = newSpendingName },
-            placeholder = { Text(text = "Title") },
+
+        // scrollable column with other content
+        Column(
             modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(scrollState)
                 .padding(10.dp)
-                .fillMaxWidth()
-        )
-        TextField(
-            value = selectedCategory,
-            onValueChange = { selectedCategory = it },
-            label = {
-                Text(text = "Category")
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(10.dp)
-        )
-        TextField(
-            value = costValue,
-            onValueChange = { newCostValue ->
-                if (costValueRegex.matches(newCostValue.text)) {
-                    costValue = newCostValue
-                }
-            },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            placeholder = { Text(text = "0.00") },
-            modifier = Modifier
-                .padding(10.dp)
-                .fillMaxWidth()
-                .onFocusChanged {
-                    if (!it.isFocused) {
-                        val tempCostValue = costValue.text
-                            .replace(",", ".")
-                            .replace("""^\.""".toRegex(), "0.")
-                            .replace("""\.$""".toRegex(), ".00")
-                        costValue = TextFieldValue(tempCostValue)
-                    }
-                }
-                .testTag("addCost"),
-            trailingIcon = {
-                Text(
-                    text = BackendService(preferences).getGroupById(if (groupId == 0L) preferences.groupId else groupId)
-                        .getCurrency()
-                )
-            }
-        )
-        Row(
-            modifier = Modifier
-                .padding(10.dp)
-                .fillMaxWidth()
         ) {
-            DatePickerField(
-                date,
-                modifier = Modifier
-                    .width(180.dp)
-            )
-            Checkbox(
-                checked = isGroupExpense,
-                onCheckedChange = {
-                    isGroupExpense = it
-                    if (isGroupExpense) {
-                        groupId = groupIdLast
-                    } else {
-                        groupIdLast = groupId
-                        groupId = 0L
-                    }
-                    groupList = BackendService(preferences).getGroups()
-                        .filter { group -> group.getId() != preferences.groupId }
+            // Title field
+            TextField(
+                value = spendingName,
+                onValueChange = { newSpendingName -> spendingName = newSpendingName },
+                label = {
+                    Text(text = "Title")
                 },
                 modifier = Modifier
-                    .align(Alignment.CenterVertically)
-                    .testTag("groupExpenseCheckBox")
-            )
-            Text(
-                text = "Group expense",
-                modifier = Modifier
-                    .align(Alignment.CenterVertically)
+                    .padding(10.dp)
                     .fillMaxWidth()
-                    .clickable {
-                        isGroupExpense = !isGroupExpense
-                        groupList = BackendService(preferences)
-                            .getGroups()
-                            .filter { group -> group.getId() != preferences.groupId }
+            )
+            // Category field
+            TextField(
+                value = selectedCategory,
+                onValueChange = { selectedCategory = it },
+                label = {
+                    Text(text = "Category")
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp)
+            )
+            // Cost field
+            TextField(
+                value = costValue,
+                onValueChange = { newCostValue ->
+                    if (costValueRegex.matches(newCostValue.text)) {
+                        costValue = newCostValue
+                    }
+                },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                label = {
+                    Text(text = "Cost")
+                },
+                modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxWidth()
+                    .onFocusChanged {
+                        if (!it.isFocused) {
+                            val tempCostValue = costValue.text
+                                .replace(",", ".")
+                                .replace("""^\.""".toRegex(), "0.")
+                                .replace("""\.$""".toRegex(), ".00")
+                            costValue = TextFieldValue(tempCostValue)
+                        }
+                    }
+                    .testTag("addCost"),
+                trailingIcon = {
+                    Text(
+                        text = BackendService(preferences).getGroupById(if (groupId == 0L) preferences.groupId else groupId)
+                            .getCurrency()
+                    )
+                }
+            )
+            // Date picker and Group checkbox fields
+            Row(
+                modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxWidth()
+            ) {
+                DatePickerField(
+                    date,
+                    modifier = Modifier
+                        .width(180.dp)
+                )
+                Checkbox(
+                    checked = isGroupExpense,
+                    onCheckedChange = {
+                        isGroupExpense = it
                         if (isGroupExpense) {
                             groupId = groupIdLast
                         } else {
                             groupIdLast = groupId
                             groupId = 0L
                         }
-                    }
-            )
-        }
-        Button(
-            onClick = { galleryLauncher.launch("image/*") },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 10.dp)
-        ) {
-            Text("Choose photo from gallery")
-        }
-        if (selectedPhoto != null) {
-            Text(
-                text = "Selected photo: $photoName (${selectedPhoto!!.width}x${selectedPhoto!!.height})",
-                modifier = Modifier
-                    .padding(top = 8.dp)
-                    .fillMaxWidth(),
-                textAlign = TextAlign.Center
-            )
-        }
-        AnimatedVisibility(
-            visible = isGroupExpense,
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                GroupSelection(preferences, groupName, onSwitch = {
-                    groupId = it
-                    val group = BackendService(preferences).getGroupById(groupId)
-                    groupName = group.getName()
-                    membersSelection.clear()
-                    group.getUsers().forEach { member ->
-                        membersSelection[member] = false
-                    }
-                })
+                        groupList = BackendService(preferences).getGroups()
+                            .filter { group -> group.getId() != preferences.groupId }
+                    },
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .testTag("groupExpenseCheckBox")
+                )
+                Text(
+                    text = "Group expense",
+                    modifier = Modifier
+                        .align(Alignment.CenterVertically)
+                        .fillMaxWidth()
+                        .clickable {
+                            isGroupExpense = !isGroupExpense
+                            groupList = BackendService(preferences)
+                                .getGroups()
+                                .filter { group -> group.getId() != preferences.groupId }
+                            if (isGroupExpense) {
+                                groupId = groupIdLast
+                            } else {
+                                groupIdLast = groupId
+                                groupId = 0L
+                            }
+                        }
+                )
             }
-        }
-        AnimatedVisibility(
-            visible = isGroupExpense,
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            LazyColumn(
+            // Button to upload picture
+            Button(
+                onClick = { galleryLauncher.launch("image/*") },
                 modifier = Modifier
-                    .verticalScroll(rememberScrollState())
                     .fillMaxWidth()
-                    .height(200.dp)
             ) {
-                items(items = membersSelection.keys.toList(), itemContent = { member ->
+                Text("Choose photo from gallery")
+            }
+            if (selectedPhoto != null) {
+                Text(
+                    text = "Selected photo: $photoName (${selectedPhoto!!.width}x${selectedPhoto!!.height})",
+                    modifier = Modifier
+                        .padding(top = 8.dp)
+                        .fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+            }
+            // animated Group selector
+            AnimatedVisibility(
+                visible = isGroupExpense,
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                GroupSelection(
+                    preferences,
+                    groupName,
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(top = 10.dp, bottom = 10.dp),
+                    Modifier
+                        .fillMaxWidth(),
+                    onSwitch = {
+                        groupId = it
+                        val group = BackendService(preferences).getGroupById(groupId)
+                        groupName = group.getName()
+                        membersSelection.clear()
+                        group.getUsers().forEach { member ->
+                            membersSelection[member] = false
+                        }
+                    })
+            }
+            // checkboxes for all selected group's members
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
+                membersSelection.keys.toList().forEach { member ->
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -310,8 +331,7 @@ fun AddSpendingScreen(
                             )
                         }
                     }
-
-                })
+                }
             }
         }
     }

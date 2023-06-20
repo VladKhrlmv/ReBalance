@@ -13,6 +13,7 @@ fun GroupSelection(
     preferences: PreferencesData,
     groupName: String,
     modifier: Modifier = Modifier,
+    innerModifier: Modifier = Modifier,
     onSwitch: (Long) -> Unit
 ) {
     var expandedDropdownGroups by remember { mutableStateOf(false) }
@@ -39,7 +40,7 @@ fun GroupSelection(
                 )
             },
             colors = ExposedDropdownMenuDefaults.textFieldColors(),
-            modifier = Modifier
+            modifier = innerModifier
                 .menuAnchor()
         )
         ExposedDropdownMenu(
@@ -52,7 +53,8 @@ fun GroupSelection(
                     onClick = {
                         onSwitch(group.getId())
                         expandedDropdownGroups = false
-                    }
+                    },
+                    modifier = innerModifier
                 )
             }
         }

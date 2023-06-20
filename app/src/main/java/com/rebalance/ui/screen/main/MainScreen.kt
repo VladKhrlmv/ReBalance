@@ -64,7 +64,7 @@ fun MainScreen(
                 )
             ) {
                 // initialize nav graph here so navigation will be inside scaffold
-                val navHost = initNavHost(context, navHostController, Routes.Main, pieChartActive)
+                initNavHost(context, navHostController, Routes.Main, pieChartActive)
 
                 // start guided tour
                 ToolTipOverlay(context, navHostController)
