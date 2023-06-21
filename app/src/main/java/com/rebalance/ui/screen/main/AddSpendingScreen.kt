@@ -13,15 +13,21 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -64,6 +70,9 @@ fun AddSpendingScreen(
 
     var selectedPhoto by remember { mutableStateOf(callerPhoto) }
     var photoName by remember { mutableStateOf("") }
+
+    val focusRequesters = remember { List(3) { FocusRequester() } }
+    val focusManager = LocalFocusManager.current
 
     val galleryLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri ->
@@ -173,6 +182,16 @@ fun AddSpendingScreen(
                 modifier = Modifier
                     .padding(10.dp)
                     .fillMaxWidth()
+                    .focusRequester(focusRequesters[0]),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    }
+                )
             )
             // Category field
             TextField(
@@ -184,6 +203,16 @@ fun AddSpendingScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(10.dp)
+                    .focusRequester(focusRequesters[1]),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Text,
+                    imeAction = ImeAction.Next
+                ),
+                keyboardActions = KeyboardActions(
+                    onNext = {
+                        focusManager.moveFocus(FocusDirection.Down)
+                    }
+                )
             )
             // Cost field
             TextField(
@@ -193,13 +222,17 @@ fun AddSpendingScreen(
                         costValue = newCostValue
                     }
                 },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                keyboardOptions = KeyboardOptions(
+                    keyboardType = KeyboardType.Number,
+                    imeAction = ImeAction.Done
+                ),
                 label = {
                     Text(text = "Cost")
                 },
                 modifier = Modifier
                     .padding(10.dp)
                     .fillMaxWidth()
+                    .focusRequester(focusRequesters[2])
                     .onFocusChanged {
                         if (!it.isFocused) {
                             val tempCostValue = costValue.text
