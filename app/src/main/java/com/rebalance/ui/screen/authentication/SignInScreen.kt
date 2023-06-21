@@ -62,8 +62,17 @@ fun SignInScreen(context: Context, navHostController: NavHostController) {
                         fontSize = 35.sp
                     )
 
-                    CustomInput("Login", login, focusRequester = loginFocusRequester, nextFocusRequester = passwordFocusRequester)
-                    CustomPasswordInput("Password", password, focusRequester = passwordFocusRequester)
+                    CustomInput(
+                        "Login",
+                        login,
+                        focusRequester = loginFocusRequester,
+                        nextFocusRequester = passwordFocusRequester
+                    )
+                    CustomPasswordInput(
+                        "Password",
+                        password,
+                        focusRequester = passwordFocusRequester
+                    )
 
                     PrimaryButton("SIGN IN", 20.dp, onClick = {
                         if (login.value.isEmpty() || password.value.isEmpty()) {

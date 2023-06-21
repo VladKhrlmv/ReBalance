@@ -25,7 +25,9 @@ fun CustomInput(
         value = textState.value,
         onValueChange = { textState.value = it },
         label = { Text(text = label) },
-        modifier = Modifier.padding(8.dp).focusRequester(focusRequester),
+        modifier = Modifier
+            .padding(8.dp)
+            .focusRequester(focusRequester),
         singleLine = true,
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Text,

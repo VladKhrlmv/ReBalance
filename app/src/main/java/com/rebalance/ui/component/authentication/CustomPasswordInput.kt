@@ -27,14 +27,17 @@ import androidx.compose.ui.unit.dp
 fun CustomPasswordInput(
     label: String, textState: MutableState<String>,
     focusRequester: FocusRequester = FocusRequester(),
-    nextFocusRequester: FocusRequester? = null
+    nextFocusRequester: FocusRequester? = null,
+    imeAction: ImeAction = ImeAction.Done
 ) {
     val passwordVisible = remember { mutableStateOf(false) }
     TextField(
         value = textState.value,
         onValueChange = { textState.value = it },
         label = { Text(text = label) },
-        modifier = Modifier.padding(8.dp).focusRequester(focusRequester),
+        modifier = Modifier
+            .padding(8.dp)
+            .focusRequester(focusRequester),
         visualTransformation = if (passwordVisible.value) VisualTransformation.None
         else PasswordVisualTransformation(),
         trailingIcon = {
@@ -51,7 +54,7 @@ fun CustomPasswordInput(
         singleLine = true,
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Password,
-            imeAction = ImeAction.Done,
+            imeAction = imeAction,
         ),
         keyboardActions = KeyboardActions(
             onNext = { nextFocusRequester?.requestFocus() }
