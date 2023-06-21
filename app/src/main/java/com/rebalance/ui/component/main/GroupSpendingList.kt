@@ -1,6 +1,9 @@
 package com.rebalance.ui.component.main
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -12,6 +15,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -50,6 +55,7 @@ fun GroupSpendingList(
             items = filteredData,
             itemContent = { expense ->
                 val expanded = rememberSaveable { mutableStateOf(false) }
+                val showPicture = remember { mutableStateOf(false) }
                 Card(
                     modifier = Modifier
                         .padding(10.dp)
@@ -103,14 +109,51 @@ fun GroupSpendingList(
                         },
                         supportingContent = { Text(expense.getDescription()) },
                         leadingContent = {
-                            //TODO: place for image placeholder
-                            /*
-                            *  Leave this placeholder if there is no image or image is still loading
-                            *  After image is loaded change this Icon to the actual image
-                            *  On click image should expand to its natural size and displayed to user
-                            * */
+                            val imgBase64 = BackendService(preferences).getExpensePicture(expense.getGlobalId())
 
-                            Icon(EvaIcons.Fill.Image, "Image placeholder")
+                            if(imgBase64 != null){
+                                if (showPicture.value) {
+                                    AlertDialog(
+                                        onDismissRequest = { showPicture.value = false },
+                                        title = {
+                                            Box(modifier = Modifier.clickable(onClick = {
+                                                showPicture.value = false
+                                            })) {
+                                                Image(
+                                                    bitmap = BitmapFactory.decodeByteArray(
+                                                        imgBase64,
+                                                        0,
+                                                        imgBase64.size
+                                                    ).asImageBitmap(),
+                                                    contentDescription = "Image",
+                                                    modifier = Modifier.fillMaxWidth()
+                                                )
+                                            }
+                                        },
+                                        confirmButton = {}
+                                    )
+                                }
+                                IconButton(onClick = {
+                                    showPicture.value = true
+                                }) {
+                                    if (imgBase64 != null) {
+                                        Image(
+                                            bitmap = Bitmap.createScaledBitmap(
+                                                BitmapFactory.decodeByteArray(
+                                                    imgBase64,
+                                                    0,
+                                                    imgBase64.size
+                                                ), 100, 100, false
+                                            ).asImageBitmap(),
+                                            contentDescription = "Expanse image as an icon"
+                                        )
+                                    } else {
+                                        Icon(EvaIcons.Fill.Image, "Image placeholder")
+                                    }
+
+                                }
+                            }
+
 
                         },
                         trailingContent = {
