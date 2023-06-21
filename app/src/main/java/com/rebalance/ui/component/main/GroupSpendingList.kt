@@ -109,9 +109,9 @@ fun GroupSpendingList(
                         },
                         supportingContent = { Text(expense.getDescription()) },
                         leadingContent = {
-                            val imgBase64 = BackendService(preferences).getExpensePicture(expense.getGlobalId())
-
-                            if(imgBase64 != null){
+                            val imgBase64 =
+                                BackendService(preferences).getExpensePicture(expense.getGlobalId())
+                            if (imgBase64 != null) {
                                 if (showPicture.value) {
                                     AlertDialog(
                                         onDismissRequest = { showPicture.value = false },
@@ -136,25 +136,28 @@ fun GroupSpendingList(
                                 IconButton(onClick = {
                                     showPicture.value = true
                                 }) {
-                                    if (imgBase64 != null) {
-                                        Image(
-                                            bitmap = Bitmap.createScaledBitmap(
-                                                BitmapFactory.decodeByteArray(
-                                                    imgBase64,
-                                                    0,
-                                                    imgBase64.size
-                                                ), 100, 100, false
-                                            ).asImageBitmap(),
-                                            contentDescription = "Expanse image as an icon"
-                                        )
-                                    } else {
-                                        Icon(EvaIcons.Fill.Image, "Image placeholder")
-                                    }
+                                    Image(
+                                        bitmap = Bitmap.createScaledBitmap(
+                                            BitmapFactory.decodeByteArray(
+                                                imgBase64,
+                                                0,
+                                                imgBase64.size
+                                            ), 100, 100, false
+                                        ).asImageBitmap(),
+                                        contentDescription = "Expanse image as an icon"
+                                    )
 
                                 }
+                            } else {
+                                IconButton(onClick = {
+                                    alertUser(
+                                        "No image for this expense",
+                                        context
+                                    )
+                                }) {
+                                    Icon(EvaIcons.Fill.Image, "Image placeholder")
+                                }
                             }
-
-
                         },
                         trailingContent = {
                             Row(verticalAlignment = Alignment.CenterVertically) {

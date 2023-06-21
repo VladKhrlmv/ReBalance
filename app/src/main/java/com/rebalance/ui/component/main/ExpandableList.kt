@@ -149,11 +149,9 @@ fun ExpandableList(
                                                 confirmButton = {}
                                             )
                                         }
-                                    }
-                                    IconButton(onClick = {
-                                        showPicture.value = true
-                                    }) {
-                                        if (imgBase64 != null) {
+                                        IconButton(onClick = {
+                                            showPicture.value = true
+                                        }) {
                                             Image(
                                                 bitmap = Bitmap.createScaledBitmap(
                                                     BitmapFactory.decodeByteArray(
@@ -164,10 +162,16 @@ fun ExpandableList(
                                                 ).asImageBitmap(),
                                                 contentDescription = "Expanse image as an icon"
                                             )
-                                        } else {
+                                        }
+                                    } else {
+                                        IconButton(onClick = {
+                                            alertUser(
+                                                "No image for this expense",
+                                                context
+                                            )
+                                        }) {
                                             Icon(EvaIcons.Fill.Image, "Image placeholder")
                                         }
-
                                     }
 
                                 },
