@@ -9,6 +9,7 @@ import com.rebalance.backend.api.*
 import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.entities.ExpenseGroup
 import com.rebalance.backend.entities.ExpenseImage
+import com.rebalance.backend.entities.Notification
 import com.rebalance.backend.exceptions.ServerException
 import kotlinx.parcelize.Parcelize
 import java.time.DayOfWeek
@@ -273,6 +274,18 @@ class BackendService(
             "http://${preferences.serverIp}/expenses/${globalId}"
         )
 
+    }
+    //endregion
+
+    //region Notifications
+    fun getNotifications(): List<Notification> {
+        setPolicy()
+        val responseJson = RequestsSender.sendGet(
+            "http://${preferences.serverIp}/users/${
+                preferences.userId
+            }/notifications"
+        )
+        return jsonArrayToNotification(responseJson)
     }
     //endregion
 }

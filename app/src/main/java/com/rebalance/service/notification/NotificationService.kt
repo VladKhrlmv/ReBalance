@@ -15,8 +15,7 @@ import com.rebalance.Preferences
 import com.rebalance.PreferencesData
 import com.rebalance.R
 import com.rebalance.activity.LoadingActivity
-import com.rebalance.backend.api.RequestsSender
-import com.rebalance.backend.api.jsonArrayToNotification
+import com.rebalance.backend.service.BackendService
 
 class NotificationService(
     val context: Context,
@@ -32,13 +31,7 @@ class NotificationService(
         Thread {
             try {
                 while (true) {
-                    val notifications = jsonArrayToNotification(
-                        RequestsSender.sendGet(
-                            "http://${preferences.serverIp}/users/${
-                                preferences.userId
-                            }/notifications"
-                        )
-                    )
+                    val notifications = BackendService(preferencesData).getNotifications()
 
                     if (notifications.isNotEmpty()) {
                         for (notification in notifications) {
