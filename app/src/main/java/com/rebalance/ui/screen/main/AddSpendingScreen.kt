@@ -187,7 +187,7 @@ fun AddSpendingScreen(
             TextField(
                 value = costValue,
                 onValueChange = { newCostValue ->
-                    if (currencyRegex().matches(newCostValue.text)) {
+                    if (costValueRegex().matches(newCostValue.text)) {
                         costValue = newCostValue
                     }
                 },
