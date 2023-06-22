@@ -19,8 +19,7 @@ import androidx.compose.ui.unit.sp
 import com.rebalance.Preferences
 import com.rebalance.utils.alertUser
 import com.rebalance.utils.createGroup
-
-val currencyRegex = """[A-Z]{0,3}""".toRegex()
+import com.rebalance.utils.currencyRegex
 
 @Composable
 fun AddGroupScreen(
@@ -54,7 +53,7 @@ fun AddGroupScreen(
         TextField(
             value = groupCurrency,
             onValueChange = { newGroupCurrency ->
-                if (currencyRegex.matches(newGroupCurrency.text)) {
+                if (currencyRegex().matches(newGroupCurrency.text)) {
                     groupCurrency = newGroupCurrency
                 }
             },

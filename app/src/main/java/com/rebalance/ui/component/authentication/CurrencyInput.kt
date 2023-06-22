@@ -7,15 +7,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-
-val currencyRegex = """[a-zA-Z]{0,3}""".toRegex() //TODO: move to utils
+import com.rebalance.utils.currencyRegex
 
 @Composable
 fun CurrencyInput(personalCurrency: MutableState<String>) {
     TextField(
         value = personalCurrency.value,
         onValueChange = { newCurrency ->
-            if (currencyRegex.matches(newCurrency)) {
+            if (currencyRegex().matches(newCurrency)) {
                 personalCurrency.value = newCurrency.uppercase()
             }
         },

@@ -38,8 +38,7 @@ import com.rebalance.ui.navigation.navigateUp
 import com.rebalance.utils.addExpense
 import com.rebalance.utils.alertUser
 import com.rebalance.utils.compressImage
-
-val costValueRegex = """^\d{0,12}[.,]?\d{0,2}${'$'}""".toRegex()
+import com.rebalance.utils.currencyRegex
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
@@ -189,7 +188,7 @@ fun AddSpendingScreen(
             TextField(
                 value = costValue,
                 onValueChange = { newCostValue ->
-                    if (costValueRegex.matches(newCostValue.text)) {
+                    if (currencyRegex().matches(newCostValue.text)) {
                         costValue = newCostValue
                     }
                 },

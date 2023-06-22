@@ -13,3 +13,7 @@ fun alertUser(message: String, context: Context) {
         ).show()
     }
 }
+
+fun currencyRegex(): Regex {
+    return """[a-zA-Z]{0,3}""".toRegex()
+}
