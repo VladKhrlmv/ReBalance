@@ -17,8 +17,10 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rebalance.Preferences
+import com.rebalance.PreferencesData
+import com.rebalance.backend.entities.ExpenseGroup
+import com.rebalance.backend.service.BackendService
 import com.rebalance.utils.alertUser
-import com.rebalance.utils.createGroup
 import com.rebalance.utils.currencyRegex
 
 @Composable
@@ -92,4 +94,19 @@ fun AddGroupScreen(
             }
         }
     }
+}
+
+fun createGroup(
+    groupCurrency: TextFieldValue,
+    groupName: TextFieldValue,
+    context: Context,
+    preferences: PreferencesData
+): ExpenseGroup? {
+    if (groupCurrency.text.length != 3 || groupName.text.isBlank()) {
+        alertUser("Fill in all fields!", context)
+        return null
+    }
+    val group = BackendService(preferences).createGroup(groupCurrency.text, groupName.text)
+    alertUser("Group was created!", context)
+    return group
 }
