@@ -1,9 +1,6 @@
 package com.rebalance.ui.component.main
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -19,7 +16,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -29,9 +25,9 @@ import com.rebalance.PreferencesData
 import com.rebalance.backend.service.BackendService
 import com.rebalance.backend.service.ExpenseItem
 import com.rebalance.utils.alertUser
+import com.rebalance.utils.displayExpenseImage
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
-import compose.icons.evaicons.fill.Image
 import compose.icons.evaicons.fill.Trash
 
 @Composable
@@ -125,55 +121,12 @@ fun ExpandableList(
                                 },
                                 supportingContent = { Text(expense.getDescription()) },
                                 leadingContent = {
-                                    val imgBase64 =
-                                        BackendService(preferences).getExpensePicture(expense.getGlobalId())
-                                    if (imgBase64 != null) {
-                                        if (showPicture.value) {
-                                            AlertDialog(
-                                                onDismissRequest = { showPicture.value = false },
-                                                title = {
-                                                    Box(modifier = Modifier.clickable(onClick = {
-                                                        showPicture.value = false
-                                                    })) {
-                                                        Image(
-                                                            bitmap = BitmapFactory.decodeByteArray(
-                                                                imgBase64,
-                                                                0,
-                                                                imgBase64.size
-                                                            ).asImageBitmap(),
-                                                            contentDescription = "Image",
-                                                            modifier = Modifier.fillMaxWidth()
-                                                        )
-                                                    }
-                                                },
-                                                confirmButton = {}
-                                            )
-                                        }
-                                        IconButton(onClick = {
-                                            showPicture.value = true
-                                        }) {
-                                            Image(
-                                                bitmap = Bitmap.createScaledBitmap(
-                                                    BitmapFactory.decodeByteArray(
-                                                        imgBase64,
-                                                        0,
-                                                        imgBase64.size
-                                                    ), 100, 100, false
-                                                ).asImageBitmap(),
-                                                contentDescription = "Expanse image as an icon"
-                                            )
-                                        }
-                                    } else {
-                                        IconButton(onClick = {
-                                            alertUser(
-                                                "No image for this expense",
-                                                context
-                                            )
-                                        }) {
-                                            Icon(EvaIcons.Fill.Image, "Image placeholder")
-                                        }
-                                    }
-
+                                    displayExpenseImage(
+                                        preferences,
+                                        expense.getGlobalId(),
+                                        showPicture,
+                                        context
+                                    )
                                 },
                                 trailingContent = {
                                     val showDialog = remember { mutableStateOf(false) }

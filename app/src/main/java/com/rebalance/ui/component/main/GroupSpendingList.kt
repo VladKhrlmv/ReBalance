@@ -26,6 +26,7 @@ import com.rebalance.PreferencesData
 import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.service.BackendService
 import com.rebalance.utils.alertUser
+import com.rebalance.utils.displayExpenseImage
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
 import compose.icons.evaicons.fill.Image
@@ -109,55 +110,12 @@ fun GroupSpendingList(
                         },
                         supportingContent = { Text(expense.getDescription()) },
                         leadingContent = {
-                            val imgBase64 =
-                                BackendService(preferences).getExpensePicture(expense.getGlobalId())
-                            if (imgBase64 != null) {
-                                if (showPicture.value) {
-                                    AlertDialog(
-                                        onDismissRequest = { showPicture.value = false },
-                                        title = {
-                                            Box(modifier = Modifier.clickable(onClick = {
-                                                showPicture.value = false
-                                            })) {
-                                                Image(
-                                                    bitmap = BitmapFactory.decodeByteArray(
-                                                        imgBase64,
-                                                        0,
-                                                        imgBase64.size
-                                                    ).asImageBitmap(),
-                                                    contentDescription = "Image",
-                                                    modifier = Modifier.fillMaxWidth()
-                                                )
-                                            }
-                                        },
-                                        confirmButton = {}
-                                    )
-                                }
-                                IconButton(onClick = {
-                                    showPicture.value = true
-                                }) {
-                                    Image(
-                                        bitmap = Bitmap.createScaledBitmap(
-                                            BitmapFactory.decodeByteArray(
-                                                imgBase64,
-                                                0,
-                                                imgBase64.size
-                                            ), 100, 100, false
-                                        ).asImageBitmap(),
-                                        contentDescription = "Expanse image as an icon"
-                                    )
-
-                                }
-                            } else {
-                                IconButton(onClick = {
-                                    alertUser(
-                                        "No image for this expense",
-                                        context
-                                    )
-                                }) {
-                                    Icon(EvaIcons.Fill.Image, "Image placeholder")
-                                }
-                            }
+                            displayExpenseImage(
+                                preferences,
+                                expense.getGlobalId(),
+                                showPicture,
+                                context
+                            )
                         },
                         trailingContent = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
