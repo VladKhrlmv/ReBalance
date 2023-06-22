@@ -313,6 +313,33 @@ class BackendService(
         return jsonArrayToNotification(responseJson)
     }
     //endregion
+
+    //region Login
+    fun login(email: String, password: String): ApplicationUser {
+        setPolicy()
+        val responseJson = RequestsSender.sendPost(
+            "http://${preferences.serverIp}/users/login",
+            Gson().toJson(LoginAndPassword(email, password))
+        )
+        return jsonToApplicationUser(responseJson)
+    }
+
+    fun register(email: String, username: String, password: String): LoginAndPassword {
+        setPolicy()
+        val responseJson = RequestsSender.sendPost(
+            "http://${preferences.serverIp}/users",
+            Gson().toJson(ApplicationUser(username, email, password))
+        )
+        return jsonToLoginAndPassword(responseJson)
+    }
+
+    fun getUserByEmail(email: String): ApplicationUser {
+        setPolicy()
+        val responseJson =
+            RequestsSender.sendGet("http://${preferences.serverIp}/users/email/${email}")
+        return jsonToApplicationUser(responseJson)
+    }
+    //endregion
 }
 
 //region Personal screen

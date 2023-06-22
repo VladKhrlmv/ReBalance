@@ -18,9 +18,7 @@ import androidx.navigation.NavHostController
 import com.rebalance.Preferences
 import com.rebalance.PreferencesData
 import com.rebalance.activity.MainActivity
-import com.rebalance.backend.api.RequestsSender
-import com.rebalance.backend.api.jsonArrayToExpenseGroups
-import com.rebalance.backend.api.login
+import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.authentication.CustomInput
 import com.rebalance.ui.component.authentication.CustomPasswordInput
 import com.rebalance.ui.component.authentication.PrimaryButton
@@ -69,16 +67,13 @@ fun SignInScreen(context: Context, navHostController: NavHostController) {
                             println("trying to login...")
                             val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
                             StrictMode.setThreadPolicy(policy)
-                            val user = login(
-                                "http://${preferences.serverIp}/users/login",
+                            val user = BackendService(preferences).login(
                                 login.value,
                                 password.value
                             )
                             println(user)
 
-                            val groupsJson =
-                                RequestsSender.sendGet("http://${preferences.serverIp}/users/${user.getId()}/groups")
-                            val groups = jsonArrayToExpenseGroups(groupsJson)
+                            val groups = BackendService(preferences).getGroups(user.getId())
                             for (group in groups) {
                                 if (group.getName() == "per${user.getEmail()}") {
                                     val preferencesData =

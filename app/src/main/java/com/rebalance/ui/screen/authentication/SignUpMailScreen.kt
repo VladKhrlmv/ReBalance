@@ -15,17 +15,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.google.gson.Gson
 import com.rebalance.Preferences
 import com.rebalance.PreferencesData
 import com.rebalance.activity.MainActivity
-import com.rebalance.backend.api.RequestsSender
-import com.rebalance.backend.api.jsonToApplicationUser
-import com.rebalance.backend.api.jsonToExpenseGroup
-import com.rebalance.backend.api.register
 import com.rebalance.backend.entities.ExpenseGroup
-import com.rebalance.backend.exceptions.PasswordMismatchException
 import com.rebalance.backend.exceptions.ServerException
+import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.authentication.*
 import com.rebalance.ui.navigation.Routes
 import com.rebalance.ui.navigation.navigateTo
@@ -87,35 +82,25 @@ fun SignUpMailScreen(context: Context, navHostController: NavHostController) {
                                 alertUser("Passwords mismatch!", context)
                                 return@PrimaryButton
                             }
-//                            throw ServerException("Something went wrong, please try later")
-                            val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-                            StrictMode.setThreadPolicy(policy)
-                            println("trying to register...")
-                            val loginAndPassword = register(
-                                "http://${preferences.serverIp}/users",
+
+                            BackendService(preferences).register(
                                 email.value,
                                 username.value,
                                 password.value
                             )
-                            pass.value = loginAndPassword.getPassword()
+
                             val userByNickname =
-                                jsonToApplicationUser(RequestsSender.sendGet("http://${preferences.serverIp}/users/email/${email.value}"))
-                            println(userByNickname)
-                            val groupCreationResult = RequestsSender.sendPost(
-                                "http://${preferences.serverIp}/users/${userByNickname.getId()}/groups",
-                                Gson().toJson(
-                                    ExpenseGroup(
-                                        "per${email.value}",
-                                        personalCurrency.value
-                                    )
-                                )
+                                BackendService(preferences).getUserByEmail(email.value)
+                            val group: ExpenseGroup = BackendService(preferences).createGroup(
+                                personalCurrency.value,
+                                "per${email.value}",
+                                userByNickname.getId()
                             )
-                            println(groupCreationResult)
 
                             val preferencesData = PreferencesData(
                                 "",
                                 userByNickname.getId().toString(),
-                                jsonToExpenseGroup(groupCreationResult).getId(),
+                                group.getId(),
                                 true,
                                 "systemChannel"
                             )
