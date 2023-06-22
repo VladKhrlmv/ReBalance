@@ -8,6 +8,7 @@ import android.graphics.Typeface
 import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
+import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -17,6 +18,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
@@ -29,16 +31,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.rebalance.Preferences
+import com.rebalance.PreferencesData
 import com.rebalance.backend.entities.ApplicationUser
+import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.entities.ExpenseGroup
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.main.DatePickerField
 import com.rebalance.ui.component.main.GroupSelection
 import com.rebalance.ui.navigation.navigateUp
-import com.rebalance.utils.addExpense
-import com.rebalance.utils.alertUser
-import com.rebalance.utils.compressImage
-import com.rebalance.utils.currencyRegex
+import com.rebalance.utils.*
+import java.io.ByteArrayOutputStream
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
@@ -335,6 +337,91 @@ fun AddSpendingScreen(
                     }
                 }
             }
+        }
+    }
+}
+
+fun addExpense(
+    isGroupExpense: Boolean,
+    membersSelection: SnapshotStateMap<ApplicationUser, Boolean>,
+    context: Context,
+    preferences: PreferencesData,
+    groupId: Long,
+    costValue: TextFieldValue,
+    date: MutableState<String>,
+    selectedCategory: TextFieldValue,
+    spendingName: TextFieldValue,
+    callerPhoto: Bitmap?
+) {
+    if (isGroupExpense) {
+        val activeMembers =
+            membersSelection.filterValues { flag -> flag }
+        if (activeMembers.isEmpty()) {
+            alertUser("Choose at least one member", context)
+            return
+        }
+        val resultExpense = BackendService(preferences).addExpense(
+            Expense(
+                costValue.text.toDouble(),
+                date.value.ifBlank { getToday() },
+                selectedCategory.text,
+                spendingName.text
+            ),
+            groupId
+        )
+        for (member in activeMembers) {
+            BackendService(preferences).addExpense(
+                Expense(
+                    costValue.text.toDouble() / activeMembers.size * -1,
+                    date.value.ifBlank { getToday() },
+                    selectedCategory.text,
+                    spendingName.text,
+                    resultExpense.getGlobalId()
+                ),
+                groupId
+            )
+            if (callerPhoto != null) {
+                val baos = ByteArrayOutputStream()
+                callerPhoto.compress(
+                    Bitmap.CompressFormat.PNG,
+                    100,
+                    baos
+                )
+                val b = baos.toByteArray()
+                val base64String: String = Base64.encodeToString(
+                    b,
+                    Base64.DEFAULT
+                )
+
+                BackendService(preferences).addExpenseImage(
+                    base64String,
+                    resultExpense.getGlobalId()
+                )
+            }
+        }
+    } else {
+        val resultExpense = BackendService(preferences).addExpense(
+            Expense(
+                costValue.text.toDouble(),
+                date.value.ifBlank { getToday() },
+                selectedCategory.text,
+                spendingName.text
+            ),
+            preferences.groupId
+        )
+        if (callerPhoto != null) {
+            val baos = ByteArrayOutputStream()
+            callerPhoto.compress(
+                Bitmap.CompressFormat.PNG,
+                100,
+                baos
+            )
+            val b = baos.toByteArray()
+            val base64String: String = Base64.encodeToString(
+                b,
+                Base64.DEFAULT
+            )
+            BackendService(preferences).addExpenseImage(base64String, resultExpense.getGlobalId())
         }
     }
 }
