@@ -6,10 +6,7 @@ import android.util.Base64
 import com.google.gson.Gson
 import com.rebalance.PreferencesData
 import com.rebalance.backend.api.*
-import com.rebalance.backend.entities.Expense
-import com.rebalance.backend.entities.ExpenseGroup
-import com.rebalance.backend.entities.ExpenseImage
-import com.rebalance.backend.entities.Notification
+import com.rebalance.backend.entities.*
 import com.rebalance.backend.exceptions.ServerException
 import kotlinx.parcelize.Parcelize
 import java.time.DayOfWeek
@@ -20,6 +17,8 @@ class BackendService(
     private val preferences: PreferencesData
 ) {
     private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+
+    //TODO: make requests in different thread
 
     fun setPolicy() {
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
@@ -175,15 +174,13 @@ class BackendService(
     //endregion
 
     //region Add spending screen
-    //TODO: change to entities
-    fun getGroups(): List<ExpenseGroup> {
+    fun getGroups(userId: Long? = null): List<ExpenseGroup> {
         setPolicy()
 
         val jsonBodyGroups = RequestsSender.sendGet(
-            "http://${preferences.serverIp}/users/${preferences.userId}/groups"
+            "http://${preferences.serverIp}/users/${userId ?: preferences.userId}/groups"
         )
         val groups: List<ExpenseGroup> = jsonArrayToExpenseGroups(jsonBodyGroups)
-        println(groups)
 
         //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
         return groups
@@ -292,13 +289,21 @@ class BackendService(
         )
     }
 
-    fun createGroup(groupCurrency: String, groupName: String): ExpenseGroup {
+    fun createGroup(groupCurrency: String, groupName: String, userId: Long? = null): ExpenseGroup {
         setPolicy()
         val responseJson = RequestsSender.sendPost(
-            "http://${preferences.serverIp}/users/${preferences.userId}/groups",
+            "http://${preferences.serverIp}/users/${userId ?: preferences.userId}/groups",
             "{\"currency\": \"${groupCurrency}\", \"name\": \"${groupName}\"}"
         )
         return jsonToExpenseGroup(responseJson)
+    }
+
+    fun addUserToGroup(userId: Long, groupId: Long) {
+        setPolicy()
+        RequestsSender.sendPost(
+            "http://${preferences.serverIp}/users/${userId}/groups",
+            "{\"id\": ${groupId}}"
+        )
     }
     //endregion
 
