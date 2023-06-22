@@ -292,9 +292,8 @@ fun AddSpendingScreen(
                     groupName,
                     Modifier
                         .fillMaxWidth()
-                        .padding(top = 10.dp, bottom = 10.dp),
-                    Modifier
-                        .fillMaxWidth(),
+                        .padding(top = 10.dp, bottom = 10.dp)
+                        .testTag("groupSelectExpenseDropdown"),
                     onSwitch = {
                         groupId = it
                         val group = BackendService(preferences).getGroupById(groupId)
