@@ -5,8 +5,6 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Typeface
-import android.os.Handler
-import android.os.Looper
 import android.provider.MediaStore
 import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -114,7 +112,6 @@ fun AddSpendingScreen(
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
             ) {
-                val mainLooper = Looper.getMainLooper()
                 Button(
                     onClick = {
                         if (spendingName.text.isEmpty() || costValue.text.isEmpty() || selectedCategory.text.isEmpty()) {
@@ -122,36 +119,32 @@ fun AddSpendingScreen(
                             return@Button
                         }
 
-                        Thread {
-                            try {
-                                addExpense(
-                                    isGroupExpense,
-                                    membersSelection,
-                                    context,
-                                    preferences,
-                                    groupId,
-                                    costValue,
-                                    date,
-                                    selectedCategory,
-                                    spendingName,
-                                    compressImage(selectedPhoto, context)
-                                )
-                                spendingName = TextFieldValue("")
-                                costValue = TextFieldValue("")
-                                selectedCategory = TextFieldValue("")
-                                date.value = ""
-                                isGroupExpense = false
-                                groupName = ""
-                                groupId = 0L
-                                membersSelection.clear()
-                                alertUser("Expense saved!", context)
-                                Handler(mainLooper).post {
-                                    navigateUp(navHostController)
-                                }
-                            } catch (e: Exception) {
-                                alertUser("Unexpected error occurred:\n" + e.message, context)
-                            }
-                        }.start()
+                        try {
+                            addExpense(
+                                isGroupExpense,
+                                membersSelection,
+                                context,
+                                preferences,
+                                groupId,
+                                costValue,
+                                date,
+                                selectedCategory,
+                                spendingName,
+                                compressImage(selectedPhoto, context)
+                            )
+                            spendingName = TextFieldValue("")
+                            costValue = TextFieldValue("")
+                            selectedCategory = TextFieldValue("")
+                            date.value = ""
+                            isGroupExpense = false
+                            groupName = ""
+                            groupId = 0L
+                            membersSelection.clear()
+                            alertUser("Expense saved!", context)
+                            navigateUp(navHostController)
+                        } catch (e: Exception) {
+                            alertUser("Unexpected error occurred:\n" + e.message, context)
+                        }
                     },
                     modifier = Modifier
                         .padding(1.dp)
