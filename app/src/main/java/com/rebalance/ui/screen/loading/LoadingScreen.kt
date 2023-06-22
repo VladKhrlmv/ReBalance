@@ -10,6 +10,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -23,6 +24,7 @@ import com.rebalance.activity.AuthenticationActivity
 import com.rebalance.activity.MainActivity
 import com.rebalance.ui.navigation.switchActivityTo
 import com.rebalance.utils.alertUser
+import kotlinx.coroutines.delay
 import java.net.HttpURLConnection
 import java.net.URL
 
@@ -51,18 +53,23 @@ fun LoadingScreen() {
         }
     )
 
-    tryConnect(preferences) {
-        connected.value = it
-    }
+    LaunchedEffect(Unit) {
+        while (true) {
+            tryConnect(preferences) {
+                connected.value = it
+            }
 
-    if (connected.value == 1) {
-        if (!preferences.exists()) {
-            switchActivityTo(context, AuthenticationActivity::class)
-        } else {
-            switchActivityTo(context, MainActivity::class)
+            if (connected.value == 1) {
+                if (!preferences.exists()) {
+                    switchActivityTo(context, AuthenticationActivity::class)
+                } else {
+                    switchActivityTo(context, MainActivity::class)
+                }
+            } else if (connected.value == -1) {
+                alertUser("Can't establish connection. Retrying in 5 seconds", context)
+            }
+            delay(5000)
         }
-    } else if (connected.value == -1) {
-        alertUser("Can't establish connection", context)
     }
 }
 
