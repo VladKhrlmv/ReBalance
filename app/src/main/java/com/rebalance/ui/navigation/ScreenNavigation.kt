@@ -54,7 +54,7 @@ fun initNavHost(
                 AddSpendingScreen(context, navHostController)
             }
             composable(Routes.Settings.route) {
-                SettingsScreen(navHostController)
+                SettingsScreen()
             }
         }
     }
