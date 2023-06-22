@@ -32,7 +32,6 @@ fun LoadingScreen() {
     val context = LocalContext.current
     val preferences = Preferences(LocalContext.current).read()
     val isLoading = remember { mutableStateOf(true) }
-
     val connected = remember { mutableStateOf(0) }
 
     Scaffold(

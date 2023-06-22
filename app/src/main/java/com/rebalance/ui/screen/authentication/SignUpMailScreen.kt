@@ -1,7 +1,6 @@
 package com.rebalance.ui.screen.authentication
 
 import android.content.Context
-import android.os.StrictMode
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -35,9 +34,6 @@ fun SignUpMailScreen(context: Context, navHostController: NavHostController) {
     val username = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
     val repeatPassword = remember { mutableStateOf("") }
-    val showError = remember { mutableStateOf(false) }
-    val errorMessage = remember { mutableStateOf("") }
-    val pass = remember { mutableStateOf("") }
     val personalCurrency = remember { mutableStateOf("") }
     Scaffold(
         content = { padding ->
@@ -107,27 +103,15 @@ fun SignUpMailScreen(context: Context, navHostController: NavHostController) {
 
                             Preferences(context).write(preferencesData)
 
-
                             switchActivityTo(context, MainActivity::class)
                         } catch (error: ServerException) {
-                            println("Caught a ServerException!")
-                            showError.value = true
-                            errorMessage.value = error.message.toString()
                             alertUser(error.message.toString(), context)
                         }
-
                     })
                     SecondaryButton("SIGN IN", 5.dp, onClick = {
                         navigateTo(navHostController, Routes.Login)
                     })
-//                    if (showError.value) {
-//                        alertUser(errorMessage.value, context)
-//                    } else {
-//                        alertUser(pass.value, context)
-//                    }
-//                    showError.value = false
                 }
-
             }
         }
     )

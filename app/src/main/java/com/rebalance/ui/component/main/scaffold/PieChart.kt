@@ -54,7 +54,8 @@ fun PieChart(data: List<ExpenseItem>) {
                     .wrapContentSize()
                     .padding(5.dp), update = {
                     updatePieChartWithData(it, pieChartData)
-                })
+                }
+            )
         }
     }
 }

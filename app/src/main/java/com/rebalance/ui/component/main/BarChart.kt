@@ -80,7 +80,6 @@ fun BarChart(
             )
         }
     }
-
 }
 
 fun updateBarChartWithData(

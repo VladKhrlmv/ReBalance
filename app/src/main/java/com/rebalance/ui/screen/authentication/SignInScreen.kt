@@ -31,11 +31,8 @@ import com.rebalance.utils.alertUser
 @Composable
 fun SignInScreen(context: Context, navHostController: NavHostController) {
     val preferences = rememberSaveable { Preferences(context).read() }
-
     val login = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
-    val showError = remember { mutableStateOf(false) }
-    val errorMessage = remember { mutableStateOf("") }
     Scaffold(
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
@@ -63,15 +60,12 @@ fun SignInScreen(context: Context, navHostController: NavHostController) {
                             return@PrimaryButton
                         }
                         try {
-                            // TODO: Uncomment
-                            println("trying to login...")
                             val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
                             StrictMode.setThreadPolicy(policy)
                             val user = BackendService(preferences).login(
                                 login.value,
                                 password.value
                             )
-                            println(user)
 
                             val groups = BackendService(preferences).getGroups(user.getId())
                             for (group in groups) {
@@ -85,30 +79,18 @@ fun SignInScreen(context: Context, navHostController: NavHostController) {
                                             "systemChannel"
                                         )
                                     Preferences(context).write(preferencesData)
-                                    println("Logged in as: ${preferences.userId}")
-                                    println("Personal group: ${preferences.groupId}")
                                 }
                             }
-//                             throw FailedLoginException("Invalid password for email")
 
                             switchActivityTo(context, MainActivity::class)
                         } catch (error: Exception) {
-                            println("Caught a FailedLoginException! You should see the error message on the screen")
-                            showError.value = true
-                            errorMessage.value = error.message.toString()
+                            alertUser("Wrong email or password", context)
                         }
-
                     })
                     SecondaryButton("SIGN UP", 5.dp, onClick = {
                         navigateTo(navHostController, Routes.Register)
                     })
-
-                    if (showError.value) {
-                        alertUser("Wrong email or password", context)
-                    }
-                    showError.value = false
                 }
-
             }
         }
     )

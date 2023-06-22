@@ -37,7 +37,6 @@ fun GroupSpendingList(
     val groupCurrency =
         if (groupId == -1L) "" else BackendService(preferences).getGroupById(groupId).getCurrency()
 
-
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
@@ -66,13 +65,10 @@ fun GroupSpendingList(
                                     .fillMaxSize(),
                                 verticalAlignment = Alignment.Bottom
                             ) {
-
                                 val text = buildAnnotatedString {
-
                                     append(
                                         expense.getAmount().toInt().toString()
                                     )
-
                                     withStyle(
                                         style = SpanStyle(
                                             fontSize = MaterialTheme.typography.bodySmall.fontSize,
@@ -146,11 +142,8 @@ fun GroupSpendingList(
                                         }
                                     )
                                 }
-
                                 CardArrow(expanded.value)
                             }
-
-
                         },
                         modifier = Modifier
                             .clickable {
@@ -186,7 +179,6 @@ fun GroupSpendingList(
                                 Column(
                                     modifier = Modifier
                                         .padding(10.dp)
-//                                    .background(Color.White)
                                 ) {
                                     Text(
                                         text = "To:",
@@ -232,5 +224,4 @@ fun GroupSpendingList(
             }
         )
     }
-
 }

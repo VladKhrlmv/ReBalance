@@ -15,11 +15,10 @@ import com.rebalance.ui.navigation.initNavHost
 @Composable
 fun AuthenticationScreen(navHostController: NavHostController) {
     Scaffold(
-        // TODO: Make pie-chart parameter optional
         topBar = {
             com.rebalance.ui.component.main.scaffold.TopAppBar(
                 false,
-                rememberNavController() //TODO: fix
+                rememberNavController()
             )
         },
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.

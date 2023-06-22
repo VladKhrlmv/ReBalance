@@ -23,9 +23,7 @@ fun ReferenceButton(label: String, paddingTop: Dp, image: Int, onClick: () -> Un
             .padding(top = paddingTop)
             .width(250.dp)
             .height(45.dp),
-        shape = RoundedCornerShape(40.dp),
-//        border = BorderStroke(1.dp, Color.Gray),
-//        colors = ButtonDefaults.buttonColors(backgroundColor = Color.White)
+        shape = RoundedCornerShape(40.dp)
     ) {
         Box {
             Image(
@@ -38,12 +36,10 @@ fun ReferenceButton(label: String, paddingTop: Dp, image: Int, onClick: () -> Un
             )
             Text(
                 text = label,
-//                color = Color.Gray,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth(),
                 fontSize = 18.sp
             )
         }
-
     }
 }

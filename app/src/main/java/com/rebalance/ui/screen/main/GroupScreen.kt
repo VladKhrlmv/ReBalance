@@ -122,7 +122,7 @@ private fun DisplayGroupSelection(
             .testTag("groupSelectionGroupScreen"),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // show group selection with 2.5 times longer width than button below
+        // show group selection to fill remaining space after button
         GroupSelection(
             preferences,
             if (groupId == -1L) "" else BackendService(preferences).getGroupById(groupId).getName(),
@@ -184,7 +184,7 @@ private fun DisplayInviteFields(
     ) {
         var email by remember { mutableStateOf(TextFieldValue()) }
 
-        // show email input with 2.5 times longer width than button below
+        // show email input to fill remaining space after button
         TextField(
             value = email,
             onValueChange = { newEmail -> email = newEmail },
