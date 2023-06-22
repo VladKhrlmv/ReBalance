@@ -188,6 +188,23 @@ class BackendService(
         //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
         return groups
     }
+
+    fun addExpense(expense: Expense, groupId: Long): Expense {
+        setPolicy()
+        val jsonBodyPOST = RequestsSender.sendPost(
+            "http://${preferences.serverIp}/expenses/user/${preferences.userId}/group/${groupId}/${preferences.userId}",
+            Gson().toJson(expense)
+        )
+        return jsonToExpense(jsonBodyPOST)
+    }
+
+    fun addExpenseImage(imageBase64String: String, expenseGlobalId: Long?) {
+        val body = """{"image": "$imageBase64String"}""".replace("\n", "")
+        RequestsSender.sendPost(
+            "http://${preferences.serverIp}/expenses/${expenseGlobalId}/image",
+            body
+        )
+    }
     //endregion
 
     //region Group by id
@@ -273,7 +290,15 @@ class BackendService(
         RequestsSender.sendDelete(
             "http://${preferences.serverIp}/expenses/${globalId}"
         )
+    }
 
+    fun createGroup(groupCurrency: String, groupName: String): ExpenseGroup {
+        setPolicy()
+        val responseJson = RequestsSender.sendPost(
+            "http://${preferences.serverIp}/users/${preferences.userId}/groups",
+            "{\"currency\": \"${groupCurrency}\", \"name\": \"${groupName}\"}"
+        )
+        return jsonToExpenseGroup(responseJson)
     }
     //endregion
 
@@ -310,7 +335,7 @@ data class ExpenseItem(
     var text: String,
     var amount: Double,
     var expenses: ArrayList<Expense>
-): Parcelable {
+) : Parcelable {
     constructor(expense: Expense) : this(
         expense.getCategory(),
         expense.getAmount(),

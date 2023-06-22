@@ -3,19 +3,15 @@ package com.rebalance.utils
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.os.StrictMode
 import android.util.Base64
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.text.input.TextFieldValue
-import com.google.gson.Gson
 import com.rebalance.PreferencesData
-import com.rebalance.backend.api.RequestsSender
-import com.rebalance.backend.api.jsonToExpense
-import com.rebalance.backend.api.jsonToExpenseGroup
 import com.rebalance.backend.entities.ApplicationUser
 import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.entities.ExpenseGroup
+import com.rebalance.backend.service.BackendService
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
@@ -45,34 +41,26 @@ fun addExpense(
             alertUser("Choose at least one member", context)
             return
         }
-        val jsonBodyPOST = RequestsSender.sendPost(
-            "http://${preferences.serverIp}/expenses/user/${preferences.userId}/group/${groupId}/${preferences.userId}",
-            Gson().toJson(
+        val resultExpense = BackendService(preferences).addExpense(
+            Expense(
+                costValue.text.toDouble(),
+                date.value.ifBlank { getToday() },
+                selectedCategory.text,
+                spendingName.text
+            ),
+            groupId
+        )
+        for (member in activeMembers) {
+            BackendService(preferences).addExpense(
                 Expense(
-                    costValue.text.toDouble(),
+                    costValue.text.toDouble() / activeMembers.size * -1,
                     date.value.ifBlank { getToday() },
                     selectedCategory.text,
-                    spendingName.text
-                )
+                    spendingName.text,
+                    resultExpense.getGlobalId()
+                ),
+                groupId
             )
-        )
-        val resultExpense = jsonToExpense(jsonBodyPOST)
-        println(jsonBodyPOST)
-        for (member in activeMembers) {
-            val jsonBodyPOST = RequestsSender.sendPost(
-                "http://${preferences.serverIp}/expenses/user/${member.key.getId()}/group/${groupId}/${preferences.userId}",
-                Gson().toJson(
-                    Expense(
-                        costValue.text.toDouble() / activeMembers.size * -1,
-                        date.value.ifBlank { getToday() },
-                        selectedCategory.text,
-                        spendingName.text,
-                        resultExpense.getGlobalId()
-                    )
-                )
-            )
-            println(jsonBodyPOST)
-            println("Photo: $callerPhoto")
             if (callerPhoto != null) {
                 val baos = ByteArrayOutputStream()
                 callerPhoto.compress(
@@ -85,30 +73,23 @@ fun addExpense(
                     b,
                     Base64.DEFAULT
                 )
-                val body = """{"image": "$base64String"}""".replace("\n", "")
-                RequestsSender.sendPost(
-                    "http://${preferences.serverIp}/expenses/${resultExpense.getGlobalId()}/image",
-                    body
+
+                BackendService(preferences).addExpenseImage(
+                    base64String,
+                    resultExpense.getGlobalId()
                 )
             }
         }
     } else {
-        val jsonBodyPOST = RequestsSender.sendPost(
-            "http://${preferences.serverIp}/expenses/user/${preferences.userId}/group/${
-                preferences.groupId
-            }/${preferences.userId}",
-            Gson().toJson(
-                Expense(
-                    costValue.text.toDouble(),
-                    date.value.ifBlank { getToday() },
-                    selectedCategory.text,
-                    spendingName.text
-                    //TODO IF globalId != -1 notifications are not working
-                )
-            )
+        val resultExpense = BackendService(preferences).addExpense(
+            Expense(
+                costValue.text.toDouble(),
+                date.value.ifBlank { getToday() },
+                selectedCategory.text,
+                spendingName.text
+            ),
+            preferences.groupId
         )
-        val resultExpense = jsonToExpense(jsonBodyPOST)
-        println(jsonBodyPOST)
         if (callerPhoto != null) {
             val baos = ByteArrayOutputStream()
             callerPhoto.compress(
@@ -121,11 +102,7 @@ fun addExpense(
                 b,
                 Base64.DEFAULT
             )
-            val body = """{"image": "$base64String"}""".replace("\n", "")
-            RequestsSender.sendPost(
-                "http://${preferences.serverIp}/expenses/${resultExpense.getGlobalId()}/image",
-                body
-            )
+            BackendService(preferences).addExpenseImage(base64String, resultExpense.getGlobalId())
         }
     }
 }
@@ -140,20 +117,13 @@ fun createGroup(
         alertUser("Fill in all fields!", context)
         return null
     }
-    val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-    StrictMode.setThreadPolicy(policy)
-    val group = jsonToExpenseGroup(
-        RequestsSender.sendPost(
-            "http://${preferences.serverIp}/users/${preferences.userId}/groups",
-            "{\"currency\": \"${groupCurrency.text}\", \"name\": \"${groupName.text}\"}"
-        )
-    )
+    val group = BackendService(preferences).createGroup(groupCurrency.text, groupName.text)
     alertUser("Group was created!", context)
     return group
 }
 
 fun compressImage(originalImage: Bitmap?, context: Context): Bitmap? {
-    if(originalImage == null){
+    if (originalImage == null) {
         return null
     }
     val outputStream = ByteArrayOutputStream()
