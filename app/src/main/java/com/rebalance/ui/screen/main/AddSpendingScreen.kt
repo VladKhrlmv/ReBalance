@@ -287,49 +287,51 @@ fun AddSpendingScreen(
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                GroupSelection(
-                    preferences,
-                    groupName,
-                    Modifier
+                // checkboxes for all selected group's members
+                Column(
+                    modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 10.dp, bottom = 10.dp),
-                    Modifier
-                        .fillMaxWidth(),
-                    onSwitch = {
-                        groupId = it
-                        val group = BackendService(preferences).getGroupById(groupId)
-                        groupName = group.getName()
-                        membersSelection.clear()
-                        group.getUsers().forEach { member ->
-                            membersSelection[member] = false
-                        }
-                    })
-            }
-            // checkboxes for all selected group's members
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                membersSelection.keys.toList().forEach { member ->
-                    Row(
-                        modifier = Modifier
+                ) {
+                    GroupSelection(
+                        preferences,
+                        groupName,
+                        Modifier
                             .fillMaxWidth()
-                    ) {
-                        membersSelection[member]?.let {
-                            Checkbox(
-                                checked = it,
-                                onCheckedChange = { newValue ->
-                                    membersSelection[member] = newValue
-                                },
-                            )
-                            Text(
-                                text = member.getUsername(),
-                                modifier = Modifier
-                                    .padding(vertical = 12.dp)
-                                    .clickable {
-                                        membersSelection[member] = !membersSelection[member]!!
-                                    }
-                            )
+                            .padding(top = 10.dp, bottom = 10.dp),
+                        Modifier
+                            .fillMaxWidth(),
+                        onSwitch = {
+                            groupId = it
+                            val group = BackendService(preferences).getGroupById(groupId)
+                            groupName = group.getName()
+                            membersSelection.clear()
+                            group.getUsers().forEach { member ->
+                                membersSelection[member] = false
+                            }
+                        }
+                    )
+
+                    membersSelection.keys.toList().forEach { member ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        ) {
+                            membersSelection[member]?.let {
+                                Checkbox(
+                                    checked = it,
+                                    onCheckedChange = { newValue ->
+                                        membersSelection[member] = newValue
+                                    },
+                                )
+                                Text(
+                                    text = member.getUsername(),
+                                    modifier = Modifier
+                                        .padding(vertical = 12.dp)
+                                        .clickable {
+                                            membersSelection[member] = !membersSelection[member]!!
+                                        }
+                                )
+                            }
                         }
                     }
                 }
