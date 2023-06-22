@@ -39,8 +39,6 @@ import com.rebalance.ui.component.main.GroupSelection
 import com.rebalance.ui.navigation.navigateUp
 import com.rebalance.utils.*
 import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileOutputStream
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -128,14 +126,13 @@ fun AddSpendingScreen(
                             addExpense(
                                 isGroupExpense,
                                 membersSelection,
-                                context,
                                 preferences,
                                 groupId,
                                 costValue,
                                 date,
                                 selectedCategory,
                                 spendingName,
-                                compressImage(selectedPhoto, context)
+                                compressImage(selectedPhoto)
                             )
                             spendingName = TextFieldValue("")
                             costValue = TextFieldValue("")
@@ -145,6 +142,7 @@ fun AddSpendingScreen(
                             groupName = ""
                             groupId = 0L
                             membersSelection.clear()
+
                             alertUser("Expense saved!", context)
                             navigateUp(navHostController)
                         } catch (e: Exception) {
@@ -347,36 +345,25 @@ fun getToday(): String {
     return LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
 }
 
-fun compressImage(originalImage: Bitmap?, context: Context): Bitmap? {
+fun compressImage(originalImage: Bitmap?): ByteArrayOutputStream? {
     if (originalImage == null) {
         return null
     }
     val outputStream = ByteArrayOutputStream()
     originalImage.compress(Bitmap.CompressFormat.JPEG, 50, outputStream)
-    val filePath = context.cacheDir.absolutePath + "/compressed.jpg"
-    val file = File(filePath)
-    try {
-        val fos = FileOutputStream(file)
-        fos.write(outputStream.toByteArray())
-        fos.flush()
-        fos.close()
-    } catch (e: Exception) {
-        e.printStackTrace()
-    }
-    return BitmapFactory.decodeFile(filePath)
+    return outputStream
 }
 
 fun addExpense(
     isGroupExpense: Boolean,
     membersSelection: SnapshotStateMap<ApplicationUser, Boolean>,
-    context: Context,
     preferences: PreferencesData,
     groupId: Long,
     costValue: TextFieldValue,
     date: MutableState<String>,
     selectedCategory: TextFieldValue,
     spendingName: TextFieldValue,
-    callerPhoto: Bitmap?
+    callerPhoto: ByteArrayOutputStream?
 ) {
     if (isGroupExpense) {
         val activeMembers =
@@ -402,13 +389,7 @@ fun addExpense(
                 groupId
             )
             if (callerPhoto != null) {
-                val baos = ByteArrayOutputStream()
-                callerPhoto.compress(
-                    Bitmap.CompressFormat.PNG,
-                    100,
-                    baos
-                )
-                val b = baos.toByteArray()
+                val b = callerPhoto.toByteArray()
                 val base64String: String = Base64.encodeToString(
                     b,
                     Base64.DEFAULT
@@ -431,13 +412,7 @@ fun addExpense(
             preferences.groupId
         )
         if (callerPhoto != null) {
-            val baos = ByteArrayOutputStream()
-            callerPhoto.compress(
-                Bitmap.CompressFormat.PNG,
-                100,
-                baos
-            )
-            val b = baos.toByteArray()
+            val b = callerPhoto.toByteArray()
             val base64String: String = Base64.encodeToString(
                 b,
                 Base64.DEFAULT
