@@ -118,6 +118,11 @@ fun AddSpendingScreen(
                             alertUser("Fill in all data", context)
                             return@Button
                         }
+                        if (isGroupExpense && membersSelection.filterValues { flag -> flag }
+                                .isEmpty()) {
+                            alertUser("Choose at least one member", context)
+                            return@Button
+                        }
 
                         try {
                             addExpense(
@@ -376,10 +381,6 @@ fun addExpense(
     if (isGroupExpense) {
         val activeMembers =
             membersSelection.filterValues { flag -> flag }
-        if (activeMembers.isEmpty()) {
-            alertUser("Choose at least one member", context)
-            return
-        }
         val resultExpense = BackendService(preferences).addExpense(
             Expense(
                 costValue.text.toDouble(),
