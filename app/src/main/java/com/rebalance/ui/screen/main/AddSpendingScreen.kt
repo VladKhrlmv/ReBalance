@@ -41,6 +41,10 @@ import com.rebalance.ui.component.main.GroupSelection
 import com.rebalance.ui.navigation.navigateUp
 import com.rebalance.utils.*
 import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
@@ -339,6 +343,29 @@ fun AddSpendingScreen(
             }
         }
     }
+}
+
+fun getToday(): String {
+    return LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+}
+
+fun compressImage(originalImage: Bitmap?, context: Context): Bitmap? {
+    if (originalImage == null) {
+        return null
+    }
+    val outputStream = ByteArrayOutputStream()
+    originalImage.compress(Bitmap.CompressFormat.JPEG, 50, outputStream)
+    val filePath = context.cacheDir.absolutePath + "/compressed.jpg"
+    val file = File(filePath)
+    try {
+        val fos = FileOutputStream(file)
+        fos.write(outputStream.toByteArray())
+        fos.flush()
+        fos.close()
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+    return BitmapFactory.decodeFile(filePath)
 }
 
 fun addExpense(
