@@ -27,7 +27,6 @@ import com.rebalance.backend.service.ExpenseItem
 import com.rebalance.utils.alertUser
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
-import compose.icons.evaicons.fill.Image
 import compose.icons.evaicons.fill.Trash
 
 @Composable
@@ -75,6 +74,7 @@ fun ExpandableList(
                     Column {
                         for ((index, expense) in item.expenses.withIndex()) {
                             Divider()
+                            val showPicture = remember { mutableStateOf(false) }
                             ListItem(
                                 headlineContent = {
                                     Row(
@@ -119,15 +119,12 @@ fun ExpandableList(
                                 },
                                 supportingContent = { Text(expense.getDescription()) },
                                 leadingContent = {
-                                    //TODO: place for image placeholder
-                                    /*
-                                    *  Leave this placeholder if there is no image or image is still loading
-                                    *  After image is loaded change this Icon to the actual image
-                                    *  On click image should expand to its natural size and displayed to user
-                                    * */
-
-                                    Icon(EvaIcons.Fill.Image, "Image placeholder")
-
+                                    DisplayExpenseImage(
+                                        preferences,
+                                        expense.getGlobalId(),
+                                        showPicture,
+                                        context
+                                    )
                                 },
                                 trailingContent = {
                                     val showDialog = remember { mutableStateOf(false) }

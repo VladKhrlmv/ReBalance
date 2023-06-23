@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,6 +34,10 @@ fun SignInScreen(context: Context, navHostController: NavHostController) {
     val preferences = rememberSaveable { Preferences(context).read() }
     val login = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
+
+    val loginFocusRequester = remember { FocusRequester() }
+    val passwordFocusRequester = remember { FocusRequester() }
+
     Scaffold(
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
@@ -52,8 +57,18 @@ fun SignInScreen(context: Context, navHostController: NavHostController) {
                         fontSize = 35.sp
                     )
 
-                    CustomInput("Login", login)
-                    CustomPasswordInput("Password", password)
+                    CustomInput(
+                        "Login",
+                        login,
+                        focusRequester = loginFocusRequester,
+                        nextFocusRequester = passwordFocusRequester
+                    )
+                    CustomPasswordInput(
+                        "Password",
+                        password,
+                        focusRequester = passwordFocusRequester
+                    )
+
                     PrimaryButton("SIGN IN", 20.dp, onClick = {
                         if (login.value.isEmpty() || password.value.isEmpty()) {
                             alertUser("No empty fields allowed", context)

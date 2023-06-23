@@ -301,6 +301,25 @@ class BackendService(
         }
     }
 
+    fun getExpenseIcon(globalId: Long?): ByteArray? {
+        setPolicy()
+        if (globalId == null) {
+            return null
+        }
+
+        return try {
+            val responseJson = RequestsSender.sendGet(
+                "http://${preferences.serverIp}/expenses/${globalId}/icon"
+            )
+            println(responseJson)
+            val imageClass: ExpenseImage = Gson().fromJson(responseJson, ExpenseImage::class.java)
+            Base64.decode(imageClass.getImage(), Base64.DEFAULT)
+        } catch (e: ServerException) {
+            println(e.message)
+            null
+        }
+    }
+
     fun deleteExpenseByGlobalId(globalId: Long?) {
         setPolicy()
         RequestsSender.sendDelete(

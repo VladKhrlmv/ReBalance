@@ -10,6 +10,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,6 +37,12 @@ fun SignUpMailScreen(context: Context, navHostController: NavHostController) {
     val password = remember { mutableStateOf("") }
     val repeatPassword = remember { mutableStateOf("") }
     val personalCurrency = remember { mutableStateOf("") }
+
+    val emailFocusRequester = remember { FocusRequester() }
+    val usernameFocusRequester = remember { FocusRequester() }
+    val passwordFocusRequester = remember { FocusRequester() }
+    val repeatPasswordFocusRequester = remember { FocusRequester() }
+    val personalCurrencyFocusRequester = remember { FocusRequester() }
     Scaffold(
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
@@ -54,11 +62,34 @@ fun SignUpMailScreen(context: Context, navHostController: NavHostController) {
                         fontSize = 35.sp
                     )
 
-                    CustomInput("E-mail", email)
-                    CustomInput("Username", username)
-                    CustomPasswordInput("Password", password)
-                    CustomPasswordInput("Repeat password", repeatPassword)
-                    CurrencyInput(personalCurrency)
+                    CustomInput(
+                        "E-mail",
+                        email,
+                        focusRequester = emailFocusRequester,
+                        nextFocusRequester = usernameFocusRequester
+                    )
+                    CustomInput(
+                        "Username",
+                        username,
+                        focusRequester = usernameFocusRequester,
+                        nextFocusRequester = passwordFocusRequester
+                    )
+                    CustomPasswordInput(
+                        "Password",
+                        password,
+                        focusRequester = passwordFocusRequester,
+                        nextFocusRequester = repeatPasswordFocusRequester,
+                        ImeAction.Next
+                    )
+                    CustomPasswordInput(
+                        "Repeat password",
+                        repeatPassword,
+                        focusRequester = repeatPasswordFocusRequester,
+                        nextFocusRequester = personalCurrencyFocusRequester,
+                        ImeAction.Next
+                    )
+                    CurrencyInput(personalCurrency, focusRequester = personalCurrencyFocusRequester)
+
                     PrimaryButton("SIGN UP", 20.dp, onClick = {
                         if (
                             email.value.isEmpty()
@@ -71,6 +102,11 @@ fun SignUpMailScreen(context: Context, navHostController: NavHostController) {
                             return@PrimaryButton
                         } else if (personalCurrency.value.length != 3) {
                             alertUser("Currency must have exactly 3 symbols", context)
+                            return@PrimaryButton
+                        } else if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email.value)
+                                .matches()
+                        ) {
+                            alertUser("Invalid email format", context)
                             return@PrimaryButton
                         }
                         try {
