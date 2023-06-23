@@ -35,7 +35,7 @@ class RequestsSender {
                 outputStreamWriter.write(requestBody)
                 outputStreamWriter.flush()
                 println("Sent 'POST' request to URL : $url, with body : $requestBody; Response Code : $responseCode")
-                if (responseCode == 409 || responseCode == 400) {
+                if (responseCode == 409 || responseCode == 400 || responseCode == 401) {
                     throw ServerException(responseMessage)
                 }
                 inputStream.bufferedReader().use {
