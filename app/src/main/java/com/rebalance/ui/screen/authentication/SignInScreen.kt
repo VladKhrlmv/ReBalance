@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,6 +39,10 @@ fun SignInScreen(context: Context, navHostController: NavHostController) {
     val password = remember { mutableStateOf("") }
     val showError = remember { mutableStateOf(false) }
     val errorMessage = remember { mutableStateOf("") }
+
+    val loginFocusRequester = remember { FocusRequester() }
+    val passwordFocusRequester = remember { FocusRequester() }
+
     Scaffold(
         content = { padding ->
             Box(modifier = Modifier.padding(padding)) {
@@ -57,8 +62,18 @@ fun SignInScreen(context: Context, navHostController: NavHostController) {
                         fontSize = 35.sp
                     )
 
-                    CustomInput("Login", login)
-                    CustomPasswordInput("Password", password)
+                    CustomInput(
+                        "Login",
+                        login,
+                        focusRequester = loginFocusRequester,
+                        nextFocusRequester = passwordFocusRequester
+                    )
+                    CustomPasswordInput(
+                        "Password",
+                        password,
+                        focusRequester = passwordFocusRequester
+                    )
+
                     PrimaryButton("SIGN IN", 20.dp, onClick = {
                         if (login.value.isEmpty() || password.value.isEmpty()) {
                             alertUser("No empty fields allowed", context)
@@ -71,8 +86,8 @@ fun SignInScreen(context: Context, navHostController: NavHostController) {
                             StrictMode.setThreadPolicy(policy)
                             val user = login(
                                 "http://${preferences.serverIp}/users/login",
-                                login.value,
-                                password.value
+                                login.value.trim(),
+                                password.value.trim()
                             )
                             println(user)
 
