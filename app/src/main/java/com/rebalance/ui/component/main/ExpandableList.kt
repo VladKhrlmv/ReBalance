@@ -25,7 +25,6 @@ import com.rebalance.PreferencesData
 import com.rebalance.backend.service.BackendService
 import com.rebalance.backend.service.ExpenseItem
 import com.rebalance.utils.alertUser
-import com.rebalance.utils.displayExpenseImage
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
 import compose.icons.evaicons.fill.Trash
@@ -121,7 +120,7 @@ fun ExpandableList(
                                 },
                                 supportingContent = { Text(expense.getDescription()) },
                                 leadingContent = {
-                                    displayExpenseImage(
+                                    DisplayExpenseImage(
                                         preferences,
                                         expense.getGlobalId(),
                                         showPicture,
