@@ -1,22 +1,27 @@
 package com.rebalance.service.notification
 
+import android.Manifest
+import android.app.Activity
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat
 import com.rebalance.Preferences
 import com.rebalance.PreferencesData
 import com.rebalance.R
 import com.rebalance.activity.LoadingActivity
 import com.rebalance.backend.api.RequestsSender
 import com.rebalance.backend.api.jsonArrayToNotification
+import com.rebalance.utils.alertUser
 
 class NotificationService(
     val context: Context,
@@ -132,8 +137,17 @@ class NotificationService(
             .setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL)
 
         with(NotificationManagerCompat.from(context)) {
-            //TODO: check permission
-            notify(notificationId++, builder.build())
+            val activity = (context as Activity)
+            if (ContextCompat.checkSelfPermission(
+                    activity,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                // Permission already granted, you can show notifications or perform other actions
+                notify(notificationId++, builder.build())
+            } else {
+                alertUser("Cannot show notification - no permission", context)
+            }
         }
     }
 }
