@@ -78,6 +78,7 @@ fun GroupScreen(
                 groupId,
                 context,
                 refreshAndOpenGroup = { newGroupId ->
+                    groupId = -1L
                     groupId = newGroupId
                 }
             )
