@@ -59,17 +59,19 @@ fun LoadingScreen() {
                 connected.value = it
             }
 
-            if (connected.value == 1) {
-                if (!preferences.exists()) {
-                    switchActivityTo(context, AuthenticationActivity::class)
-                } else {
-                    switchActivityTo(context, MainActivity::class)
-                }
-            } else if (connected.value == -1) {
-                alertUser("Can't establish connection. Retrying in 5 seconds", context)
-            }
+
             delay(5000)
         }
+    }
+
+    if (connected.value == 1) {
+        if (!preferences.exists()) {
+            switchActivityTo(context, AuthenticationActivity::class)
+        } else {
+            switchActivityTo(context, MainActivity::class)
+        }
+    } else if (connected.value == -1) {
+        alertUser("Can't establish connection. Retrying in 5 seconds", context)
     }
 }
 
