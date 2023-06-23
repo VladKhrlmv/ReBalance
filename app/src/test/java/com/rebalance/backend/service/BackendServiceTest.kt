@@ -15,7 +15,7 @@ import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 internal class BackendServiceTest {
-    private val backendService = spyk(BackendService(PreferencesData("192.168.0.1", "1", 1))) {
+    private val backendService = spyk(BackendService(PreferencesData("192.168.0.1", "1", 1, false, "systemChannel"))) {
         every { setPolicy() } just runs
     }
 
@@ -265,6 +265,7 @@ internal class BackendServiceTest {
     @Test
     fun getGroupListEmptyWhenAmountMinus() {
         val expected = ArrayList<Expense>()
+        expected.add(Expense(146, -6500.0, "2023-01-16", "test13", "test13.1", 0))
 
         every { RequestsSender.sendGet(any()) } returns "[{\"id\":146,\"amount\":-6500.0,\"description\":\"test13.1\",\"dateStamp\":\"2023-01-16\",\"category\":\"test13\",\"globalId\":0,\"user\":{\"id\":2,\"username\":\"Artemii\",\"email\":\"user.2@gmail.com\"},\"group\":{\"id\":145,\"name\":\"test13\",\"currency\":\"TAJ\",\"users\":[{\"id\":2,\"username\":\"Artemii\",\"email\":\"user.2@gmail.com\"},{\"id\":3,\"username\":\"Uladzislau\",\"email\":\"user.3@gmail.com\"}]}}]"
 
@@ -277,7 +278,7 @@ internal class BackendServiceTest {
         val expected = ArrayList<Expense>()
         expected.add(Expense(148, 13000.0, "2023-01-16", "test13", "test13.1", 0))
 
-        every { RequestsSender.sendGet(any()) } returns "[{\"id\":146,\"amount\":-6500.0,\"description\":\"test13.1\",\"dateStamp\":\"2023-01-16\",\"category\":\"test13\",\"globalId\":0,\"user\":{\"id\":2,\"username\":\"Artemii\",\"email\":\"user.2@gmail.com\"},\"group\":{\"id\":145,\"name\":\"test13\",\"currency\":\"TAJ\",\"users\":[{\"id\":2,\"username\":\"Artemii\",\"email\":\"user.2@gmail.com\"},{\"id\":3,\"username\":\"Uladzislau\",\"email\":\"user.3@gmail.com\"}]}},{\"id\":147,\"amount\":-6500.0,\"description\":\"test13.1\",\"dateStamp\":\"2023-01-16\",\"category\":\"test13\",\"globalId\":0,\"user\":{\"id\":3,\"username\":\"Uladzislau\",\"email\":\"user.3@gmail.com\"},\"group\":{\"id\":145,\"name\":\"test13\",\"currency\":\"TAJ\",\"users\":[{\"id\":2,\"username\":\"Artemii\",\"email\":\"user.2@gmail.com\"},{\"id\":3,\"username\":\"Uladzislau\",\"email\":\"user.3@gmail.com\"}]}},{\"id\":148,\"amount\":13000.0,\"description\":\"test13.1\",\"dateStamp\":\"2023-01-16\",\"category\":\"test13\",\"globalId\":0,\"user\":{\"id\":3,\"username\":\"Uladzislau\",\"email\":\"user.3@gmail.com\"},\"group\":{\"id\":145,\"name\":\"test13\",\"currency\":\"TAJ\",\"users\":[{\"id\":2,\"username\":\"Artemii\",\"email\":\"user.2@gmail.com\"},{\"id\":3,\"username\":\"Uladzislau\",\"email\":\"user.3@gmail.com\"}]}}]"
+        every { RequestsSender.sendGet(any()) } returns "[{\"id\":148,\"amount\":13000.0,\"description\":\"test13.1\",\"dateStamp\":\"2023-01-16\",\"category\":\"test13\",\"globalId\":0,\"user\":{\"id\":3,\"username\":\"Uladzislau\",\"email\":\"user.3@gmail.com\"},\"group\":{\"id\":145,\"name\":\"test13\",\"currency\":\"TAJ\",\"users\":[{\"id\":2,\"username\":\"Artemii\",\"email\":\"user.2@gmail.com\"},{\"id\":3,\"username\":\"Uladzislau\",\"email\":\"user.3@gmail.com\"}]}}]"
 
         val actual = backendService.getGroupList(146)
         assertEquals(expected, actual)
