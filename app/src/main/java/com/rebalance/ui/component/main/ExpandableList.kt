@@ -40,8 +40,6 @@ fun ExpandableList(
     LazyColumn {
         items(items = items, itemContent = { item ->
             val expanded = rememberSaveable { mutableStateOf(false) }
-            val showPicture = remember { mutableStateOf(false) }
-
 
             Card(
                 modifier = Modifier
@@ -77,6 +75,7 @@ fun ExpandableList(
                     Column {
                         for ((index, expense) in item.expenses.withIndex()) {
                             Divider()
+                            val showPicture = remember { mutableStateOf(false) }
                             ListItem(
                                 headlineContent = {
                                     Row(

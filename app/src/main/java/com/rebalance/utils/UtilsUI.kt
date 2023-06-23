@@ -7,7 +7,6 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
@@ -18,7 +17,6 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import com.rebalance.PreferencesData
@@ -44,9 +42,10 @@ fun displayExpenseImage(
     showPicture: MutableState<Boolean>,
     context: Context
 ) {
-    val imgBase64 = BackendService(preferences).getExpensePicture(globalId)
-    if (imgBase64 != null) {
+    val iconBase64 = BackendService(preferences).getExpenseIcon(globalId)
+    if (iconBase64 != null) {
         if (showPicture.value) {
+            val imageBase64 = BackendService(preferences).getExpensePicture(globalId)
             AlertDialog(
                 onDismissRequest = { showPicture.value = false },
                 title = {
@@ -57,9 +56,9 @@ fun displayExpenseImage(
                     ) {
                         Image(
                             bitmap = BitmapFactory.decodeByteArray(
-                                imgBase64,
+                                imageBase64,
                                 0,
-                                imgBase64.size
+                                imageBase64!!.size
                             ).asImageBitmap(),
                             contentDescription = "Image",
                             modifier = Modifier.fillMaxWidth()
@@ -85,9 +84,9 @@ fun displayExpenseImage(
             Image(
                 bitmap = Bitmap.createScaledBitmap(
                     BitmapFactory.decodeByteArray(
-                        imgBase64,
+                        iconBase64,
                         0,
-                        imgBase64.size
+                        iconBase64.size
                     ), 100, 100, false
                 ).asImageBitmap(),
                 contentDescription = "Expanse image as an icon"
