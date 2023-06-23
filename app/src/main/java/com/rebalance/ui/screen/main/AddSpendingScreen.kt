@@ -325,6 +325,7 @@ fun AddSpendingScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .testTag("groupSelectExpenseDropdown")
                 ) {
                     GroupSelection(
                         preferences,
