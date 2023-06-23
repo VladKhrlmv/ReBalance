@@ -419,7 +419,8 @@ fun addExpense(
                     spendingName.text,
                     resultExpense.getGlobalId()
                 ),
-                groupId
+                groupId,
+                member.key.getId()
             )
             if (callerPhoto != null) {
                 val b = callerPhoto.toByteArray()

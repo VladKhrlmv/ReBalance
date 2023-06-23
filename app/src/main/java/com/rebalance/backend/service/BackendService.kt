@@ -205,10 +205,10 @@ class BackendService(
         return groups
     }
 
-    fun addExpense(expense: Expense, groupId: Long): Expense {
+    fun addExpense(expense: Expense, groupId: Long, userId: Long? = null): Expense {
         setPolicy()
         val jsonBodyPOST = RequestsSender.sendPost(
-            "http://${preferences.serverIp}/expenses/user/${preferences.userId}/group/${groupId}/${preferences.userId}",
+            "http://${preferences.serverIp}/expenses/user/${userId ?: preferences.userId}/group/${groupId}/${preferences.userId}",
             Gson().toJson(expense)
         )
         return jsonToExpense(jsonBodyPOST)
