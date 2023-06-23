@@ -124,9 +124,28 @@ class BackendService(
         }
 
         if (list.isEmpty()) { // if empty list add current date otherwise app crash
+            var name = ""
+            val date = LocalDate.now()
+            when (scale) {
+                "Day" -> {
+                    name = date.format(formatter)
+                }
+                "Week" -> {
+                    val dateFrom = date.with(DayOfWeek.MONDAY)
+                    val dateTo = date.with(DayOfWeek.SUNDAY)
+                    name = dateFrom.format(formatter) + "\n" + dateTo.format(formatter)
+                }
+                "Month" -> {
+                    name = date.month.toString() + " " + date.year.toString()
+                }
+                "Year" -> {
+                    name = date.year.toString()
+                }
+            }
+
             list.add(
                 ScaledDateItem(
-                    LocalDate.now().format(formatter),
+                    name,
                     LocalDate.now(),
                     LocalDate.now()
                 )
