@@ -31,9 +31,10 @@ fun DisplayExpenseImage(
     showPicture: MutableState<Boolean>,
     context: Context
 ) {
-    val imgBase64 = BackendService(preferences).getExpensePicture(globalId)
-    if (imgBase64 != null) {
+    val iconBase64 = BackendService(preferences).getExpenseIcon(globalId)
+    if (iconBase64 != null) {
         if (showPicture.value) {
+            val imageBase64 = BackendService(preferences).getExpensePicture(globalId)
             AlertDialog(
                 onDismissRequest = { showPicture.value = false },
                 title = {
@@ -44,9 +45,9 @@ fun DisplayExpenseImage(
                     ) {
                         Image(
                             bitmap = BitmapFactory.decodeByteArray(
-                                imgBase64,
+                                imageBase64,
                                 0,
-                                imgBase64.size
+                                imageBase64!!.size
                             ).asImageBitmap(),
                             contentDescription = "Image",
                             modifier = Modifier.fillMaxWidth()
@@ -72,9 +73,9 @@ fun DisplayExpenseImage(
             Image(
                 bitmap = Bitmap.createScaledBitmap(
                     BitmapFactory.decodeByteArray(
-                        imgBase64,
+                        iconBase64,
                         0,
-                        imgBase64.size
+                        iconBase64.size
                     ), 100, 100, false
                 ).asImageBitmap(),
                 contentDescription = "Expanse image as an icon"
