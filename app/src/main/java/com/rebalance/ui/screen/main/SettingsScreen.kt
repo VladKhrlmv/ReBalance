@@ -13,14 +13,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
 import com.rebalance.Preferences
 import com.rebalance.R
 import com.rebalance.service.notification.NotificationService
 import com.rebalance.ui.component.SoundPlayer
 
 @Composable
-fun SettingsScreen(navController: NavHostController) {
+fun SettingsScreen() {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -40,7 +39,7 @@ fun SettingsScreen(navController: NavHostController) {
             )
             val context = LocalContext.current
 
-            var selectedChannel =
+            val selectedChannel =
                 remember { mutableStateOf(Preferences(context).read().currNotificationChannel) }
 
             Column(

@@ -177,7 +177,6 @@ fun ExpandableList(
             }
         })
     }
-
 }
 
 
@@ -186,7 +185,7 @@ fun CardArrow(
     bool: Boolean,
 ) {
     Icon(
-        Icons.Default.ArrowDropDown, //TODO: change to different icons
+        Icons.Default.ArrowDropDown,
         contentDescription = "Expandable Arrow",
         modifier = Modifier
             .rotate(if (bool) 180f else 0f)

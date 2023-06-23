@@ -39,6 +39,7 @@ fun PersonalScreen(
 
     // initialize tabs
     val tabItems = rememberSaveable { mutableListOf<ScaledDateItem>() } // list of tabs
+    var selectedTabIndex by rememberSaveable { mutableStateOf(Int.MAX_VALUE) } // selected index of tab
 
     // declare function to update tab items
     fun updateTabItems(
@@ -46,10 +47,10 @@ fun PersonalScreen(
     ) {
         tabItems.clear()
         tabItems.addAll(BackendService(preferences).getScaledDateItems(type))
+        if (selectedTabIndex >= tabItems.size) selectedTabIndex = tabItems.size - 1
     }
     // fill initial tabs
     updateTabItems(scaleItems[selectedScaleIndex].type)
-    var selectedTabIndex by rememberSaveable { mutableStateOf(tabItems.size - 1) } // selected index of tab
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -83,6 +84,7 @@ fun PersonalScreen(
 
             // declare function to update data
             fun updateData() {
+                updateTabItems(scaleItems[selectedScaleIndex].type)
                 data.clear()
                 data.addAll(
                     BackendService(preferences).getPersonal(

@@ -19,9 +19,7 @@ import androidx.navigation.NavHostController
 import com.rebalance.Preferences
 import com.rebalance.PreferencesData
 import com.rebalance.activity.MainActivity
-import com.rebalance.backend.api.RequestsSender
-import com.rebalance.backend.api.jsonArrayToExpenseGroups
-import com.rebalance.backend.api.login
+import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.authentication.CustomInput
 import com.rebalance.ui.component.authentication.CustomPasswordInput
 import com.rebalance.ui.component.authentication.PrimaryButton
@@ -34,11 +32,8 @@ import com.rebalance.utils.alertUser
 @Composable
 fun SignInScreen(context: Context, navHostController: NavHostController) {
     val preferences = rememberSaveable { Preferences(context).read() }
-
     val login = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
-    val showError = remember { mutableStateOf(false) }
-    val errorMessage = remember { mutableStateOf("") }
 
     val loginFocusRequester = remember { FocusRequester() }
     val passwordFocusRequester = remember { FocusRequester() }
@@ -80,20 +75,14 @@ fun SignInScreen(context: Context, navHostController: NavHostController) {
                             return@PrimaryButton
                         }
                         try {
-                            // TODO: Uncomment
-                            println("trying to login...")
                             val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
                             StrictMode.setThreadPolicy(policy)
-                            val user = login(
-                                "http://${preferences.serverIp}/users/login",
-                                login.value.trim(),
-                                password.value.trim()
+                            val user = BackendService(preferences).login(
+                                login.value,
+                                password.value
                             )
-                            println(user)
 
-                            val groupsJson =
-                                RequestsSender.sendGet("http://${preferences.serverIp}/users/${user.getId()}/groups")
-                            val groups = jsonArrayToExpenseGroups(groupsJson)
+                            val groups = BackendService(preferences).getGroups(user.getId())
                             for (group in groups) {
                                 if (group.getName() == "per${user.getEmail()}") {
                                     val preferencesData =
@@ -105,30 +94,18 @@ fun SignInScreen(context: Context, navHostController: NavHostController) {
                                             "systemChannel"
                                         )
                                     Preferences(context).write(preferencesData)
-                                    println("Logged in as: ${preferences.userId}")
-                                    println("Personal group: ${preferences.groupId}")
                                 }
                             }
-//                             throw FailedLoginException("Invalid password for email")
 
                             switchActivityTo(context, MainActivity::class)
                         } catch (error: Exception) {
-                            println("Caught a FailedLoginException! You should see the error message on the screen")
-                            showError.value = true
-                            errorMessage.value = error.message.toString()
+                            alertUser("Wrong email or password", context)
                         }
-
                     })
                     SecondaryButton("SIGN UP", 5.dp, onClick = {
                         navigateTo(navHostController, Routes.Register)
                     })
-
-                    if (showError.value) {
-                        alertUser("Wrong email or password", context)
-                    }
-                    showError.value = false
                 }
-
             }
         }
     )

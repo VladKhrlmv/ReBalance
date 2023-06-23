@@ -1,7 +1,6 @@
 package com.rebalance.ui.screen.main
 
 import android.content.Context
-import android.os.StrictMode
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -16,8 +15,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.rebalance.Preferences
 import com.rebalance.PreferencesData
-import com.rebalance.backend.api.RequestsSender
-import com.rebalance.backend.api.jsonToApplicationUser
 import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.backend.service.BackendService
@@ -81,6 +78,7 @@ fun GroupScreen(
                 groupId,
                 context,
                 refreshAndOpenGroup = { newGroupId ->
+                    groupId = -1L
                     groupId = newGroupId
                 }
             )
@@ -125,7 +123,7 @@ private fun DisplayGroupSelection(
             .testTag("groupSelectionGroupScreen"),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // show group selection with 2.5 times longer width than button below
+        // show group selection to fill remaining space after button
         GroupSelection(
             preferences,
             if (groupId == -1L) "" else BackendService(preferences).getGroupById(groupId).getName(),
@@ -187,7 +185,7 @@ private fun DisplayInviteFields(
     ) {
         var email by remember { mutableStateOf(TextFieldValue()) }
 
-        // show email input with 2.5 times longer width than button below
+        // show email input to fill remaining space after button
         TextField(
             value = email,
             onValueChange = { newEmail -> email = newEmail },
@@ -202,16 +200,9 @@ private fun DisplayInviteFields(
         // show button to add user to group
         Button(
             onClick = {
-                try { //TODO: move to backend service
-                    val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-                    StrictMode.setThreadPolicy(policy)
-                    val getUserByEmailResponse =
-                        RequestsSender.sendGet("http://${preferences.serverIp}/users/email/${email.text}")
-                    val user = jsonToApplicationUser(getUserByEmailResponse)
-                    RequestsSender.sendPost(
-                        "http://${preferences.serverIp}/users/${user.getId()}/groups",
-                        "{\"id\": ${groupId}}"
-                    )
+                try {
+                    val user = BackendService(preferences).getUserByEmail(email.text)
+                    BackendService(preferences).addUserToGroup(user.getId(), groupId)
                     alertUser("User in group!", context)
                     email = TextFieldValue(text = "")
                     onUserAdd()

@@ -6,8 +6,7 @@ import android.os.Looper
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.rebalance.Preferences
-import com.rebalance.backend.api.RequestsSender
-import com.rebalance.backend.api.jsonArrayToNotification
+import com.rebalance.backend.service.BackendService
 
 class NotificationIdle(
     val context: Context,
@@ -23,13 +22,7 @@ class NotificationIdle(
             val preferences = Preferences(context).read()
             val mainLooper = Looper.getMainLooper()
 
-            val notifications = jsonArrayToNotification(
-                RequestsSender.sendGet(
-                    "http://${preferences.serverIp}/users/${
-                        preferences.userId
-                    }/notifications"
-                )
-            )
+            val notifications = BackendService(preferences).getNotifications()
 
             if (notifications.isNotEmpty()) {
                 for (notification in notifications) {
@@ -52,5 +45,4 @@ class NotificationIdle(
             Result.failure()
         }
     }
-
 }

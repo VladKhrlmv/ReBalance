@@ -5,9 +5,8 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Typeface
-import android.os.Handler
-import android.os.Looper
 import android.provider.MediaStore
+import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -18,6 +17,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
@@ -35,17 +35,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.rebalance.Preferences
+import com.rebalance.PreferencesData
 import com.rebalance.backend.entities.ApplicationUser
+import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.entities.ExpenseGroup
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.main.DatePickerField
 import com.rebalance.ui.component.main.GroupSelection
 import com.rebalance.ui.navigation.navigateUp
-import com.rebalance.utils.addExpense
-import com.rebalance.utils.alertUser
-import com.rebalance.utils.compressImage
-
-val costValueRegex = """^\d{0,12}[.,]?\d{0,2}${'$'}""".toRegex()
+import com.rebalance.utils.*
+import java.io.ByteArrayOutputStream
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @SuppressLint("UnrememberedMutableState")
 @Composable
@@ -118,44 +119,44 @@ fun AddSpendingScreen(
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
             ) {
-                val mainLooper = Looper.getMainLooper()
                 Button(
                     onClick = {
                         if (spendingName.text.isEmpty() || costValue.text.isEmpty() || selectedCategory.text.isEmpty()) {
                             alertUser("Fill in all data", context)
                             return@Button
                         }
+                        if (isGroupExpense && membersSelection.filterValues { flag -> flag }
+                                .isEmpty()) {
+                            alertUser("Choose at least one member", context)
+                            return@Button
+                        }
 
-                        Thread {
-                            try {
-                                addExpense(
-                                    isGroupExpense,
-                                    membersSelection,
-                                    context,
-                                    preferences,
-                                    groupId,
-                                    costValue,
-                                    date,
-                                    selectedCategory,
-                                    spendingName,
-                                    compressImage(selectedPhoto, context)
-                                )
-                                spendingName = TextFieldValue("")
-                                costValue = TextFieldValue("")
-                                selectedCategory = TextFieldValue("")
-                                date.value = ""
-                                isGroupExpense = false
-                                groupName = ""
-                                groupId = 0L
-                                membersSelection.clear()
-                                alertUser("Expense saved!", context)
-                                Handler(mainLooper).post {
-                                    navigateUp(navHostController)
-                                }
-                            } catch (e: Exception) {
-                                alertUser("Unexpected error occurred:\n" + e.message, context)
-                            }
-                        }.start()
+                        try {
+                            addExpense(
+                                isGroupExpense,
+                                membersSelection,
+                                preferences,
+                                groupId,
+                                costValue,
+                                date,
+                                selectedCategory,
+                                spendingName,
+                                compressImage(selectedPhoto)
+                            )
+                            spendingName = TextFieldValue("")
+                            costValue = TextFieldValue("")
+                            selectedCategory = TextFieldValue("")
+                            date.value = ""
+                            isGroupExpense = false
+                            groupName = ""
+                            groupId = 0L
+                            membersSelection.clear()
+
+                            alertUser("Expense saved!", context)
+                            navigateUp(navHostController)
+                        } catch (e: Exception) {
+                            alertUser("Unexpected error occurred:\n" + e.message, context)
+                        }
                     },
                     modifier = Modifier
                         .padding(1.dp)
@@ -218,7 +219,7 @@ fun AddSpendingScreen(
             TextField(
                 value = costValue,
                 onValueChange = { newCostValue ->
-                    if (costValueRegex.matches(newCostValue.text)) {
+                    if (costValueRegex().matches(newCostValue.text)) {
                         costValue = newCostValue
                     }
                 },
@@ -320,52 +321,138 @@ fun AddSpendingScreen(
                 modifier = Modifier
                     .fillMaxWidth()
             ) {
-                GroupSelection(
-                    preferences,
-                    groupName,
-                    Modifier
+                // checkboxes for all selected group's members
+                Column(
+                    modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 10.dp, bottom = 10.dp)
-                        .testTag("groupSelectExpenseDropdown"),
-                    onSwitch = {
-                        groupId = it
-                        val group = BackendService(preferences).getGroupById(groupId)
-                        groupName = group.getName()
-                        membersSelection.clear()
-                        group.getUsers().forEach { member ->
-                            membersSelection[member] = false
-                        }
-                    })
-            }
-            // checkboxes for all selected group's members
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                membersSelection.keys.toList().forEach { member ->
-                    Row(
-                        modifier = Modifier
+                        .testTag("groupSelectExpenseDropdown")
+                ) {
+                    GroupSelection(
+                        preferences,
+                        groupName,
+                        Modifier
                             .fillMaxWidth()
-                    ) {
-                        membersSelection[member]?.let {
-                            Checkbox(
-                                checked = it,
-                                onCheckedChange = { newValue ->
-                                    membersSelection[member] = newValue
-                                },
-                            )
-                            Text(
-                                text = member.getUsername(),
-                                modifier = Modifier
-                                    .padding(vertical = 12.dp)
-                                    .clickable {
-                                        membersSelection[member] = !membersSelection[member]!!
-                                    }
-                            )
+                            .padding(top = 10.dp, bottom = 10.dp),
+                        Modifier
+                            .fillMaxWidth(),
+                        onSwitch = {
+                            groupId = it
+                            val group = BackendService(preferences).getGroupById(groupId)
+                            groupName = group.getName()
+                            membersSelection.clear()
+                            group.getUsers().forEach { member ->
+                                membersSelection[member] = false
+                            }
+                        }
+                    )
+
+                    membersSelection.keys.toList().forEach { member ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                        ) {
+                            membersSelection[member]?.let {
+                                Checkbox(
+                                    checked = it,
+                                    onCheckedChange = { newValue ->
+                                        membersSelection[member] = newValue
+                                    },
+                                )
+                                Text(
+                                    text = member.getUsername(),
+                                    modifier = Modifier
+                                        .padding(vertical = 12.dp)
+                                        .clickable {
+                                            membersSelection[member] = !membersSelection[member]!!
+                                        }
+                                )
+                            }
                         }
                     }
                 }
             }
+        }
+    }
+}
+
+fun getToday(): String {
+    return LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+}
+
+fun compressImage(originalImage: Bitmap?): ByteArrayOutputStream? {
+    if (originalImage == null) {
+        return null
+    }
+    val outputStream = ByteArrayOutputStream()
+    originalImage.compress(Bitmap.CompressFormat.JPEG, 50, outputStream)
+    return outputStream
+}
+
+fun addExpense(
+    isGroupExpense: Boolean,
+    membersSelection: SnapshotStateMap<ApplicationUser, Boolean>,
+    preferences: PreferencesData,
+    groupId: Long,
+    costValue: TextFieldValue,
+    date: MutableState<String>,
+    selectedCategory: TextFieldValue,
+    spendingName: TextFieldValue,
+    callerPhoto: ByteArrayOutputStream?
+) {
+    if (isGroupExpense) {
+        val activeMembers =
+            membersSelection.filterValues { flag -> flag }
+        val resultExpense = BackendService(preferences).addExpense(
+            Expense(
+                costValue.text.toDouble(),
+                date.value.ifBlank { getToday() },
+                selectedCategory.text,
+                spendingName.text
+            ),
+            groupId
+        )
+        for (member in activeMembers) {
+            BackendService(preferences).addExpense(
+                Expense(
+                    costValue.text.toDouble() / activeMembers.size * -1,
+                    date.value.ifBlank { getToday() },
+                    selectedCategory.text,
+                    spendingName.text,
+                    resultExpense.getGlobalId()
+                ),
+                groupId,
+                member.key.getId()
+            )
+            if (callerPhoto != null) {
+                val b = callerPhoto.toByteArray()
+                val base64String: String = Base64.encodeToString(
+                    b,
+                    Base64.DEFAULT
+                )
+
+                BackendService(preferences).addExpenseImage(
+                    base64String,
+                    resultExpense.getGlobalId()
+                )
+            }
+        }
+    } else {
+        val resultExpense = BackendService(preferences).addExpense(
+            Expense(
+                costValue.text.toDouble(),
+                date.value.ifBlank { getToday() },
+                selectedCategory.text,
+                spendingName.text
+            ),
+            preferences.groupId
+        )
+        if (callerPhoto != null) {
+            val b = callerPhoto.toByteArray()
+            val base64String: String = Base64.encodeToString(
+                b,
+                Base64.DEFAULT
+            )
+            BackendService(preferences).addExpenseImage(base64String, resultExpense.getGlobalId())
         }
     }
 }

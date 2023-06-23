@@ -13,8 +13,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-
-val currencyRegex = """[a-zA-Z]{0,3}""".toRegex() //TODO: move to utils
+import com.rebalance.utils.currencyRegex
 
 @Composable
 fun CurrencyInput(
@@ -26,7 +25,7 @@ fun CurrencyInput(
     TextField(
         value = personalCurrency.value,
         onValueChange = { newCurrency ->
-            if (currencyRegex.matches(newCurrency)) {
+            if (currencyRegex().matches(newCurrency)) {
                 personalCurrency.value = newCurrency.uppercase()
             }
         },
