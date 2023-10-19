@@ -5,11 +5,8 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Modifier
@@ -17,6 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavHostController
 import com.rebalance.Preferences
 import com.rebalance.PreferencesData
 import com.rebalance.backend.service.BackendService
@@ -25,11 +23,15 @@ import com.rebalance.backend.service.ScaleItem
 import com.rebalance.backend.service.ScaledDateItem
 import com.rebalance.ui.component.main.ExpandableList
 import com.rebalance.ui.component.main.scaffold.PieChart
+import com.rebalance.ui.navigation.Routes
+import com.rebalance.ui.navigation.navigateSingleTo
 
 @Composable
 fun PersonalScreen(
     context: Context,
-    pieChartActive: Boolean
+    pieChartActive: Boolean,
+    navHostController: NavHostController,
+    setOnPlusClick: (() -> Unit) -> Unit
 ) {
     val preferences = rememberSaveable { Preferences(context).read() }
 
@@ -41,6 +43,12 @@ fun PersonalScreen(
     val tabItems = rememberSaveable { mutableListOf<ScaledDateItem>() } // list of tabs
     var selectedTabIndex by rememberSaveable { mutableStateOf(Int.MAX_VALUE) } // selected index of tab
 
+    LaunchedEffect(Unit) {
+        setOnPlusClick{
+            navigateSingleTo(navHostController, Routes.AddSpending)
+        }
+    }
+
     // declare function to update tab items
     fun updateTabItems(
         type: String
@@ -51,7 +59,6 @@ fun PersonalScreen(
     }
     // fill initial tabs
     updateTabItems(scaleItems[selectedScaleIndex].type)
-
     Column(
         modifier = Modifier.fillMaxSize()
     ) {

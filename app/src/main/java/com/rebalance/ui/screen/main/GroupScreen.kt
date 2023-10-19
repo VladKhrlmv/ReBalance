@@ -13,6 +13,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.navigation.NavHostController
 import com.rebalance.Preferences
 import com.rebalance.PreferencesData
 import com.rebalance.backend.entities.Expense
@@ -21,18 +22,28 @@ import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.main.BarChart
 import com.rebalance.ui.component.main.GroupSelection
 import com.rebalance.ui.component.main.GroupSpendingList
+import com.rebalance.ui.navigation.Routes
+import com.rebalance.ui.navigation.navigateSingleTo
 import com.rebalance.utils.alertUser
 
 @Composable
 fun GroupScreen(
-    context: Context
+    context: Context,
+    navHostController: NavHostController,
+    setOnPlusClick: (() -> Unit) -> Unit
 ) {
     val preferences = rememberSaveable { Preferences(context).read() }
-
     // initialize tabs
     val tabItems = listOf("Visual", "List")
     var selectedTabIndex by rememberSaveable { mutableStateOf(0) } // selected index of tab
     var groupId by rememberSaveable { mutableStateOf(-1L) }
+
+    LaunchedEffect(Unit) {
+        setOnPlusClick {
+            navigateSingleTo(navHostController, Routes.AddSpending)
+        }
+    }
+    println("Set for group")
 
     Column(
         modifier = Modifier

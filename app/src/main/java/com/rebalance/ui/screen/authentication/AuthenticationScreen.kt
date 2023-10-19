@@ -7,13 +7,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
-import com.rebalance.backend.api.*
 import com.rebalance.ui.navigation.Routes
 import com.rebalance.ui.navigation.initNavHost
+import com.rebalance.ui.navigation.navigateSingleTo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AuthenticationScreen(navHostController: NavHostController) {
+    var onPlusClick by remember {
+        mutableStateOf({
+            navigateSingleTo(navHostController, Routes.AddSpending)
+        })
+    }
     Scaffold(
         topBar = {
             com.rebalance.ui.component.main.scaffold.TopAppBar(
@@ -25,7 +30,9 @@ fun AuthenticationScreen(navHostController: NavHostController) {
             Box(modifier = Modifier.padding(padding)) {
                 // initialize nav graph here so navigation will be inside scaffold
                 val navHost =
-                    initNavHost(LocalContext.current, navHostController, Routes.Authentication)
+                    initNavHost(LocalContext.current, navHostController, Routes.Authentication) {
+                        newOnPlusClick -> onPlusClick = newOnPlusClick
+                    }
             }
         }
     )

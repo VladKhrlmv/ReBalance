@@ -20,6 +20,7 @@ import com.rebalance.ui.component.main.scaffold.AddSpendingButton
 import com.rebalance.ui.component.main.scaffold.BottomNavigationBar
 import com.rebalance.ui.navigation.Routes
 import com.rebalance.ui.navigation.initNavHost
+import com.rebalance.ui.navigation.navigateSingleTo
 import com.rebalance.ui.navigation.navigateUp
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
@@ -30,6 +31,11 @@ import compose.icons.evaicons.fill.PieChart
 fun MainScreen(
     navHostController: NavHostController
 ) {
+    var onPlusClick by remember {
+        mutableStateOf({
+            navigateSingleTo(navHostController, Routes.AddSpending)
+        })
+    }
     val context = LocalContext.current
     var pieChartActive by rememberSaveable { mutableStateOf(true) }
     val navBackStackEntry by navHostController.currentBackStackEntryAsState()
@@ -51,7 +57,7 @@ fun MainScreen(
         },
         bottomBar = { BottomNavigationBar(navHostController) },
         floatingActionButton = {
-            DisplayAddSpendingButton(navBackStackEntry, navHostController)
+            DisplayAddSpendingButton(navBackStackEntry, navHostController, onPlusClick)
         },
         floatingActionButtonPosition = FabPosition.End,
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
@@ -64,7 +70,9 @@ fun MainScreen(
                 )
             ) {
                 // initialize nav graph here so navigation will be inside scaffold
-                initNavHost(context, navHostController, Routes.Main, pieChartActive)
+                initNavHost(context, navHostController, Routes.Main, pieChartActive) {
+                    newOnPlusClick -> onPlusClick = newOnPlusClick
+                }
 
                 // start guided tour
                 ToolTipOverlay(context, navHostController)
@@ -116,10 +124,8 @@ private fun DisplayPieChartButton(
 @Composable
 private fun DisplayAddSpendingButton(
     navBackStackEntry: NavBackStackEntry?,
-    navHostController: NavHostController
+    navHostController: NavHostController,
+    onClick: () -> Unit
 ) {
-    // if we are on Add Spending screen, hide this button
-    if (navBackStackEntry?.destination?.route != Routes.AddSpending.route) {
-        AddSpendingButton(navHostController)
-    }
+    AddSpendingButton(navBackStackEntry, navHostController, onClick)
 }
