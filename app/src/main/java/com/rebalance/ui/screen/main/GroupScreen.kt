@@ -21,7 +21,7 @@ import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.main.BarChart
 import com.rebalance.ui.component.main.GroupSelection
 import com.rebalance.ui.component.main.GroupSpendingList
-import com.rebalance.utils.alertUser
+import com.rebalance.util.alertUser
 
 @Composable
 fun GroupScreen(

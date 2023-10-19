@@ -20,8 +20,8 @@ import com.rebalance.Preferences
 import com.rebalance.PreferencesData
 import com.rebalance.backend.entities.ExpenseGroup
 import com.rebalance.backend.service.BackendService
-import com.rebalance.utils.alertUser
-import com.rebalance.utils.currencyRegex
+import com.rebalance.util.alertUser
+import com.rebalance.util.currencyRegex
 
 @Composable
 fun AddGroupScreen(

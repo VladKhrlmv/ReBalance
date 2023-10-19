@@ -20,7 +20,7 @@ import com.rebalance.PreferencesData
 import com.rebalance.R
 import com.rebalance.activity.LoadingActivity
 import com.rebalance.backend.service.BackendService
-import com.rebalance.utils.alertUser
+import com.rebalance.util.alertUser
 
 class NotificationService(
     val context: Context,
