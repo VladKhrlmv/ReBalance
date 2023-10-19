@@ -5,15 +5,19 @@ import android.widget.DatePicker
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import compose.icons.EvaIcons
+import compose.icons.evaicons.Fill
+import compose.icons.evaicons.fill.Calendar
 import java.util.*
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DatePickerField(mDate: MutableState<String>, modifier: Modifier) {
     val mContext = LocalContext.current
@@ -49,8 +53,11 @@ fun DatePickerField(mDate: MutableState<String>, modifier: Modifier) {
                 onValueChange = { },
                 enabled = true,
                 readOnly = true,
-                label = {
-                    Text(text = "Date")
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = Color.Transparent,
+                ),
+                trailingIcon = {
+                    Icon(EvaIcons.Fill.Calendar, "Date")
                 }
             )
             Box(

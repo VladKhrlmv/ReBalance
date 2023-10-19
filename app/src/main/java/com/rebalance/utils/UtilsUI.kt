@@ -21,3 +21,7 @@ fun currencyRegex(): Regex {
 fun costValueRegex(): Regex {
     return """^\d{0,12}[.,]?\d{0,2}${'$'}""".toRegex()
 }
+
+fun positiveIntegerRegex(): Regex {
+    return """\d{1,9}""".toRegex()
+}
