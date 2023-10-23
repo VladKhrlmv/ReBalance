@@ -13,5 +13,7 @@ data class Expense(
     @ColumnInfo(name = "description") val description: String,
     @ColumnInfo(name = "category_id") val categoryId: Long,
     @ColumnInfo(name = "added_by") val addedBy: Long,
-    @ColumnInfo(name = "group_id") val groupId: Long
+    @ColumnInfo(name = "group_id") val groupId: Long,
+    @ColumnInfo(name = "db_id") val dbId: Long?,
+    @ColumnInfo(name = "changed") val changed: Boolean
 )
