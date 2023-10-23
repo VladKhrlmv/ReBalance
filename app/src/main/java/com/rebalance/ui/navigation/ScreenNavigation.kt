@@ -4,16 +4,15 @@ import android.content.Context
 import androidx.compose.runtime.*
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.navigation
+import androidx.navigation.navArgument
 import com.rebalance.ui.screen.authentication.SignInScreen
 import com.rebalance.ui.screen.authentication.SignUpMailScreen
 import com.rebalance.ui.screen.authentication.SignUpScreen
-import com.rebalance.ui.screen.main.AddSpendingScreen
-import com.rebalance.ui.screen.main.GroupScreen
-import com.rebalance.ui.screen.main.PersonalScreen
-import com.rebalance.ui.screen.main.SettingsScreen
+import com.rebalance.ui.screen.main.*
 
 @Composable
 fun initNavHost(
@@ -51,6 +50,14 @@ fun initNavHost(
             composable(Routes.Group.route) {
                 GroupScreen(context, navHostController, setOnPlusClick = newOnPlusClick)
             }
+            composable(
+                Routes.GroupSettings.paramRoute,
+                arguments = listOf(navArgument("groupId") {
+                    type = NavType.LongType
+                })
+            ) { backStackEntry ->
+                GroupSettingsScreen(context, navHostController, backStackEntry.arguments?.getLong("groupId")!!)
+            }
             composable(Routes.AddSpending.route) {
                 AddSpendingScreen(context, navHostController, setOnPlusClick = newOnPlusClick)
             }
@@ -63,6 +70,19 @@ fun initNavHost(
 
 fun navigateTo(navHostController: NavHostController, route: Routes) {
     navHostController.navigate(route.route) {
+        // Pop up to the start destination of the graph to
+        // avoid building up a large stack of destinations
+        // on the back stack as users select items
+        popUpTo(navHostController.graph.findStartDestination().id) {
+            saveState = true
+        }
+        // Restore state when reselecting a previously selected item
+        restoreState = true
+    }
+}
+
+fun navigateToGroup(navHostController: NavHostController, groupId: Long) {
+    navHostController.navigate("${Routes.GroupSettings.route}/${groupId}") {
         // Pop up to the start destination of the graph to
         // avoid building up a large stack of destinations
         // on the back stack as users select items

@@ -8,23 +8,20 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import com.rebalance.Preferences
 import com.rebalance.PreferencesData
 import com.rebalance.backend.entities.Expense
-import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.main.BarChart
 import com.rebalance.ui.component.main.GroupSelection
 import com.rebalance.ui.component.main.GroupSpendingList
+import com.rebalance.ui.component.main.GroupContextMenu
 import com.rebalance.ui.navigation.Routes
 import com.rebalance.ui.navigation.navigateSingleTo
-import com.rebalance.utils.alertUser
 
 @Composable
 fun GroupScreen(
@@ -36,14 +33,13 @@ fun GroupScreen(
     // initialize tabs
     val tabItems = listOf("Visual", "List")
     var selectedTabIndex by rememberSaveable { mutableStateOf(0) } // selected index of tab
-    var groupId by rememberSaveable { mutableStateOf(-1L) }
+    var groupId = rememberSaveable { mutableStateOf(-1L) }
 
     LaunchedEffect(Unit) {
         setOnPlusClick {
             navigateSingleTo(navHostController, Routes.AddSpending)
         }
     }
-    println("Set for group")
 
     Column(
         modifier = Modifier
@@ -55,8 +51,8 @@ fun GroupScreen(
         }
 
         // selection of groups
-        DisplayGroupSelection(context, preferences, groupId) { newGroupId ->
-            groupId = newGroupId
+        DisplayGroupSelection(context, preferences, navHostController, groupId.value) { newGroupId ->
+            groupId.value = newGroupId
         }
 
         // content
@@ -65,32 +61,19 @@ fun GroupScreen(
                 modifier = Modifier
                     .fillMaxSize()
             ) {
-                if (groupId != -1L) { // if group selected, show invite field
-                    DisplayInviteFields(
-                        preferences,
-                        groupId,
-                        onUserAdd = {
-                            // set group id to -1 and back to start recomposing with updated data
-                            val prevGroupId = groupId
-                            groupId = -1L
-                            groupId = prevGroupId
-                        }
-                    )
-                }
-
                 // show bar chart
-                DisplayVisual(preferences, groupId)
+                DisplayVisual(preferences, groupId.value)
             }
         } else { // if list tab
             // show list
             DisplayGroupList(
-                BackendService(preferences).getGroupList(groupId),
+                BackendService(preferences).getGroupList(groupId.value),
                 preferences,
-                groupId,
+                groupId.value,
                 context,
                 refreshAndOpenGroup = { newGroupId ->
-                    groupId = -1L
-                    groupId = newGroupId
+                    groupId.value = -1L
+                    groupId.value = newGroupId
                 }
             )
         }
@@ -123,10 +106,11 @@ private fun DisplayTabs(
 private fun DisplayGroupSelection(
     context: Context,
     preferences: PreferencesData,
+    navHostController: NavHostController,
     groupId: Long,
     onSwitch: (Long) -> Unit
 ) {
-    var showAddGroupDialog by remember { mutableStateOf(false) }
+    var showAddGroupDialog = remember { mutableStateOf(false) }
 
     Row(
         modifier = Modifier
@@ -140,93 +124,32 @@ private fun DisplayGroupSelection(
             if (groupId == -1L) "" else BackendService(preferences).getGroupById(groupId).getName(),
             Modifier
                 .padding(start = 10.dp)
-                .weight(1f),
-            Modifier,
+                .weight(1f)
+                .width(300.dp),
+            Modifier
+                .fillMaxWidth(),
             onSwitch
         )
 
-        // show button to create new group
-        Button(
-            onClick = {
-                showAddGroupDialog = true
-            },
-            modifier = Modifier
-                .padding(10.dp)
-                .width(100.dp)
-        ) {
-            Text(text = "Create")
-        }
+        GroupContextMenu(navHostController, showAddGroupDialog, groupId)
     }
 
     // if button create group pressed, show dialog
-    if (showAddGroupDialog) {
+    if (showAddGroupDialog.value) {
         Dialog(
             onDismissRequest = {
-                showAddGroupDialog = false
+                showAddGroupDialog.value = false
             },
         ) {
-            Surface(
-                shadowElevation = 4.dp
-            ) {
-                AddGroupScreen(
-                    context,
-                    onCancel = {
-                        showAddGroupDialog = false
-                    },
-                    onCreate = { groupId ->
-                        onSwitch(groupId)
-                    }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun DisplayInviteFields(
-    preferences: PreferencesData,
-    groupId: Long,
-    onUserAdd: () -> Unit
-) {
-    val context = LocalContext.current
-    Row(
-        modifier = Modifier
-            .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        var email by remember { mutableStateOf(TextFieldValue()) }
-
-        // show email input to fill remaining space after button
-        TextField(
-            value = email,
-            onValueChange = { newEmail -> email = newEmail },
-            modifier = Modifier
-                .padding(start = 10.dp)
-                .weight(1f),
-            label = {
-                Text(text = "Email")
-            }
-        )
-
-        // show button to add user to group
-        Button(
-            onClick = {
-                try {
-                    val user = BackendService(preferences).getUserByEmail(email.text)
-                    BackendService(preferences).addUserToGroup(user.getId(), groupId)
-                    alertUser("User in group!", context)
-                    email = TextFieldValue(text = "")
-                    onUserAdd()
-                } catch (e: ServerException) {
-                    alertUser("User not found", context)
-                    return@Button
+            AddGroupScreen(
+                context,
+                onCancel = {
+                    showAddGroupDialog.value = false
+                },
+                onCreate = { groupId ->
+                    onSwitch(groupId)
                 }
-            },
-            modifier = Modifier
-                .padding(10.dp)
-                .width(100.dp)
-        ) {
-            Text(text = "Invite")
+            )
         }
     }
 }
