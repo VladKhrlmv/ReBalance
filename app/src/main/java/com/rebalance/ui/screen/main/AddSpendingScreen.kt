@@ -41,6 +41,7 @@ import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.entities.ExpenseGroup
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.main.DatePickerField
+import com.rebalance.ui.component.main.GroupMemberSelection
 import com.rebalance.ui.component.main.GroupSelection
 import com.rebalance.ui.navigation.navigateUp
 import com.rebalance.utils.*
@@ -71,6 +72,7 @@ fun AddSpendingScreen(
     var groupId by remember { mutableStateOf(0L) }
     var groupIdLast by remember { mutableStateOf(0L) }
     var groupList by remember { mutableStateOf(listOf<ExpenseGroup>()) }
+    val payer = mutableStateOf(ApplicationUser())
     val membersSelection = remember { mutableStateMapOf<ApplicationUser, Pair<Boolean, Int>>() }
 
     var selectedPhoto by remember { mutableStateOf(callerPhoto) }
@@ -368,6 +370,7 @@ fun AddSpendingScreen(
                         .fillMaxWidth()
                         .testTag("groupSelectExpenseDropdown")
                 ) {
+                    // Group selection
                     GroupSelection(
                         preferences,
                         groupName,
@@ -384,13 +387,32 @@ fun AddSpendingScreen(
                             group.getUsers().forEach { member ->
                                 membersSelection[member] = Pair(false, 1)
                             }
+                            payer.value = ApplicationUser()
+                        }
+                    )
+                    // Payer field
+                    GroupMemberSelection(
+                        preferences = preferences,
+                        memberSet =
+                            if (groupId != 0L)
+                                BackendService(preferences).getGroupById(groupId).getUsers()
+                            else
+                                setOf(),
+                        memberName = payer.value.getUsername(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 10.dp),
+                        innerModifier = Modifier
+                            .fillMaxWidth(),
+                        onSwitch = {
+                            payer.value = it
                         }
                     )
                     Column(
                         modifier = Modifier
-                            .heightIn(100.dp, 250.dp)
+                            .heightIn(100.dp, 175.dp)
                             .verticalScroll(rememberScrollState())
-                            .padding(bottom = 90.dp)
+                            .padding(bottom = 65.dp)
                     )
                     {
                         membersSelection.keys.toList().forEach { member ->
