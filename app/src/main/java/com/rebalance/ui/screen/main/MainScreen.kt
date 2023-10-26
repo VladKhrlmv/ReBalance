@@ -88,7 +88,8 @@ private fun DisplayBackButton(
 ) {
     // display back button only on Settings or Add Spending screen
     if (navBackStackEntry?.destination?.route == Routes.AddSpending.route ||
-        navBackStackEntry?.destination?.route == Routes.Settings.route
+        navBackStackEntry?.destination?.route == Routes.Settings.route ||
+        navBackStackEntry?.destination?.route == Routes.GroupSettings.paramRoute
     ) {
         IconButton(onClick = {
             navigateUp(navHostController)
