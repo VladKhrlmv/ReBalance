@@ -37,7 +37,7 @@ fun MainScreen(
         })
     }
     val context = LocalContext.current
-    var pieChartActive by rememberSaveable { mutableStateOf(true) }
+    var pieChartActive = rememberSaveable { mutableStateOf(true) }
     val navBackStackEntry by navHostController.currentBackStackEntryAsState()
 
     Scaffold(
@@ -50,7 +50,7 @@ fun MainScreen(
                 },
                 content = {
                     DisplayPieChartButton(navBackStackEntry, pieChartActive) {
-                        pieChartActive = !pieChartActive
+                        pieChartActive.value = !pieChartActive.value
                     }
                 }
             )
@@ -105,7 +105,7 @@ private fun DisplayBackButton(
 @Composable
 private fun DisplayPieChartButton(
     navBackStackEntry: NavBackStackEntry?,
-    pieChartActive: Boolean,
+    pieChartActive: MutableState<Boolean>,
     onPieChartClick: () -> Unit
 ) {
     // display button only if on Personal screen
@@ -115,7 +115,7 @@ private fun DisplayPieChartButton(
             modifier = Modifier.testTag("viewSwitcher")
         ) {
             Icon(
-                if (pieChartActive) Icons.Filled.List else EvaIcons.Fill.PieChart,
+                if (pieChartActive.value) Icons.Filled.List else EvaIcons.Fill.PieChart,
                 "Pie chart or list"
             )
         }

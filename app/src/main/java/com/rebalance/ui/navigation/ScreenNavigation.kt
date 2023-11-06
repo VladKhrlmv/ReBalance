@@ -19,7 +19,7 @@ fun initNavHost(
     context: Context,
     navHostController: NavHostController,
     startRoute: Routes,
-    pieChartActive: Boolean = true,
+    pieChartActive: MutableState<Boolean>,
     newOnPlusClick: (() -> Unit) -> Unit,
 ) {
     return NavHost(

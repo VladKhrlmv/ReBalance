@@ -6,25 +6,38 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.github.mikephil.charting.charts.PieChart
+import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.PieData
 import com.github.mikephil.charting.data.PieDataSet
 import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
+import com.github.mikephil.charting.highlight.Highlight
+import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import com.rebalance.backend.service.ExpenseItem
 import com.rebalance.ui.theme.categoryColors
 import com.rebalance.ui.theme.darkBlueColor
+import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 
 @Composable
-fun PieChart(data: List<ExpenseItem>) {
+fun PieChart(
+    data: List<ExpenseItem>,
+    pieChartActive: MutableState<Boolean>,
+    openCategory: MutableState<String>,
+    expandableListState: LazyListState
+) {
+    val coroutineScope = rememberCoroutineScope()
     Column(
         modifier = Modifier
             .padding(18.dp)
@@ -51,6 +64,22 @@ fun PieChart(data: List<ExpenseItem>) {
                     this.holeRadius = 50f
                     this.setCenterTextColor(onBackground)
                     this.setCenterTextTypeface(Typeface.DEFAULT_BOLD)
+                    this.setOnChartValueSelectedListener(object: OnChartValueSelectedListener{
+                        override fun onValueSelected(e: Entry, h: Highlight) {
+                            if (e is PieEntry) {
+                                pieChartActive.value = !pieChartActive.value
+                                openCategory.value = (e.data as ExpenseItem).text
+                                val indexOfItem = data.indexOfFirst {
+                                    it.text == openCategory.value
+                                }
+                                coroutineScope.launch {
+                                    expandableListState.scrollToItem(index = indexOfItem, scrollOffset = 3)
+                                }
+                            }
+                        }
+
+                        override fun onNothingSelected() {}
+                    })
                 }
             },
                 modifier = Modifier
@@ -79,7 +108,8 @@ fun updatePieChartWithData(
             if (item.amount / sum * 100 >= overlapLimit)
                 item.text
             else
-                ""
+                "",
+            item
         ))
     }
 
