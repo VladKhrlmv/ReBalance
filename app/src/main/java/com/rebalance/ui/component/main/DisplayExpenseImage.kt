@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
 import com.rebalance.PreferencesData
 import com.rebalance.backend.service.BackendService
-import com.rebalance.utils.alertUser
+import com.rebalance.util.alertUser
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
 import compose.icons.evaicons.fill.Image

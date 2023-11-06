@@ -1,4 +1,4 @@
-package com.rebalance.utils
+package com.rebalance.util
 
 import android.content.Context
 import android.widget.Toast

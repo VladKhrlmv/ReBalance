@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.sp
 import com.rebalance.PreferencesData
 import com.rebalance.backend.service.BackendService
 import com.rebalance.backend.service.ExpenseItem
-import com.rebalance.utils.alertUser
+import com.rebalance.util.alertUser
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
 import compose.icons.evaicons.fill.Trash

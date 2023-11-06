@@ -27,7 +27,7 @@ import com.rebalance.ui.component.authentication.SecondaryButton
 import com.rebalance.ui.navigation.Routes
 import com.rebalance.ui.navigation.navigateTo
 import com.rebalance.ui.navigation.switchActivityTo
-import com.rebalance.utils.alertUser
+import com.rebalance.util.alertUser
 
 @Composable
 fun SignInScreen(context: Context, navHostController: NavHostController) {
