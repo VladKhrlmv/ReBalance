@@ -22,8 +22,8 @@ import com.github.mikephil.charting.data.BarDataSet
 import com.github.mikephil.charting.data.BarEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.rebalance.backend.service.BarChartData
-import com.rebalance.ui.theme.greenColor
-import com.rebalance.ui.theme.redColor
+import com.rebalance.ui.theme.crimsonColor
+import com.rebalance.ui.theme.forestGreenColor
 import java.text.DecimalFormat
 
 @Composable
@@ -92,7 +92,7 @@ fun updateBarChartWithData(
         entries.add(BarEntry(i.toFloat(), item.data.second.toFloat()))
     }
     val ds = BarDataSet(entries, "")
-    ds.colors = data.map { if (it.data.second >= 0) greenColor.toArgb() else redColor.toArgb() }
+    ds.colors = data.map { if (it.data.second >= 0) forestGreenColor.toArgb() else crimsonColor.toArgb() }
     ds.valueFormatter = object : ValueFormatter() {
         val format = DecimalFormat("###,###,###.##")
         override fun getFormattedValue(value: Float): String {
