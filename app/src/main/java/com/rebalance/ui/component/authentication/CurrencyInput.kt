@@ -13,7 +13,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
-import com.rebalance.utils.currencyRegex
+import com.rebalance.util.currencyRegex
 
 @Composable
 fun CurrencyInput(

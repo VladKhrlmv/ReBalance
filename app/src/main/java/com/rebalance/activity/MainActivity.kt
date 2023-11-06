@@ -17,7 +17,7 @@ import com.rebalance.service.notification.NotificationIdle
 import com.rebalance.service.notification.NotificationService
 import com.rebalance.ui.screen.main.MainScreen
 import com.rebalance.ui.theme.ReBalanceTheme
-import com.rebalance.utils.alertUser
+import com.rebalance.util.alertUser
 import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
