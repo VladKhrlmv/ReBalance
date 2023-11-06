@@ -1,7 +1,7 @@
 package com.rebalance.ui.navigation
 
 import android.content.Context
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -20,7 +20,8 @@ fun initNavHost(
     context: Context,
     navHostController: NavHostController,
     startRoute: Routes,
-    pieChartActive: Boolean = true
+    pieChartActive: Boolean = true,
+    newOnPlusClick: (() -> Unit) -> Unit,
 ) {
     return NavHost(
         navHostController,
@@ -45,13 +46,13 @@ fun initNavHost(
             route = Routes.Main.route
         ) {
             composable(Routes.Personal.route) {
-                PersonalScreen(context, pieChartActive)
+                PersonalScreen(context, pieChartActive, navHostController, setOnPlusClick = newOnPlusClick)
             }
             composable(Routes.Group.route) {
-                GroupScreen(context)
+                GroupScreen(context, navHostController, setOnPlusClick = newOnPlusClick)
             }
             composable(Routes.AddSpending.route) {
-                AddSpendingScreen(context, navHostController)
+                AddSpendingScreen(context, navHostController, setOnPlusClick = newOnPlusClick)
             }
             composable(Routes.Settings.route) {
                 SettingsScreen()

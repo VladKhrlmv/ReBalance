@@ -9,22 +9,21 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import com.rebalance.R
-import com.rebalance.ui.navigation.Routes
-import com.rebalance.ui.navigation.navigateSingleTo
 import com.rebalance.ui.theme.AddSpendingButtonShape
 
 @Composable
 fun AddSpendingButton(
-    navHostController: NavHostController
+    navBackStackEntry: NavBackStackEntry?,
+    navHostController: NavHostController,
+    onClick: () -> Unit
 ) {
     FloatingActionButton(
         shape = AddSpendingButtonShape,
         modifier = Modifier.size(65.dp),
-        onClick = {
-            navigateSingleTo(navHostController, Routes.AddSpending)
-        },
+        onClick = onClick,
     ) {
         Icon(
             Icons.Filled.Add,

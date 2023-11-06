@@ -1,8 +1,10 @@
 package com.rebalance.ui.component.main
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import com.rebalance.PreferencesData
 import com.rebalance.backend.service.BackendService
 
@@ -39,13 +41,17 @@ fun GroupSelection(
                     expanded = expandedDropdownGroups
                 )
             },
-            colors = ExposedDropdownMenuDefaults.textFieldColors(),
+            colors = TextFieldDefaults.textFieldColors(
+                containerColor = Color.Transparent
+            ),
             modifier = innerModifier
                 .menuAnchor()
         )
         ExposedDropdownMenu(
             expanded = expandedDropdownGroups,
             onDismissRequest = { expandedDropdownGroups = false },
+            modifier = Modifier
+                .fillMaxWidth()
         ) {
             groupList.forEach { group ->
                 DropdownMenuItem(
@@ -55,6 +61,7 @@ fun GroupSelection(
                         expandedDropdownGroups = false
                     },
                     modifier = innerModifier
+                        .fillMaxWidth()
                 )
             }
         }

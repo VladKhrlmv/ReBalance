@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Typeface
 import android.provider.MediaStore
 import android.util.Base64
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -24,13 +23,14 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -43,21 +43,25 @@ import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.main.DatePickerField
 import com.rebalance.ui.component.main.GroupSelection
 import com.rebalance.ui.navigation.navigateUp
-import com.rebalance.util.*
+import com.rebalance.utils.*
+import compose.icons.EvaIcons
+import compose.icons.evaicons.Fill
+import compose.icons.evaicons.fill.Image
+import compose.icons.evaicons.fill.Trash
 import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("UnrememberedMutableState")
 @Composable
 fun AddSpendingScreen(
     context: Context,
     navHostController: NavHostController,
-    callerPhoto: Bitmap? = null
+    callerPhoto: Bitmap? = null,
+    setOnPlusClick: (() -> Unit) -> Unit
 ) {
-
     val preferences = rememberSaveable { Preferences(context).read() }
-
     var spendingName by remember { mutableStateOf(TextFieldValue()) }
     var selectedCategory by remember { mutableStateOf(TextFieldValue()) }
     var costValue by remember { mutableStateOf(TextFieldValue()) }
@@ -67,7 +71,7 @@ fun AddSpendingScreen(
     var groupId by remember { mutableStateOf(0L) }
     var groupIdLast by remember { mutableStateOf(0L) }
     var groupList by remember { mutableStateOf(listOf<ExpenseGroup>()) }
-    val membersSelection = remember { mutableStateMapOf<ApplicationUser, Boolean>() }
+    val membersSelection = remember { mutableStateMapOf<ApplicationUser, Pair<Boolean, Int>>() }
 
     var selectedPhoto by remember { mutableStateOf(callerPhoto) }
     var photoName by remember { mutableStateOf("") }
@@ -95,7 +99,46 @@ fun AddSpendingScreen(
                 }
             }
         }
+    LaunchedEffect(Unit) {
+        setOnPlusClick {
+            if (spendingName.text.isEmpty() || costValue.text.isEmpty() || selectedCategory.text.isEmpty()) {
+                alertUser("Fill in all data", context)
+                return@setOnPlusClick
+            }
+            if (isGroupExpense && membersSelection.filterValues { flag -> flag.first }
+                    .isEmpty()) {
+                alertUser("Choose at least one member", context)
+                return@setOnPlusClick
+            }
 
+            try {
+                addExpense(
+                    isGroupExpense,
+                    membersSelection,
+                    preferences,
+                    groupId,
+                    costValue,
+                    date,
+                    selectedCategory,
+                    spendingName,
+                    compressImage(selectedPhoto)
+                )
+                spendingName = TextFieldValue("")
+                costValue = TextFieldValue("")
+                selectedCategory = TextFieldValue("")
+                date.value = ""
+                isGroupExpense = false
+                groupName = ""
+                groupId = 0L
+                membersSelection.clear()
+
+                alertUser("Expense saved!", context)
+                navigateUp(navHostController)
+            } catch (e: Exception) {
+                alertUser("Unexpected error occurred:\n" + e.message, context)
+            }
+        }
+    }
     // scroll state of column
     val scrollState = rememberScrollState()
 
@@ -103,97 +146,103 @@ fun AddSpendingScreen(
     Column(
         modifier = Modifier
     ) {
-        // title and button Save
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            Text(
-                text = "Add spending",
-                modifier = Modifier
-                    .padding(10.dp),
-                fontFamily = FontFamily(Typeface.DEFAULT),
-                fontSize = 28.sp,
-            )
-            Row(
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-            ) {
-                Button(
-                    onClick = {
-                        if (spendingName.text.isEmpty() || costValue.text.isEmpty() || selectedCategory.text.isEmpty()) {
-                            alertUser("Fill in all data", context)
-                            return@Button
-                        }
-                        if (isGroupExpense && membersSelection.filterValues { flag -> flag }
-                                .isEmpty()) {
-                            alertUser("Choose at least one member", context)
-                            return@Button
-                        }
-
-                        try {
-                            addExpense(
-                                isGroupExpense,
-                                membersSelection,
-                                preferences,
-                                groupId,
-                                costValue,
-                                date,
-                                selectedCategory,
-                                spendingName,
-                                compressImage(selectedPhoto)
-                            )
-                            spendingName = TextFieldValue("")
-                            costValue = TextFieldValue("")
-                            selectedCategory = TextFieldValue("")
-                            date.value = ""
-                            isGroupExpense = false
-                            groupName = ""
-                            groupId = 0L
-                            membersSelection.clear()
-
-                            alertUser("Expense saved!", context)
-                            navigateUp(navHostController)
-                        } catch (e: Exception) {
-                            alertUser("Unexpected error occurred:\n" + e.message, context)
-                        }
-                    },
-                    modifier = Modifier
-                        .padding(1.dp)
-                ) {
-                    Text("Save")
-                }
-            }
-        }
-
         // scrollable column with other content
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .padding(10.dp)
+                .padding(start = 10.dp, end = 10.dp)
         ) {
-            // Title field
-            TextField(
-                value = spendingName,
-                onValueChange = { newSpendingName -> spendingName = newSpendingName },
-                label = {
-                    Text(text = "Title")
-                },
+            // Title and image
+            Box (
                 modifier = Modifier
-                    .padding(10.dp)
                     .fillMaxWidth()
-                    .focusRequester(focusRequesters[0]),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = {
-                        focusManager.moveFocus(FocusDirection.Down)
-                    }
+            ){
+                // Title field
+                TextField(
+                    value = spendingName,
+                    onValueChange = { newSpendingName -> spendingName = newSpendingName },
+                    label = {
+                        Text(text = "Title")
+                    },
+                    modifier = Modifier
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                        .focusRequester(focusRequesters[0])
+                        .align(Alignment.CenterStart)
+                        .width(275.dp),
+                    colors = TextFieldDefaults.textFieldColors(
+                        containerColor = Color.Transparent,
+                    ),
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Text,
+                        imeAction = ImeAction.Next
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onNext = {
+                            focusManager.moveFocus(FocusDirection.Down)
+                        }
+                    ),
+                    maxLines = 1
                 )
-            )
+                IconButton(
+                    onClick = { galleryLauncher.launch("image/*") },
+                    modifier = Modifier
+                        .padding(10.dp)
+                        .align(Alignment.CenterEnd)
+                        .size(64.dp)
+                ) {
+                    if (selectedPhoto == null) {
+                        Icon(
+                            EvaIcons.Fill.Image,
+                            "Image",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                    else {
+                        Icon(
+                            Bitmap.createScaledBitmap(
+                                selectedPhoto!!,
+                                175,
+                                175,
+                                false
+                            ).asImageBitmap(),
+                            "Image",
+                            tint = Color.Unspecified
+                        )
+                    }
+                }
+            }
+            // If picture is chosen
+            if (selectedPhoto != null) {
+                Row (
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(24.dp)
+                ) {
+                    Text(
+                        photoName,
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier
+                            .widthIn(max = 270.dp)
+                            .padding(horizontal = 12.dp)
+                            .align(Alignment.CenterVertically)
+                    )
+                    IconButton(onClick = {
+                        photoName = ""
+                        selectedPhoto = null
+                    }) {
+                        Icon(
+                            EvaIcons.Fill.Trash,
+                            "Delete attachment",
+                            modifier = Modifier
+                                .size(16.dp)
+                                .align(Alignment.CenterVertically)
+                        )
+                    }
+                }
+            }
             // Category field
             TextField(
                 value = selectedCategory,
@@ -203,8 +252,11 @@ fun AddSpendingScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(10.dp)
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
                     .focusRequester(focusRequesters[1]),
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = Color.Transparent,
+                ),
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Text,
                     imeAction = ImeAction.Next
@@ -213,7 +265,8 @@ fun AddSpendingScreen(
                     onNext = {
                         focusManager.moveFocus(FocusDirection.Down)
                     }
-                )
+                ),
+                maxLines = 1
             )
             // Cost field
             TextField(
@@ -231,7 +284,7 @@ fun AddSpendingScreen(
                     Text(text = "Cost")
                 },
                 modifier = Modifier
-                    .padding(10.dp)
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
                     .fillMaxWidth()
                     .focusRequester(focusRequesters[2])
                     .onFocusChanged {
@@ -244,6 +297,10 @@ fun AddSpendingScreen(
                         }
                     }
                     .testTag("addCost"),
+                colors = TextFieldDefaults.textFieldColors(
+                    containerColor = Color.Transparent,
+                ),
+                maxLines = 1,
                 trailingIcon = {
                     Text(
                         text = BackendService(preferences).getGroupById(if (groupId == 0L) preferences.groupId else groupId)
@@ -254,7 +311,7 @@ fun AddSpendingScreen(
             // Date picker and Group checkbox fields
             Row(
                 modifier = Modifier
-                    .padding(10.dp)
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
                     .fillMaxWidth()
             ) {
                 DatePickerField(
@@ -298,28 +355,12 @@ fun AddSpendingScreen(
                         }
                 )
             }
-            // Button to upload picture
-            Button(
-                onClick = { galleryLauncher.launch("image/*") },
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                Text("Choose photo from gallery")
-            }
-            if (selectedPhoto != null) {
-                Text(
-                    text = "Selected photo: $photoName (${selectedPhoto!!.width}x${selectedPhoto!!.height})",
-                    modifier = Modifier
-                        .padding(top = 8.dp)
-                        .fillMaxWidth(),
-                    textAlign = TextAlign.Center
-                )
-            }
             // animated Group selector
             AnimatedVisibility(
                 visible = isGroupExpense,
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(horizontal = 10.dp)
             ) {
                 // checkboxes for all selected group's members
                 Column(
@@ -332,7 +373,7 @@ fun AddSpendingScreen(
                         groupName,
                         Modifier
                             .fillMaxWidth()
-                            .padding(top = 10.dp, bottom = 10.dp),
+                            .padding(vertical = 10.dp),
                         Modifier
                             .fillMaxWidth(),
                         onSwitch = {
@@ -341,31 +382,93 @@ fun AddSpendingScreen(
                             groupName = group.getName()
                             membersSelection.clear()
                             group.getUsers().forEach { member ->
-                                membersSelection[member] = false
+                                membersSelection[member] = Pair(false, 1)
                             }
                         }
                     )
-
-                    membersSelection.keys.toList().forEach { member ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                        ) {
+                    Column(
+                        modifier = Modifier
+                            .heightIn(100.dp, 250.dp)
+                            .verticalScroll(rememberScrollState())
+                            .padding(bottom = 90.dp)
+                    )
+                    {
+                        membersSelection.keys.toList().forEach { member ->
                             membersSelection[member]?.let {
-                                Checkbox(
-                                    checked = it,
-                                    onCheckedChange = { newValue ->
-                                        membersSelection[member] = newValue
-                                    },
-                                )
-                                Text(
-                                    text = member.getUsername(),
+                                Box(
                                     modifier = Modifier
-                                        .padding(vertical = 12.dp)
-                                        .clickable {
-                                            membersSelection[member] = !membersSelection[member]!!
+                                        .fillMaxWidth()
+                                        .height(50.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier
+                                            .align(Alignment.CenterStart)
+                                            .width(275.dp)
+                                    ) {
+                                        Checkbox(
+                                            checked = it.first,
+                                            onCheckedChange = { newValue ->
+                                                membersSelection[member] =
+                                                    Pair(newValue, it.second)
+                                            },
+                                            modifier = Modifier
+                                                .align(Alignment.CenterVertically)
+                                        )
+                                        Text(
+                                            text = member.getUsername(),
+                                            modifier = Modifier
+                                                .width(200.dp)
+                                                .clickable {
+                                                    membersSelection[member] =
+                                                        Pair(
+                                                            !membersSelection[member]!!.first,
+                                                            membersSelection[member]!!.second
+                                                        )
+                                                }
+                                                .align(Alignment.CenterVertically),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                    Row(
+                                        modifier = Modifier
+                                            .align(Alignment.CenterEnd)
+                                    ) {
+                                        if(membersSelection[member]!!.first) {
+                                            TextField(
+                                                value = if (membersSelection[member]!!.second != 0)
+                                                    membersSelection[member]!!.second.toString()
+                                                else
+                                                    "",
+                                                onValueChange = { newValue: String ->
+                                                    if (positiveIntegerRegex().matches(newValue)) {
+                                                        membersSelection[member] = Pair(
+                                                            membersSelection[member]!!.first,
+                                                            newValue.toInt()
+                                                        )
+                                                    }
+                                                    else if (newValue == "") {
+                                                        membersSelection[member] = Pair(
+                                                            membersSelection[member]!!.first,
+                                                            0
+                                                        )
+                                                    }
+                                                },
+                                                keyboardOptions = KeyboardOptions(
+                                                    keyboardType = KeyboardType.Number,
+                                                    imeAction = ImeAction.Done
+                                                ),
+                                                modifier = Modifier
+                                                    .width(50.dp)
+                                                    .align(Alignment.CenterVertically),
+                                                colors = TextFieldDefaults.textFieldColors(
+                                                    containerColor = Color.Transparent,
+                                                ),
+                                                maxLines = 1
+                                            )
                                         }
-                                )
+                                    }
+                                }
                             }
                         }
                     }
@@ -390,7 +493,7 @@ fun compressImage(originalImage: Bitmap?): ByteArrayOutputStream? {
 
 fun addExpense(
     isGroupExpense: Boolean,
-    membersSelection: SnapshotStateMap<ApplicationUser, Boolean>,
+    membersSelection: SnapshotStateMap<ApplicationUser, Pair<Boolean, Int>>,
     preferences: PreferencesData,
     groupId: Long,
     costValue: TextFieldValue,
@@ -401,7 +504,7 @@ fun addExpense(
 ) {
     if (isGroupExpense) {
         val activeMembers =
-            membersSelection.filterValues { flag -> flag }
+            membersSelection.filterValues { flag -> flag.first }
         val resultExpense = BackendService(preferences).addExpense(
             Expense(
                 costValue.text.toDouble(),
