@@ -12,6 +12,7 @@ import com.rebalance.backend.entities.ApplicationUser
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroupMemberSelection(
+    preferences: PreferencesData,
     memberSet: Set<ApplicationUser>,
     memberName: String,
     modifier: Modifier = Modifier,
