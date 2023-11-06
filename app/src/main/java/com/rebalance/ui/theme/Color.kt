@@ -73,7 +73,7 @@ val darkMagentaColor = Color(0xFF8B008B)
 val darkOrangeColor = Color(0xFFFF8C00)
 val limeGreenColor = Color(0xFF32CD32)
 val deepSkyBlueColor = Color(0xFF00BFFF)
-val chocolateColor = Color(0xFFD2691E)
+val chocolateColor = Color(0xFF7B3F00)
 val mediumPurpleColor = Color(0xFF9370DB)
 val darkBlueColor = Color(0xFF00008B)
 
