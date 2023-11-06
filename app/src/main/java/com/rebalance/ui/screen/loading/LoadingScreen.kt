@@ -23,7 +23,7 @@ import com.rebalance.PreferencesData
 import com.rebalance.activity.AuthenticationActivity
 import com.rebalance.activity.MainActivity
 import com.rebalance.ui.navigation.switchActivityTo
-import com.rebalance.utils.alertUser
+import com.rebalance.util.alertUser
 import kotlinx.coroutines.delay
 import java.net.HttpURLConnection
 import java.net.URL
