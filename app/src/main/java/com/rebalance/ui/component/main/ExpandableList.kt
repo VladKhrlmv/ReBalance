@@ -4,11 +4,13 @@ import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -34,12 +36,13 @@ fun ExpandableList(
     items: List<ExpenseItem>,
     preferences: PreferencesData,
     context: Context,
-    updateData: () -> Unit
+    openCategory: MutableState<String>,
+    updateData: () -> Unit,
+    scrollState: LazyListState
 ) {
-    LazyColumn {
+    LazyColumn(state = scrollState) {
         items(items = items, itemContent = { item ->
-            val expanded = rememberSaveable { mutableStateOf(false) }
-
+            val expanded = rememberSaveable { mutableStateOf(item.text == openCategory.value) }
             Card(
                 modifier = Modifier
                     .padding(10.dp)

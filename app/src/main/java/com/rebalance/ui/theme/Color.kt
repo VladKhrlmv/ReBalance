@@ -65,30 +65,27 @@ val md_theme_dark_surfaceTint = Color(0xFF4FD8EB)
 val md_theme_dark_outlineVariant = Color(0xFF3F484A)
 val md_theme_dark_scrim = Color(0xFF000000)
 
+val crimsonColor = Color(0xFFDC143C)
+val forestGreenColor = Color(0xFF228B22)
+val royalBlueColor = Color(0xFF4169E1)
+val goldColor = Color(0xFFFFD700)
+val darkMagentaColor = Color(0xFF8B008B)
+val darkOrangeColor = Color(0xFFFF8C00)
+val limeGreenColor = Color(0xFF32CD32)
+val deepSkyBlueColor = Color(0xFF00BFFF)
+val chocolateColor = Color(0xFF7B3F00)
+val mediumPurpleColor = Color(0xFF9370DB)
+val darkBlueColor = Color(0xFF00008B)
 
-val seed = Color(0xFFC3D3D6)
-
-
-val greenColor = Color(0xFF0F9D58)
-val blueColor = Color(0xFF2196F3)
-val yellowColor = Color(0xFFFFC107)
-val redColor = Color(0xFFF44336)
-val greyColor = Color(0xFFC0C0C0)
-val whiteColor = Color(0xFFFFFFFF)
-val blackColor = Color(0xFF000000)
-val Purple200 = Color(0xFFBB86FC)
-val Purple500 = Color(0xFF6200EE)
-val Purple700 = Color(0xFF3700B3)
-val Teal200 = Color(0xFF03DAC5)
-
-val categoryColor: Set<Color> = setOf(
-    redColor,
-    greenColor,
-    blueColor,
-    yellowColor,
-    greenColor,
-    Teal200,
-    Purple200,
-    Purple500,
-    Purple700
+val categoryColors: Set<Color> = setOf(
+    crimsonColor,
+    forestGreenColor,
+    royalBlueColor,
+    goldColor,
+    darkMagentaColor,
+    darkOrangeColor,
+    limeGreenColor,
+    deepSkyBlueColor,
+    chocolateColor,
+    mediumPurpleColor
 )

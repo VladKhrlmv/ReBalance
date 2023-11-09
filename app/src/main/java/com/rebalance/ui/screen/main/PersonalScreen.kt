@@ -3,6 +3,8 @@ package com.rebalance.ui.screen.main
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -29,7 +31,7 @@ import com.rebalance.ui.navigation.navigateSingleTo
 @Composable
 fun PersonalScreen(
     context: Context,
-    pieChartActive: Boolean,
+    pieChartActive: MutableState<Boolean>,
     navHostController: NavHostController,
     setOnPlusClick: (() -> Unit) -> Unit
 ) {
@@ -42,6 +44,8 @@ fun PersonalScreen(
     // initialize tabs
     val tabItems = rememberSaveable { mutableListOf<ScaledDateItem>() } // list of tabs
     var selectedTabIndex by rememberSaveable { mutableStateOf(Int.MAX_VALUE) } // selected index of tab
+    var openCategory = rememberSaveable { mutableStateOf("") }
+    val expandableListState = rememberLazyListState()
 
     LaunchedEffect(Unit) {
         setOnPlusClick{
@@ -104,12 +108,14 @@ fun PersonalScreen(
             updateData()
 
             // display pie chart or list
-            if (pieChartActive) {
-                DisplayPieChart(data)
+            if (pieChartActive.value) {
+                DisplayPieChart(data, pieChartActive, openCategory, expandableListState)
             } else {
                 DisplayList(
                     data,
                     preferences,
+                    openCategory,
+                    expandableListState,
                     updateData = {
                         updateData()
                     }
@@ -173,7 +179,10 @@ private fun DisplayScaleButtons(
 
 @Composable
 private fun DisplayPieChart(
-    data: List<ExpenseItem>
+    data: List<ExpenseItem>,
+    pieChartActive: MutableState<Boolean>,
+    openCategory: MutableState<String>,
+    expandableListState: LazyListState
 ) {
     Box(
         modifier = Modifier
@@ -182,7 +191,7 @@ private fun DisplayPieChart(
             .height(200.dp),
         contentAlignment = Center
     ) {
-        PieChart(data)
+        PieChart(data, pieChartActive, openCategory, expandableListState)
     }
 }
 
@@ -190,6 +199,8 @@ private fun DisplayPieChart(
 private fun DisplayList(
     data: List<ExpenseItem>,
     preferences: PreferencesData,
+    openCategory: MutableState<String>,
+    expandableListState: LazyListState,
     updateData: () -> Unit
 ) {
     Box(
@@ -198,6 +209,12 @@ private fun DisplayList(
             .testTag("personalList"),
         contentAlignment = TopCenter
     ) {
-        ExpandableList(items = data, preferences, LocalContext.current, updateData)
+        ExpandableList(
+            items = data,
+            preferences,
+            LocalContext.current,
+            openCategory,
+            updateData,
+            expandableListState)
     }
 }

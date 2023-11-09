@@ -37,7 +37,7 @@ fun MainScreen(
         })
     }
     val context = LocalContext.current
-    var pieChartActive by rememberSaveable { mutableStateOf(true) }
+    var pieChartActive = rememberSaveable { mutableStateOf(true) }
     val navBackStackEntry by navHostController.currentBackStackEntryAsState()
 
     Scaffold(
@@ -50,7 +50,7 @@ fun MainScreen(
                 },
                 content = {
                     DisplayPieChartButton(navBackStackEntry, pieChartActive) {
-                        pieChartActive = !pieChartActive
+                        pieChartActive.value = !pieChartActive.value
                     }
                 }
             )
@@ -88,7 +88,8 @@ private fun DisplayBackButton(
 ) {
     // display back button only on Settings or Add Spending screen
     if (navBackStackEntry?.destination?.route == Routes.AddSpending.route ||
-        navBackStackEntry?.destination?.route == Routes.Settings.route
+        navBackStackEntry?.destination?.route == Routes.Settings.route ||
+        navBackStackEntry?.destination?.route == Routes.GroupSettings.paramRoute
     ) {
         IconButton(onClick = {
             navigateUp(navHostController)
@@ -104,7 +105,7 @@ private fun DisplayBackButton(
 @Composable
 private fun DisplayPieChartButton(
     navBackStackEntry: NavBackStackEntry?,
-    pieChartActive: Boolean,
+    pieChartActive: MutableState<Boolean>,
     onPieChartClick: () -> Unit
 ) {
     // display button only if on Personal screen
@@ -114,7 +115,7 @@ private fun DisplayPieChartButton(
             modifier = Modifier.testTag("viewSwitcher")
         ) {
             Icon(
-                if (pieChartActive) Icons.Filled.List else EvaIcons.Fill.PieChart,
+                if (pieChartActive.value) Icons.Filled.List else EvaIcons.Fill.PieChart,
                 "Pie chart or list"
             )
         }
@@ -127,5 +128,8 @@ private fun DisplayAddSpendingButton(
     navHostController: NavHostController,
     onClick: () -> Unit
 ) {
-    AddSpendingButton(navBackStackEntry, navHostController, onClick)
+    if (navBackStackEntry?.destination?.route != Routes.GroupSettings.paramRoute) {
+        AddSpendingButton(navBackStackEntry, navHostController, onClick)
+    }
+
 }

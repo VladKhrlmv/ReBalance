@@ -19,6 +19,7 @@ fun AuthenticationScreen(navHostController: NavHostController) {
             navigateSingleTo(navHostController, Routes.AddSpending)
         })
     }
+    var pieChartActive = mutableStateOf(true)
     Scaffold(
         topBar = {
             com.rebalance.ui.component.main.scaffold.TopAppBar(
@@ -30,7 +31,7 @@ fun AuthenticationScreen(navHostController: NavHostController) {
             Box(modifier = Modifier.padding(padding)) {
                 // initialize nav graph here so navigation will be inside scaffold
                 val navHost =
-                    initNavHost(LocalContext.current, navHostController, Routes.Authentication) {
+                    initNavHost(LocalContext.current, navHostController, Routes.Authentication, pieChartActive) {
                         newOnPlusClick -> onPlusClick = newOnPlusClick
                     }
             }
