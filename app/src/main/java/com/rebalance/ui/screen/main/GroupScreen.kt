@@ -22,6 +22,8 @@ import com.rebalance.ui.component.main.GroupSpendingList
 import com.rebalance.ui.component.main.GroupContextMenu
 import com.rebalance.ui.navigation.Routes
 import com.rebalance.ui.navigation.navigateSingleTo
+import com.rebalance.util.alertUser
+
 
 @Composable
 fun GroupScreen(
@@ -40,6 +42,7 @@ fun GroupScreen(
             navigateSingleTo(navHostController, Routes.AddSpending)
         }
     }
+    println("Set for group")
 
     Column(
         modifier = Modifier
