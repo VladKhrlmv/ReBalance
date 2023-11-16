@@ -26,8 +26,6 @@ import java.time.LocalDateTime
 data class GroupCategory(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
-    @ColumnInfo(name = "db_id")
-    val db_id: Long?,
     @ColumnInfo(name = "last_used")
     val last_used: LocalDateTime,
     @ColumnInfo(name = "group_id")

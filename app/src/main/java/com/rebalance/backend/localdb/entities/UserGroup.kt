@@ -26,6 +26,8 @@ data class UserGroup(
     val id: Long,
     @ColumnInfo(name = "db_id")
     val dbId: Long?,
+    @ColumnInfo(name = "changed")
+    val changed: Boolean,
     @ColumnInfo(name = "favorite")
     val favorite: Boolean,
     @ColumnInfo(name = "user_id")

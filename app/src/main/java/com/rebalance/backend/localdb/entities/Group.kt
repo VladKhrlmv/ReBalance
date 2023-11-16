@@ -20,6 +20,8 @@ data class Group(
     val id: Long,
     @ColumnInfo(name = "db_id")
     val dbId: Long?,
+    @ColumnInfo(name = "changed")
+    val changed: Boolean,
     @ColumnInfo(name = "name")
     val name: String,
     @ColumnInfo(name = "currency")

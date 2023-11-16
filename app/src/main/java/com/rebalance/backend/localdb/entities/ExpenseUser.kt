@@ -25,6 +25,8 @@ data class ExpenseUser(
     val id: Long,
     @ColumnInfo(name = "db_id")
     val dbId: Long?,
+    @ColumnInfo(name = "changed")
+    val changed: Boolean,
     @ColumnInfo(name = "amount")
     val amount: Double,
     @ColumnInfo(name = "multiplier")

@@ -10,12 +10,12 @@ data class User(
     val id: Long,
     @ColumnInfo(name = "db_id")
     val dbId: Long?,
+    @ColumnInfo(name = "changed")
+    val changed: Boolean,
     @ColumnInfo(name = "nickname")
     val nickname: String,
     @ColumnInfo(name = "email")
-    val email: String,
-    @ColumnInfo(name = "changed")
-    val changed: Boolean
+    val email: String
 )
 
 

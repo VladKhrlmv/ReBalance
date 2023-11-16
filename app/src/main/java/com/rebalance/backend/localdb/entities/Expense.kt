@@ -38,6 +38,8 @@ data class Expense(
     val id: Long,
     @ColumnInfo(name = "db_id")
     val dbId: Long?,
+    @ColumnInfo(name = "changed")
+    val changed: Boolean,
     @ColumnInfo(name = "currency")
     val amount: Float,
     @ColumnInfo(name = "description")
