@@ -4,32 +4,34 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import java.time.LocalDateTime
 
 @Entity(
-    tableName = "user_group",
+    tableName = "group_category",
     foreignKeys = [
-        ForeignKey(
-            entity = User::class,
-            parentColumns = ["id"],
-            childColumns = ["user_id"]
-        ),
         ForeignKey(
             entity = Group::class,
             parentColumns = ["id"],
             childColumns = ["group_id"],
             onDelete = ForeignKey.CASCADE
+        ),
+        ForeignKey(
+            entity = Category::class,
+            parentColumns = ["id"],
+            childColumns = ["category_id"],
+            onDelete = ForeignKey.CASCADE
         )
     ]
 )
-data class UserGroup(
+data class GroupCategory(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
     @ColumnInfo(name = "db_id")
-    val dbId: Long?,
-    @ColumnInfo(name = "favorite")
-    val favorite: Boolean,
-    @ColumnInfo(name = "user_id")
-    val userId: Long,
+    val db_id: Long?,
+    @ColumnInfo(name = "last_used")
+    val last_used: LocalDateTime,
     @ColumnInfo(name = "group_id")
-    val groupId: Long
+    val group_id: Long,
+    @ColumnInfo(name = "category_id")
+    val category_id: Long
 )
