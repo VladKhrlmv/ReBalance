@@ -3,6 +3,7 @@ package com.rebalance.backend.localdb.entities
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
+import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "expense_user",
@@ -21,7 +22,7 @@ import androidx.room.ForeignKey
     ]
 )
 data class ExpenseUser(
-    @ColumnInfo(name = "id")
+    @PrimaryKey(autoGenerate = true)
     val id: Long,
     @ColumnInfo(name = "db_id")
     val dbId: Long?,
