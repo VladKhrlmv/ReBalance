@@ -45,7 +45,7 @@ fun PieChart(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        var onBackground = MaterialTheme.colorScheme.onBackground.toArgb()
+        val onBackground = MaterialTheme.colorScheme.onBackground.toArgb()
         Crossfade(targetState = data) { pieChartData ->
             AndroidView(factory = { context ->
                 PieChart(context).apply {
@@ -98,7 +98,7 @@ fun updatePieChartWithData(
 ) {
     val entries = ArrayList<PieEntry>()
 
-    var sum = data.sumOf { it.amount }
+    val sum = data.sumOf { it.amount }
     val overlapLimit = 5f
 
     for (i in data.indices) {
@@ -131,13 +131,25 @@ fun updatePieChartWithData(
     }
     ds.sliceSpace = 2F
     ds.setValueTextColors(categoryColors.map { color ->
+        fun isColorLight(color: Int): Boolean {
+            val darkness = 1 - (0.299 * Color.red(color) + 0.587 * Color.green(color) + 0.114 * Color.blue(color)) / 255
+            return darkness < 0.5
+        }
+
         val hsv = FloatArray(3)
         Color.colorToHSV(color.toArgb(), hsv)
-        hsv[0] = (hsv[0] - 30f) % 360f
-        hsv[1] = (hsv[1] * 0.8f).coerceIn(0f, 1f)
-        hsv[2] = (hsv[2] * 2f).coerceIn(0f, 1f)
-        val complementaryColor = Color.HSVToColor(hsv)
-        complementaryColor
+        hsv[0] = (hsv[0] + 180) % 360
+
+        if (isColorLight(color.toArgb())) {
+            hsv[2] *= 0.4f
+            hsv[1] = hsv[1].coerceAtLeast(0.5f)
+        } else {
+            hsv[2] = (hsv[2] + 0.5f).coerceAtMost(1f)
+            hsv[1] = (hsv[1] + 0.5f).coerceAtMost(1f)
+        }
+
+        val textColor = Color.HSVToColor(hsv)
+        textColor
     })
     ds.valueTextSize = 18f
     ds.valueTypeface = Typeface.DEFAULT_BOLD
