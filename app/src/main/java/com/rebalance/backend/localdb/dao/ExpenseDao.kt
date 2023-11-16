@@ -1,16 +1,16 @@
-package com.rebalance.local.dao
+package com.rebalance.backend.localdb.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
-import com.rebalance.local.dto.ExpenseDetail
-import com.rebalance.local.entities.Category
-import com.rebalance.local.entities.Expense
-import com.rebalance.local.entities.ExpenseUser
-import com.rebalance.local.entities.Group
-import com.rebalance.local.entities.User
-import com.rebalance.local.entities.UserGroup
+import com.rebalance.backend.localdb.dto.ExpenseDetail
+import com.rebalance.backend.localdb.entities.Category
+import com.rebalance.backend.localdb.entities.Expense
+import com.rebalance.backend.localdb.entities.ExpenseUser
+import com.rebalance.backend.localdb.entities.Group
+import com.rebalance.backend.localdb.entities.User
+import com.rebalance.backend.localdb.entities.UserGroup
 
 @Dao
 interface ExpenseDao {

@@ -1,15 +1,15 @@
-package com.rebalance.local.db
+package com.rebalance.backend.localdb.db
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.rebalance.local.dao.ExpenseDao
-import com.rebalance.local.entities.Category
-import com.rebalance.local.entities.Expense
-import com.rebalance.local.entities.ExpenseUser
-import com.rebalance.local.entities.Group
-import com.rebalance.local.entities.User
-import com.rebalance.local.entities.UserGroup
+import com.rebalance.backend.localdb.dao.ExpenseDao
+import com.rebalance.backend.localdb.entities.Category
+import com.rebalance.backend.localdb.entities.Expense
+import com.rebalance.backend.localdb.entities.ExpenseUser
+import com.rebalance.backend.localdb.entities.Group
+import com.rebalance.backend.localdb.entities.User
+import com.rebalance.backend.localdb.entities.UserGroup
 import com.rebalance.util.converter.DateConverter
 
 @TypeConverters(DateConverter::class)

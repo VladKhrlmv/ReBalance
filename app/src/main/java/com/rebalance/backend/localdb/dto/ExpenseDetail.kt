@@ -1,11 +1,11 @@
-package com.rebalance.local.dto
+package com.rebalance.backend.localdb.dto
 
 import androidx.room.Embedded
 import androidx.room.Relation
-import com.rebalance.local.entities.Category
-import com.rebalance.local.entities.Expense
-import com.rebalance.local.entities.ExpenseUser
-import com.rebalance.local.entities.User
+import com.rebalance.backend.localdb.entities.Category
+import com.rebalance.backend.localdb.entities.Expense
+import com.rebalance.backend.localdb.entities.ExpenseUser
+import com.rebalance.backend.localdb.entities.User
 
 data class ExpenseDetail(
     @Embedded val expense: Expense,

@@ -1,4 +1,4 @@
-package com.rebalance.local.entities
+package com.rebalance.backend.localdb.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
