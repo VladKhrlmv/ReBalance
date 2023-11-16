@@ -3,9 +3,9 @@ package com.rebalance.backend.service
 import com.google.gson.Gson
 import com.rebalance.PreferencesData
 import com.rebalance.backend.api.request.RequestsSender
-import com.rebalance.backend.entities.ApplicationUser
-import com.rebalance.backend.entities.Expense
-import com.rebalance.backend.entities.ExpenseGroup
+import com.rebalance.backend.api.entities.ApplicationUser
+import com.rebalance.backend.api.entities.Expense
+import com.rebalance.backend.api.entities.ExpenseGroup
 import io.mockk.*
 import junit.framework.Assert.assertEquals
 import org.junit.After

@@ -2,6 +2,7 @@ package com.rebalance.backend.api.request
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
+import com.rebalance.backend.api.entities.*
 import com.rebalance.backend.entities.*
 
 fun jsonArrayToApplicationUsers(jsonBody: String): List<ApplicationUser> {
@@ -32,7 +33,7 @@ fun jsonToExpenseGroup(jsonBody: String): ExpenseGroup {
 }
 
 
-fun jsonToLoginAndPassword(jsonBody: String): LoginAndPassword{
+fun jsonToLoginAndPassword(jsonBody: String): LoginAndPassword {
     return Gson().fromJson(jsonBody, LoginAndPassword::class.java)
 }
 

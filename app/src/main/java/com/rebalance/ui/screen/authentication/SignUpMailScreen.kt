@@ -19,7 +19,7 @@ import androidx.navigation.NavHostController
 import com.rebalance.Preferences
 import com.rebalance.PreferencesData
 import com.rebalance.activity.MainActivity
-import com.rebalance.backend.entities.ExpenseGroup
+import com.rebalance.backend.api.entities.ExpenseGroup
 import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.authentication.*

@@ -1,4 +1,4 @@
-package com.rebalance.backend.entities
+package com.rebalance.backend.api.entities
 
 class LoginAndPassword {
 

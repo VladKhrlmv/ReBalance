@@ -6,7 +6,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import com.rebalance.PreferencesData
-import com.rebalance.backend.entities.ApplicationUser
+import com.rebalance.backend.api.entities.ApplicationUser
 
 
 @OptIn(ExperimentalMaterial3Api::class)

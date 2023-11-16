@@ -14,7 +14,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
 import com.rebalance.Preferences
 import com.rebalance.PreferencesData
-import com.rebalance.backend.entities.Expense
+import com.rebalance.backend.api.entities.Expense
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.main.BarChart
 import com.rebalance.ui.component.main.GroupSelection

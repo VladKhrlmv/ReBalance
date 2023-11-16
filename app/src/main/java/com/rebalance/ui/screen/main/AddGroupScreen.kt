@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rebalance.Preferences
 import com.rebalance.PreferencesData
-import com.rebalance.backend.entities.ExpenseGroup
+import com.rebalance.backend.api.entities.ExpenseGroup
 import com.rebalance.backend.service.BackendService
 import com.rebalance.util.alertUser
 import com.rebalance.util.currencyRegex

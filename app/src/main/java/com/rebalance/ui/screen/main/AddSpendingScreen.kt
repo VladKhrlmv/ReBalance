@@ -36,9 +36,9 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
 import com.rebalance.Preferences
 import com.rebalance.PreferencesData
-import com.rebalance.backend.entities.ApplicationUser
-import com.rebalance.backend.entities.Expense
-import com.rebalance.backend.entities.ExpenseGroup
+import com.rebalance.backend.api.entities.ApplicationUser
+import com.rebalance.backend.api.entities.Expense
+import com.rebalance.backend.api.entities.ExpenseGroup
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.main.DatePickerField
 import com.rebalance.ui.component.main.GroupMemberSelection
