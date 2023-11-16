@@ -6,7 +6,6 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.rebalance.backend.localdb.dao.ExpenseDao
 import com.rebalance.backend.localdb.db.AppDatabase
-import com.rebalance.backend.localdb.entities.Category
 import com.rebalance.backend.localdb.entities.Expense
 import com.rebalance.backend.localdb.entities.ExpenseUser
 import com.rebalance.backend.localdb.entities.Group

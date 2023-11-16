@@ -10,12 +10,6 @@ import java.time.LocalDateTime
     tableName = "expenses",
     foreignKeys = [
         ForeignKey(
-            entity = Category::class,
-            parentColumns = ["id"],
-            childColumns = ["category_id"],
-            onDelete = ForeignKey.CASCADE
-        ),
-        ForeignKey(
             entity = User::class,
             parentColumns = ["id"],
             childColumns = ["initiator_id"]
@@ -46,8 +40,8 @@ data class Expense(
     val description: String,
     @ColumnInfo(name = "date")
     val date: LocalDateTime,
-    @ColumnInfo(name = "category_id")
-    val category_id: Long,
+    @ColumnInfo(name = "category")
+    val category: String,
     @ColumnInfo(name = "initiator_id")
     val initiator_id: Long,
     @ColumnInfo(name = "added_by_id")

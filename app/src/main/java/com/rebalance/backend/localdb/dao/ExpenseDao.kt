@@ -5,7 +5,6 @@ import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Transaction
 import com.rebalance.backend.localdb.dto.ExpenseDetail
-import com.rebalance.backend.localdb.entities.Category
 import com.rebalance.backend.localdb.entities.Expense
 import com.rebalance.backend.localdb.entities.ExpenseUser
 import com.rebalance.backend.localdb.entities.Group
