@@ -1,9 +1,9 @@
 package com.rebalance.backend.api
 
 import com.google.gson.Gson
-import com.rebalance.backend.api.RequestsSender.Companion.sendDelete
-import com.rebalance.backend.api.RequestsSender.Companion.sendGet
-import com.rebalance.backend.api.RequestsSender.Companion.sendPost
+import com.rebalance.backend.api.request.RequestsSender.Companion.sendDelete
+import com.rebalance.backend.api.request.RequestsSender.Companion.sendGet
+import com.rebalance.backend.api.request.RequestsSender.Companion.sendPost
 import com.rebalance.backend.entities.LoginAndPassword
 import com.rebalance.backend.exceptions.ServerException
 import org.junit.Assert.fail

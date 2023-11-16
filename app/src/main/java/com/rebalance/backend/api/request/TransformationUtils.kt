@@ -1,4 +1,4 @@
-package com.rebalance.backend.api
+package com.rebalance.backend.api.request
 
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken

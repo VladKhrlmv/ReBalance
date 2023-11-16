@@ -1,4 +1,4 @@
-package com.rebalance.backend.api
+package com.rebalance.backend.api.request
 
 import com.rebalance.backend.exceptions.ServerException
 import java.io.OutputStreamWriter
