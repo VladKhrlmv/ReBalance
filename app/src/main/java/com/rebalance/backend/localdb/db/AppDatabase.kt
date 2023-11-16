@@ -9,9 +9,9 @@ import com.rebalance.backend.localdb.entities.ExpenseUser
 import com.rebalance.backend.localdb.entities.Group
 import com.rebalance.backend.localdb.entities.User
 import com.rebalance.backend.localdb.entities.UserGroup
-import com.rebalance.util.converter.DateConverter
+import com.rebalance.backend.localdb.converter.LocalDateTimeConverter
 
-@TypeConverters(DateConverter::class)
+@TypeConverters(LocalDateTimeConverter::class)
 @Database(
     entities = [User::class, Group::class, UserGroup::class, Expense::class, ExpenseUser::class],
     version = 1
