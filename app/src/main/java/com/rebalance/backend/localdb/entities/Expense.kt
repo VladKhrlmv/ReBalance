@@ -41,7 +41,7 @@ data class Expense(
     @ColumnInfo(name = "date")
     val date: LocalDateTime,
     @ColumnInfo(name = "category")
-    val category: String,
+    val category: String?,
     @ColumnInfo(name = "initiator_id")
     val initiator_id: Long,
     @ColumnInfo(name = "added_by_id")
