@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.rebalance.Preferences
+import com.rebalance.service.Preferences
 import com.rebalance.ui.navigation.Routes
 import com.rebalance.ui.navigation.navigateSingleTo
 

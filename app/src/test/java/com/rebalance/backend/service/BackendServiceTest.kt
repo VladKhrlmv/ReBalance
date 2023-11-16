@@ -1,7 +1,7 @@
 package com.rebalance.backend.service
 
 import com.google.gson.Gson
-import com.rebalance.PreferencesData
+import com.rebalance.service.PreferencesData
 import com.rebalance.backend.api.request.RequestsSender
 import com.rebalance.backend.api.entities.ApplicationUser
 import com.rebalance.backend.api.entities.Expense

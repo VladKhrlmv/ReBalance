@@ -34,8 +34,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.rebalance.Preferences
-import com.rebalance.PreferencesData
+import com.rebalance.service.Preferences
+import com.rebalance.service.PreferencesData
 import com.rebalance.backend.api.entities.ApplicationUser
 import com.rebalance.backend.api.entities.Expense
 import com.rebalance.backend.api.entities.ExpenseGroup

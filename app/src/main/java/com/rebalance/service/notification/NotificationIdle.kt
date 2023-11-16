@@ -5,7 +5,7 @@ import android.os.Handler
 import android.os.Looper
 import androidx.work.Worker
 import androidx.work.WorkerParameters
-import com.rebalance.Preferences
+import com.rebalance.service.Preferences
 import com.rebalance.backend.service.BackendService
 
 class NotificationIdle(

@@ -33,7 +33,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rebalance.PreferencesData
+import com.rebalance.service.PreferencesData
 import com.rebalance.backend.api.entities.Expense
 import com.rebalance.backend.service.BackendService
 import com.rebalance.util.alertUser

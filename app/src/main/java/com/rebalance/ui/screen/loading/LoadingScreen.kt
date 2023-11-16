@@ -18,8 +18,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rebalance.Preferences
-import com.rebalance.PreferencesData
+import com.rebalance.service.Preferences
+import com.rebalance.service.PreferencesData
 import com.rebalance.activity.AuthenticationActivity
 import com.rebalance.activity.MainActivity
 import com.rebalance.ui.navigation.switchActivityTo

@@ -16,8 +16,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.rebalance.Preferences
-import com.rebalance.PreferencesData
+import com.rebalance.service.Preferences
+import com.rebalance.service.PreferencesData
 import com.rebalance.activity.MainActivity
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.authentication.CustomInput

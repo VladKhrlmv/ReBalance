@@ -12,8 +12,8 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
-import com.rebalance.Preferences
-import com.rebalance.PreferencesData
+import com.rebalance.service.Preferences
+import com.rebalance.service.PreferencesData
 import com.rebalance.backend.api.entities.Expense
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.main.BarChart
@@ -22,7 +22,6 @@ import com.rebalance.ui.component.main.GroupSpendingList
 import com.rebalance.ui.component.main.GroupContextMenu
 import com.rebalance.ui.navigation.Routes
 import com.rebalance.ui.navigation.navigateSingleTo
-import com.rebalance.util.alertUser
 
 
 @Composable

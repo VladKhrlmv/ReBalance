@@ -15,8 +15,8 @@ import android.os.Looper
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import com.rebalance.Preferences
-import com.rebalance.PreferencesData
+import com.rebalance.service.Preferences
+import com.rebalance.service.PreferencesData
 import com.rebalance.R
 import com.rebalance.activity.LoadingActivity
 import com.rebalance.backend.service.BackendService

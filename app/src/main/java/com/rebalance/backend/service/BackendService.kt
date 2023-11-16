@@ -4,7 +4,7 @@ import android.os.Parcelable
 import android.os.StrictMode
 import android.util.Base64
 import com.google.gson.Gson
-import com.rebalance.PreferencesData
+import com.rebalance.service.PreferencesData
 import com.rebalance.backend.api.entities.*
 import com.rebalance.backend.api.request.*
 import com.rebalance.backend.exceptions.ServerException

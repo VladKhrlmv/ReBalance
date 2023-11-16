@@ -5,7 +5,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.rebalance.PreferencesData
+import com.rebalance.service.PreferencesData
 import com.rebalance.backend.api.entities.ApplicationUser
 
 
