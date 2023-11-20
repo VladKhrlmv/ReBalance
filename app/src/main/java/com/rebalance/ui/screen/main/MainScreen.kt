@@ -25,6 +25,8 @@ import com.rebalance.ui.navigation.navigateUp
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
 import compose.icons.evaicons.fill.PieChart
+import compose.icons.evaicons.fill.Plus
+import compose.icons.evaicons.fill.Save
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -129,7 +131,15 @@ private fun DisplayAddSpendingButton(
     onClick: () -> Unit
 ) {
     if (navBackStackEntry?.destination?.route != Routes.GroupSettings.paramRoute) {
-        AddSpendingButton(navBackStackEntry, navHostController, onClick)
+        AddSpendingButton(
+            navBackStackEntry,
+            navHostController,
+            onClick,
+            if (navBackStackEntry?.destination?.route == Routes.AddSpending.route)
+                EvaIcons.Fill.Save
+            else
+                EvaIcons.Fill.Plus
+        )
     }
 
 }

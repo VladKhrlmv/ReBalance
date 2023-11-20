@@ -2,6 +2,8 @@ package com.rebalance.ui.screen.main
 
 import android.content.Context
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -16,13 +18,9 @@ import com.rebalance.Preferences
 import com.rebalance.PreferencesData
 import com.rebalance.backend.entities.Expense
 import com.rebalance.backend.service.BackendService
-import com.rebalance.ui.component.main.BarChart
-import com.rebalance.ui.component.main.GroupSelection
-import com.rebalance.ui.component.main.GroupSpendingList
-import com.rebalance.ui.component.main.GroupContextMenu
+import com.rebalance.ui.component.main.*
 import com.rebalance.ui.navigation.Routes
 import com.rebalance.ui.navigation.navigateSingleTo
-import com.rebalance.util.alertUser
 
 
 @Composable
@@ -163,15 +161,20 @@ private fun DisplayVisual(
     groupId: Long,
 ) {
     val data = BackendService(preferences).getGroupVisualBarChart(groupId)
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .wrapContentHeight(),
-        contentAlignment = Center
+    Column(
+        modifier = Modifier.verticalScroll(rememberScrollState())
     ) {
-        BarChart(data)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight(),
+            contentAlignment = Center
+        ) {
+            BarChart(data)
+        }
+        ExpenseDistribution(preferences, groupId)
     }
+
 }
 
 @Composable

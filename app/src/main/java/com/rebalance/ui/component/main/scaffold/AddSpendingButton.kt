@@ -1,12 +1,11 @@
 package com.rebalance.ui.component.main.scaffold
 
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavBackStackEntry
@@ -18,7 +17,8 @@ import com.rebalance.ui.theme.AddSpendingButtonShape
 fun AddSpendingButton(
     navBackStackEntry: NavBackStackEntry?,
     navHostController: NavHostController,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    icon: ImageVector
 ) {
     FloatingActionButton(
         shape = AddSpendingButtonShape,
@@ -26,7 +26,7 @@ fun AddSpendingButton(
         onClick = onClick,
     ) {
         Icon(
-            Icons.Filled.Add,
+            icon,
             contentDescription = stringResource(R.string.plus_button_description)
         )
     }
