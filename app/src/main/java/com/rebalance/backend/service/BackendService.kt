@@ -1,24 +1,38 @@
 package com.rebalance.backend.service
 
+import android.content.Context
 import android.os.Parcelable
 import android.os.StrictMode
 import android.util.Base64
 import com.google.gson.Gson
-import com.rebalance.service.PreferencesData
 import com.rebalance.backend.api.entities.*
 import com.rebalance.backend.api.request.*
 import com.rebalance.backend.exceptions.ServerException
+import com.rebalance.backend.localdb.db.AppDatabase
+import com.rebalance.backend.localdb.entities.Settings
 import kotlinx.parcelize.Parcelize
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
 class BackendService(
-    private val preferences: PreferencesData
+    private val context: Context
 ) {
     private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-
-    //TODO: make requests in different thread
+    private val db = AppDatabase.getDatabase(context)
+    private val settings = db.settingsDao().getSettings() ?: run {
+        db.settingsDao().saveSettings(
+            Settings(
+                id = 1,
+                server_ip = "10.182.14.234:8080",
+                user_id = -1,
+                group_ip = -1,
+                first_launch = true,
+                token = null
+            )
+        )
+        db.settingsDao().getSettings() as Settings
+    }
 
     fun setPolicy() {
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
@@ -41,7 +55,7 @@ class BackendService(
         setPolicy()
 
         val jsonBodyExpenses = RequestsSender.sendGet(
-            "http://${preferences.serverIp}/groups/${preferences.groupId}/expenses"
+            "http://${settings.server_ip}/groups/${settings.group_ip}/expenses"
         )
         val expenses: List<Expense> = jsonArrayToExpenses(jsonBodyExpenses)
 
@@ -162,7 +176,7 @@ class BackendService(
         val list = ArrayList<ExpenseItem>()
 
         val jsonBodyGet = RequestsSender.sendGet(
-            "http://${preferences.serverIp}/expenses/group/${preferences.groupId}/between/${
+            "http://${settings.server_ip}/expenses/group/${settings.group_ip}/between/${
                 dateFrom.format(
                     formatter
                 )
@@ -197,7 +211,7 @@ class BackendService(
         setPolicy()
 
         val jsonBodyGroups = RequestsSender.sendGet(
-            "http://${preferences.serverIp}/users/${userId ?: preferences.userId}/groups"
+            "http://${settings.server_ip}/users/${userId ?: settings.user_id}/groups"
         )
         val groups: List<ExpenseGroup> = jsonArrayToExpenseGroups(jsonBodyGroups)
 
@@ -208,7 +222,7 @@ class BackendService(
     fun addExpense(expense: Expense, groupId: Long, userId: Long? = null): Expense {
         setPolicy()
         val jsonBodyPOST = RequestsSender.sendPost(
-            "http://${preferences.serverIp}/expenses/user/${userId ?: preferences.userId}/group/${groupId}/${preferences.userId}",
+            "http://${settings.server_ip}/expenses/user/${userId ?: settings.user_id}/group/${groupId}/${settings.user_id}",
             Gson().toJson(expense)
         )
         return jsonToExpense(jsonBodyPOST)
@@ -217,7 +231,7 @@ class BackendService(
     fun addExpenseImage(imageBase64String: String, expenseGlobalId: Long?) {
         val body = """{"image": "$imageBase64String"}""".replace("\n", "")
         RequestsSender.sendPost(
-            "http://${preferences.serverIp}/expenses/${expenseGlobalId}/image",
+            "http://${settings.server_ip}/expenses/${expenseGlobalId}/image",
             body
         )
     }
@@ -228,7 +242,7 @@ class BackendService(
         setPolicy()
 
         val jsonBodyGroup = RequestsSender.sendGet(
-            "http://${preferences.serverIp}/groups/${id}"
+            "http://${settings.server_ip}/groups/${id}"
         )
 
         //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
@@ -243,7 +257,7 @@ class BackendService(
 
         val jsonBodyGetUsersFromGroup = if (groupId == -1L) "[]" else RequestsSender.sendGet(
             //todo change to group choice
-            "http://${preferences.serverIp}/groups/${groupId}/users"
+            "http://${settings.server_ip}/groups/${groupId}/users"
         )
         val userExpenseMap: HashMap<Long, Pair<String, Double>> = HashMap()
 
@@ -253,7 +267,7 @@ class BackendService(
         for (user in userList) {
             val jsonBodyGet = RequestsSender.sendGet(
                 //todo change to group choice
-                "http://${preferences.serverIp}/groups/${groupId}/users/${user.getId()}/expenses"
+                "http://${settings.server_ip}/groups/${groupId}/users/${user.getId()}/expenses"
             )
             val listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
             var sumForUser = 0.0
@@ -274,7 +288,7 @@ class BackendService(
 
         val responseGroupList = if (groupId == -1L) "[]" else RequestsSender.sendGet(
             //todo change to group choice
-            "http://${preferences.serverIp}/groups/${groupId}/expenses"
+            "http://${settings.server_ip}/groups/${groupId}/expenses"
         )
 
         return jsonArrayToExpenses(responseGroupList).sortedBy {
@@ -290,7 +304,7 @@ class BackendService(
 
         return try {
             val responseJson = RequestsSender.sendGet(
-                "http://${preferences.serverIp}/expenses/${globalId}/image"
+                "http://${settings.server_ip}/expenses/${globalId}/image"
             )
             println(responseJson)
             val imageClass: ExpenseImage = Gson().fromJson(responseJson, ExpenseImage::class.java)
@@ -309,7 +323,7 @@ class BackendService(
 
         return try {
             val responseJson = RequestsSender.sendGet(
-                "http://${preferences.serverIp}/expenses/${globalId}/icon"
+                "http://${settings.server_ip}/expenses/${globalId}/icon"
             )
             println(responseJson)
             val imageClass: ExpenseImage = Gson().fromJson(responseJson, ExpenseImage::class.java)
@@ -323,14 +337,14 @@ class BackendService(
     fun deleteExpenseByGlobalId(globalId: Long?) {
         setPolicy()
         RequestsSender.sendDelete(
-            "http://${preferences.serverIp}/expenses/${globalId}"
+            "http://${settings.server_ip}/expenses/${globalId}"
         )
     }
 
     fun createGroup(groupCurrency: String, groupName: String, userId: Long? = null): ExpenseGroup {
         setPolicy()
         val responseJson = RequestsSender.sendPost(
-            "http://${preferences.serverIp}/users/${userId ?: preferences.userId}/groups",
+            "http://${settings.server_ip}/users/${userId ?: settings.user_id}/groups",
             "{\"currency\": \"${groupCurrency}\", \"name\": \"${groupName}\"}"
         )
         return jsonToExpenseGroup(responseJson)
@@ -339,7 +353,7 @@ class BackendService(
     fun addUserToGroup(userId: Long, groupId: Long) {
         setPolicy()
         RequestsSender.sendPost(
-            "http://${preferences.serverIp}/users/${userId}/groups",
+            "http://${settings.server_ip}/users/${userId}/groups",
             "{\"id\": ${groupId}}"
         )
     }
@@ -349,8 +363,8 @@ class BackendService(
     fun getNotifications(): List<Notification> {
         setPolicy()
         val responseJson = RequestsSender.sendGet(
-            "http://${preferences.serverIp}/users/${
-                preferences.userId
+            "http://${settings.server_ip}/users/${
+                settings.user_id
             }/notifications"
         )
         return jsonArrayToNotification(responseJson)
@@ -361,7 +375,7 @@ class BackendService(
     fun login(email: String, password: String): ApplicationUser {
         setPolicy()
         val responseJson = RequestsSender.sendPost(
-            "http://${preferences.serverIp}/users/login",
+            "http://${settings.server_ip}/users/login",
             Gson().toJson(LoginAndPassword(email, password))
         )
         return jsonToApplicationUser(responseJson)
@@ -370,7 +384,7 @@ class BackendService(
     fun register(email: String, username: String, password: String): LoginAndPassword {
         setPolicy()
         val responseJson = RequestsSender.sendPost(
-            "http://${preferences.serverIp}/users",
+            "http://${settings.server_ip}/users",
             Gson().toJson(ApplicationUser(username, email, password))
         )
         return jsonToLoginAndPassword(responseJson)
@@ -379,7 +393,7 @@ class BackendService(
     fun getUserByEmail(email: String): ApplicationUser {
         setPolicy()
         val responseJson =
-            RequestsSender.sendGet("http://${preferences.serverIp}/users/email/${email}")
+            RequestsSender.sendGet("http://${settings.server_ip}/users/email/${email}")
         return jsonToApplicationUser(responseJson)
     }
     //endregion
