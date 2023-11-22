@@ -3,7 +3,6 @@ package com.rebalance.backend.api.request
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import com.rebalance.backend.api.entities.*
-import com.rebalance.backend.entities.*
 
 fun jsonArrayToApplicationUsers(jsonBody: String): List<ApplicationUser> {
     val typeToken = object : TypeToken<List<ApplicationUser>>() {}.type
