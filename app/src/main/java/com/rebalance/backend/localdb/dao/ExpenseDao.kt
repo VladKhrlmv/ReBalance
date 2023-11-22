@@ -14,34 +14,31 @@ import com.rebalance.backend.localdb.entities.UserGroup
 @Dao
 interface ExpenseDao {
 
-    @Transaction
-    @Query("SELECT * FROM Expense")
-    fun getExpenses(): List<Expense>
-
-    @Transaction
-    @Query("SELECT * FROM Expense")
-    fun getExpenseDetails(): List<ExpenseDetail>
-
-    @Transaction
-    @Query("SELECT * FROM Expense WHERE id = :expenseId")
-    fun getExpenseDetailById(expenseId: Long): ExpenseDetail?
-
-    @Insert
-    fun insertUser(user: User): Long
-
-    @Insert
-    fun insertGroup(group: Group): Long
-
-    @Insert
-    fun insertUserGroup(userGroup: UserGroup)
-
-    @Insert
-    fun insertCategory(category: Category): Long
-
-    @Insert
-    fun insertExpense(expense: Expense): Long
-
-    @Insert
-    fun insertExpenseUser(expenseUser: ExpenseUser)
+//    @Transaction
+//    @Query("SELECT * FROM Expense")
+//    fun getExpenses(): List<Expense>
+//
+//    @Transaction
+//    @Query("SELECT * FROM Expense")
+//    fun getExpenseDetails(): List<ExpenseDetail>
+//
+//    @Transaction
+//    @Query("SELECT * FROM Expense WHERE id = :expenseId")
+//    fun getExpenseDetailById(expenseId: Long): ExpenseDetail?
+//
+//    @Insert
+//    fun insertUser(user: User): Long
+//
+//    @Insert
+//    fun insertGroup(group: Group): Long
+//
+//    @Insert
+//    fun insertUserGroup(userGroup: UserGroup)
+//
+//    @Insert
+//    fun insertExpense(expense: Expense): Long
+//
+//    @Insert
+//    fun insertExpenseUser(expenseUser: ExpenseUser)
 
 }

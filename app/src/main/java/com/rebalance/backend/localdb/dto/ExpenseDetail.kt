@@ -14,11 +14,6 @@ data class ExpenseDetail(
     )
     val userWhoAdded: User,
     @Relation(
-        parentColumn = "category_id",
-        entityColumn = "id"
-    )
-    val category: Category,
-    @Relation(
         parentColumn = "id",
         entityColumn = "expense_id"
     )
