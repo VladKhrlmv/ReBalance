@@ -8,7 +8,7 @@ import com.rebalance.backend.localdb.entities.*
 
 @Dao
 interface SettingsDao {
-    @Query("SELECT TOP 1 * FROM settings")
+    @Query("SELECT * FROM settings LIMIT 1")
     fun getSettings(): Settings?
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
