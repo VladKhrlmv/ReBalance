@@ -7,7 +7,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -16,8 +15,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.rebalance.service.Preferences
-import com.rebalance.service.PreferencesData
 import com.rebalance.activity.MainActivity
 import com.rebalance.backend.api.entities.ExpenseGroup
 import com.rebalance.backend.exceptions.ServerException
@@ -30,7 +27,7 @@ import com.rebalance.util.alertUser
 
 @Composable
 fun SignUpMailScreen(context: Context, navHostController: NavHostController) {
-    val preferences = rememberSaveable { Preferences(context).read() }
+    val backendService = BackendService(context)
 
     val email = remember { mutableStateOf("") }
     val username = remember { mutableStateOf("") }
@@ -115,29 +112,29 @@ fun SignUpMailScreen(context: Context, navHostController: NavHostController) {
                                 return@PrimaryButton
                             }
 
-                            BackendService(preferences).register(
+                            backendService.register(
                                 email.value,
                                 username.value,
                                 password.value
                             )
 
                             val userByNickname =
-                                BackendService(preferences).getUserByEmail(email.value)
-                            val group: ExpenseGroup = BackendService(preferences).createGroup(
+                                backendService.getUserByEmail(email.value)
+                            val group: ExpenseGroup = backendService.createGroup(
                                 personalCurrency.value,
                                 "per${email.value}",
                                 userByNickname.getId()
                             )
 
-                            val preferencesData = PreferencesData(
-                                "",
-                                userByNickname.getId().toString(),
-                                group.getId(),
-                                true,
-                                "systemChannel"
-                            )
-
-                            Preferences(context).write(preferencesData)
+//                            val preferencesData = PreferencesData(
+//                                "",
+//                                userByNickname.getId().toString(),
+//                                group.getId(),
+//                                true,
+//                                "systemChannel"
+//                            )
+//
+//                            Preferences(context).write(preferencesData)
 
                             switchActivityTo(context, MainActivity::class)
                         } catch (error: ServerException) {

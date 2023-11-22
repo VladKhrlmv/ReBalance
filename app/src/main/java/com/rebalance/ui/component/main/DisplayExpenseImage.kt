@@ -17,7 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
-import com.rebalance.service.PreferencesData
 import com.rebalance.backend.service.BackendService
 import com.rebalance.util.alertUser
 import compose.icons.EvaIcons
@@ -26,15 +25,15 @@ import compose.icons.evaicons.fill.Image
 
 @Composable
 fun DisplayExpenseImage(
-    preferences: PreferencesData,
+    backendService: BackendService,
     globalId: Long?,
     showPicture: MutableState<Boolean>,
     context: Context
 ) {
-    val iconBase64 = BackendService(preferences).getExpenseIcon(globalId)
+    val iconBase64 = backendService.getExpenseIcon(globalId)
     if (iconBase64 != null) {
         if (showPicture.value) {
-            val imageBase64 = BackendService(preferences).getExpensePicture(globalId)
+            val imageBase64 = backendService.getExpensePicture(globalId)
             AlertDialog(
                 onDismissRequest = { showPicture.value = false },
                 title = {

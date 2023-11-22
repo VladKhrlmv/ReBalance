@@ -15,7 +15,6 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,8 +33,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.rebalance.service.Preferences
-import com.rebalance.service.PreferencesData
 import com.rebalance.backend.api.entities.ApplicationUser
 import com.rebalance.backend.api.entities.Expense
 import com.rebalance.backend.api.entities.ExpenseGroup
@@ -62,7 +59,7 @@ fun AddSpendingScreen(
     callerPhoto: Bitmap? = null,
     setOnPlusClick: (() -> Unit) -> Unit
 ) {
-    val preferences = rememberSaveable { Preferences(context).read() }
+    val backendService = BackendService(context)
     var spendingName by remember { mutableStateOf(TextFieldValue()) }
     var selectedCategory by remember { mutableStateOf(TextFieldValue()) }
     var costValue by remember { mutableStateOf(TextFieldValue()) }
@@ -117,7 +114,7 @@ fun AddSpendingScreen(
                 addExpense(
                     isGroupExpense,
                     membersSelection,
-                    preferences,
+                    backendService,
                     groupId,
                     costValue,
                     date,
@@ -156,10 +153,10 @@ fun AddSpendingScreen(
                 .padding(start = 10.dp, end = 10.dp)
         ) {
             // Title and image
-            Box (
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-            ){
+            ) {
                 // Title field
                 TextField(
                     value = spendingName,
@@ -199,8 +196,7 @@ fun AddSpendingScreen(
                             "Image",
                             tint = MaterialTheme.colorScheme.onBackground
                         )
-                    }
-                    else {
+                    } else {
                         Icon(
                             Bitmap.createScaledBitmap(
                                 selectedPhoto!!,
@@ -216,7 +212,7 @@ fun AddSpendingScreen(
             }
             // If picture is chosen
             if (selectedPhoto != null) {
-                Row (
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(24.dp)
@@ -305,7 +301,7 @@ fun AddSpendingScreen(
                 maxLines = 1,
                 trailingIcon = {
                     Text(
-                        text = BackendService(preferences).getGroupById(if (groupId == 0L) preferences.groupId else groupId)
+                        text = backendService.getGroupById(if (groupId == 0L) backendService.getGroupId() else groupId)
                             .getCurrency()
                     )
                 }
@@ -331,8 +327,8 @@ fun AddSpendingScreen(
                             groupIdLast = groupId
                             groupId = 0L
                         }
-                        groupList = BackendService(preferences).getGroups()
-                            .filter { group -> group.getId() != preferences.groupId }
+                        groupList = backendService.getGroups()
+                            .filter { group -> group.getId() != backendService.getGroupId() }
                     },
                     modifier = Modifier
                         .align(Alignment.CenterVertically)
@@ -345,9 +341,9 @@ fun AddSpendingScreen(
                         .fillMaxWidth()
                         .clickable {
                             isGroupExpense = !isGroupExpense
-                            groupList = BackendService(preferences)
+                            groupList = backendService
                                 .getGroups()
-                                .filter { group -> group.getId() != preferences.groupId }
+                                .filter { group -> group.getId() != backendService.getGroupId() }
                             if (isGroupExpense) {
                                 groupId = groupIdLast
                             } else {
@@ -372,7 +368,7 @@ fun AddSpendingScreen(
                 ) {
                     // Group selection
                     GroupSelection(
-                        preferences,
+                        backendService,
                         groupName,
                         Modifier
                             .fillMaxWidth()
@@ -381,7 +377,7 @@ fun AddSpendingScreen(
                             .fillMaxWidth(),
                         onSwitch = {
                             groupId = it
-                            val group = BackendService(preferences).getGroupById(groupId)
+                            val group = backendService.getGroupById(groupId)
                             groupName = group.getName()
                             membersSelection.clear()
                             group.getUsers().forEach { member ->
@@ -392,12 +388,12 @@ fun AddSpendingScreen(
                     )
                     // Payer field
                     GroupMemberSelection(
-                        preferences = preferences,
+                        backendService = backendService,
                         memberSet =
-                            if (groupId != 0L)
-                                BackendService(preferences).getGroupById(groupId).getUsers()
-                            else
-                                setOf(),
+                        if (groupId != 0L)
+                            backendService.getGroupById(groupId).getUsers()
+                        else
+                            setOf(),
                         memberName = payer.value.getUsername(),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -456,7 +452,7 @@ fun AddSpendingScreen(
                                         modifier = Modifier
                                             .align(Alignment.CenterEnd)
                                     ) {
-                                        if(membersSelection[member]!!.first) {
+                                        if (membersSelection[member]!!.first) {
                                             TextField(
                                                 value = if (membersSelection[member]!!.second != 0)
                                                     membersSelection[member]!!.second.toString()
@@ -468,8 +464,7 @@ fun AddSpendingScreen(
                                                             membersSelection[member]!!.first,
                                                             newValue.toInt()
                                                         )
-                                                    }
-                                                    else if (newValue == "") {
+                                                    } else if (newValue == "") {
                                                         membersSelection[member] = Pair(
                                                             membersSelection[member]!!.first,
                                                             0
@@ -516,7 +511,7 @@ fun compressImage(originalImage: Bitmap?): ByteArrayOutputStream? {
 fun addExpense(
     isGroupExpense: Boolean,
     membersSelection: SnapshotStateMap<ApplicationUser, Pair<Boolean, Int>>,
-    preferences: PreferencesData,
+    backendService: BackendService,
     groupId: Long,
     costValue: TextFieldValue,
     date: MutableState<String>,
@@ -527,7 +522,7 @@ fun addExpense(
     if (isGroupExpense) {
         val activeMembers =
             membersSelection.filterValues { flag -> flag.first }
-        val resultExpense = BackendService(preferences).addExpense(
+        val resultExpense = backendService.addExpense(
             Expense(
                 costValue.text.toDouble(),
                 date.value.ifBlank { getToday() },
@@ -537,7 +532,7 @@ fun addExpense(
             groupId
         )
         for (member in activeMembers) {
-            BackendService(preferences).addExpense(
+            backendService.addExpense(
                 Expense(
                     costValue.text.toDouble() / activeMembers.size * -1,
                     date.value.ifBlank { getToday() },
@@ -555,21 +550,21 @@ fun addExpense(
                     Base64.DEFAULT
                 )
 
-                BackendService(preferences).addExpenseImage(
+                backendService.addExpenseImage(
                     base64String,
                     resultExpense.getGlobalId()
                 )
             }
         }
     } else {
-        val resultExpense = BackendService(preferences).addExpense(
+        val resultExpense = backendService.addExpense(
             Expense(
                 costValue.text.toDouble(),
                 date.value.ifBlank { getToday() },
                 selectedCategory.text,
                 spendingName.text
             ),
-            preferences.groupId
+            backendService.getGroupId()
         )
         if (callerPhoto != null) {
             val b = callerPhoto.toByteArray()
@@ -577,7 +572,7 @@ fun addExpense(
                 b,
                 Base64.DEFAULT
             )
-            BackendService(preferences).addExpenseImage(base64String, resultExpense.getGlobalId())
+            backendService.addExpenseImage(base64String, resultExpense.getGlobalId())
         }
     }
 }

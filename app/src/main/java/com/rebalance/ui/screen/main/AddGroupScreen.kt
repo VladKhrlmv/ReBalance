@@ -7,15 +7,12 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rebalance.service.Preferences
-import com.rebalance.service.PreferencesData
 import com.rebalance.backend.api.entities.ExpenseGroup
 import com.rebalance.backend.service.BackendService
 import com.rebalance.util.alertUser
@@ -28,7 +25,7 @@ fun AddGroupScreen(
     onCancel: () -> Unit,
     onCreate: (Long) -> Unit
 ) {
-    val preferences = rememberSaveable { Preferences(context).read() }
+    val backendService = BackendService(context)
 
     var groupName by remember { mutableStateOf(TextFieldValue()) }
     var groupCurrency by remember { mutableStateOf(TextFieldValue()) }
@@ -61,8 +58,10 @@ fun AddGroupScreen(
             Spacer(modifier = Modifier.height(16.dp))
             TextField(
                 value = groupCurrency,
-                onValueChange = { if (currencyRegex().matches(it.text))
-                    groupCurrency = it },
+                onValueChange = {
+                    if (currencyRegex().matches(it.text))
+                        groupCurrency = it
+                },
                 label = { Text("Currency") },
                 placeholder = { Text("ABC") },
                 singleLine = true,
@@ -86,7 +85,8 @@ fun AddGroupScreen(
                 Button(
                     onClick = {
                         // Handle group creation
-                        val group = createGroup(groupCurrency, groupName, context, preferences) ?: return@Button
+                        val group = createGroup(groupCurrency, groupName, context, backendService)
+                            ?: return@Button
                         alertUser("Group was created!", context)
                         onCancel()
                         onCreate(group.getId())
@@ -103,13 +103,13 @@ fun createGroup(
     groupCurrency: TextFieldValue,
     groupName: TextFieldValue,
     context: Context,
-    preferences: PreferencesData
+    backendService: BackendService
 ): ExpenseGroup? {
     if (groupCurrency.text.length != 3 || groupName.text.isBlank()) {
         alertUser("Fill in all fields!", context)
         return null
     }
-    val group = BackendService(preferences).createGroup(groupCurrency.text, groupName.text)
+    val group = backendService.createGroup(groupCurrency.text, groupName.text)
     alertUser("Group was created!", context)
     return group
 }

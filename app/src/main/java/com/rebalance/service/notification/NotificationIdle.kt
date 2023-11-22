@@ -19,14 +19,14 @@ class NotificationIdle(
 
     override fun doWork(): Result {
         return try {
-            val preferences = Preferences(context).read()
+            val backendService = BackendService(context)
             val mainLooper = Looper.getMainLooper()
 
-            val notifications = BackendService(preferences).getNotifications()
+            val notifications = backendService.getNotifications()
 
             if (notifications.isNotEmpty()) {
                 for (notification in notifications) {
-                    if (notification.getUserId().toString() == preferences.userId &&
+                    if (notification.getUserId() == backendService.getUserId() &&
                         notification.getAmount() < 0
                     ) {
                         Handler(mainLooper).post {

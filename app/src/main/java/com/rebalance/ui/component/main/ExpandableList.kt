@@ -23,7 +23,6 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rebalance.service.PreferencesData
 import com.rebalance.backend.service.BackendService
 import com.rebalance.backend.service.ExpenseItem
 import com.rebalance.util.alertUser
@@ -34,7 +33,7 @@ import compose.icons.evaicons.fill.Trash
 @Composable
 fun ExpandableList(
     items: List<ExpenseItem>,
-    preferences: PreferencesData,
+    backendService: BackendService,
     context: Context,
     openCategory: MutableState<String>,
     updateData: () -> Unit,
@@ -123,7 +122,7 @@ fun ExpandableList(
                                 supportingContent = { Text(expense.getDescription()) },
                                 leadingContent = {
                                     DisplayExpenseImage(
-                                        preferences,
+                                        backendService,
                                         expense.getGlobalId(),
                                         showPicture,
                                         context
@@ -145,7 +144,7 @@ fun ExpandableList(
                                             text = { Text("Are you sure you want to delete this expense?") },
                                             confirmButton = {
                                                 TextButton(onClick = {
-                                                    BackendService(preferences).deleteExpenseByGlobalId(
+                                                    backendService.deleteExpenseByGlobalId(
                                                         expense.getGlobalId()
                                                     )
                                                     alertUser("Expense deleted!", context)

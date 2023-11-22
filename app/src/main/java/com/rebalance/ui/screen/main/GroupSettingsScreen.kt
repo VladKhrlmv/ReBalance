@@ -19,8 +19,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.rebalance.service.Preferences
-import com.rebalance.service.PreferencesData
 import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.backend.service.BackendService
 import com.rebalance.util.alertUser
@@ -37,8 +35,8 @@ fun GroupSettingsScreen(
     navHostController: NavHostController,
     groupId: Long,
 ) {
-    val preferences: PreferencesData = Preferences(context).read()
-    var group = BackendService(preferences).getGroupById(groupId)
+    val backendService = BackendService(context)
+    var group = backendService.getGroupById(groupId)
     var groupName by remember { mutableStateOf(group.getName()) }
     var groupCurrency by remember { mutableStateOf(group.getCurrency()) }
     var groupMembers by remember { mutableStateOf(group.getUsers().toList()) }
@@ -83,10 +81,10 @@ fun GroupSettingsScreen(
                 )
             }
             DisplayInviteFields(
-                preferences = preferences,
+                backendService = backendService,
                 groupId = groupId,
                 onUserAdd = {
-                    group = BackendService(preferences).getGroupById(groupId)
+                    group = backendService.getGroupById(groupId)
                     groupMembers = group.getUsers().toList()
                 }
             )
@@ -95,7 +93,8 @@ fun GroupSettingsScreen(
                 modifier = Modifier
                     .padding(vertical = 10.dp)
             ) {
-                Text(text = "Members",
+                Text(
+                    text = "Members",
                     Modifier
                         .padding(horizontal = 10.dp),
                     fontSize = 30.sp
@@ -115,7 +114,10 @@ fun GroupSettingsScreen(
                     ) {
                         Text(text = it.getUsername())
                         IconButton(onClick = { /* Handle member deletion */ }) {
-                            Icon(imageVector = EvaIcons.Fill.Trash, contentDescription = "Delete member")
+                            Icon(
+                                imageVector = EvaIcons.Fill.Trash,
+                                contentDescription = "Delete member"
+                            )
                         }
                     }
                 }
@@ -130,7 +132,7 @@ fun GroupSettingsScreen(
             Button(onClick = { setShowDialog(true) }) {
                 Text("Delete Group")
             }
-            Button(onClick = { /* Handle group modification here */}) {
+            Button(onClick = { /* Handle group modification here */ }) {
                 Text("Save Changes")
             }
             if (showDialog) {
@@ -164,7 +166,7 @@ fun GroupSettingsScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DisplayInviteFields(
-    preferences: PreferencesData,
+    backendService: BackendService,
     groupId: Long,
     onUserAdd: () -> Unit
 ) {
@@ -181,7 +183,7 @@ private fun DisplayInviteFields(
             value = email,
             onValueChange = { newEmail -> email = newEmail },
             label = { Text("Add Member") },
-            placeholder = { Text("user@example.com")},
+            placeholder = { Text("user@example.com") },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { /* Handle action */ }),
             modifier = Modifier.padding(end = 10.dp),
@@ -196,11 +198,10 @@ private fun DisplayInviteFields(
                 if (email.text == "") {
                     alertUser("Please, provide the email", context)
                     return@Button
-                }
-                else {
+                } else {
                     try {
-                        val user = BackendService(preferences).getUserByEmail(email.text)
-                        BackendService(preferences).addUserToGroup(user.getId(), groupId)
+                        val user = backendService.getUserByEmail(email.text)
+                        backendService.addUserToGroup(user.getId(), groupId)
                         alertUser("User in group!", context)
                         email = TextFieldValue(text = "")
                         onUserAdd()

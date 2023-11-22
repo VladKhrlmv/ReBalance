@@ -8,7 +8,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -16,8 +15,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.rebalance.service.Preferences
-import com.rebalance.service.PreferencesData
 import com.rebalance.activity.MainActivity
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.authentication.CustomInput
@@ -31,7 +28,7 @@ import com.rebalance.util.alertUser
 
 @Composable
 fun SignInScreen(context: Context, navHostController: NavHostController) {
-    val preferences = rememberSaveable { Preferences(context).read() }
+    val backendService = BackendService(context)
     val login = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
 
@@ -77,23 +74,23 @@ fun SignInScreen(context: Context, navHostController: NavHostController) {
                         try {
                             val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
                             StrictMode.setThreadPolicy(policy)
-                            val user = BackendService(preferences).login(
+                            val user = backendService.login(
                                 login.value,
                                 password.value
                             )
 
-                            val groups = BackendService(preferences).getGroups(user.getId())
+                            val groups = backendService.getGroups(user.getId())
                             for (group in groups) {
                                 if (group.getName() == "per${user.getEmail()}") {
-                                    val preferencesData =
-                                        PreferencesData(
-                                            "",
-                                            user.getId().toString(),
-                                            group.getId(),
-                                            false,
-                                            "systemChannel"
-                                        )
-                                    Preferences(context).write(preferencesData)
+//                                    val preferencesData =
+//                                        PreferencesData(
+//                                            "",
+//                                            user.getId().toString(),
+//                                            group.getId(),
+//                                            false,
+//                                            "systemChannel"
+//                                        )
+//                                    Preferences(context).write(preferencesData)
                                 }
                             }
 

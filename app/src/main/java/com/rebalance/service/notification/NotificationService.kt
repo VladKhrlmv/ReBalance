@@ -15,18 +15,17 @@ import android.os.Looper
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import com.rebalance.service.Preferences
-import com.rebalance.service.PreferencesData
 import com.rebalance.R
 import com.rebalance.activity.LoadingActivity
 import com.rebalance.backend.service.BackendService
+import com.rebalance.service.Preferences
 import com.rebalance.util.alertUser
 
 class NotificationService(
     val context: Context,
-    private val preferencesData: PreferencesData = Preferences(context).read()
 ) {
     private var notificationId = 0
+    val backendService = BackendService(context)
     fun start() {
         createNotificationChannel()
 
@@ -36,7 +35,7 @@ class NotificationService(
         Thread {
             try {
                 while (true) {
-                    val notifications = BackendService(preferencesData).getNotifications()
+                    val notifications = backendService.getNotifications()
 
                     if (notifications.isNotEmpty()) {
                         for (notification in notifications) {
@@ -119,7 +118,7 @@ class NotificationService(
         val pendingIntent: PendingIntent =
             PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
-        val builder = NotificationCompat.Builder(context, preferencesData.currNotificationChannel)
+        val builder = NotificationCompat.Builder(context, "systemChannel")
             .setSmallIcon(androidx.core.R.drawable.notification_template_icon_bg)
             .setContentTitle("ReBalance")
             .setContentText(textContent)

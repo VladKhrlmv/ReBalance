@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.rebalance.service.Preferences
+import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.navigation.Routes
 import com.rebalance.ui.navigation.navigateSingleTo
 
@@ -32,8 +32,8 @@ class GuidedTour(
     val context: Context,
     val navHostController: NavHostController
 ) {
-    val preferences = Preferences(context).read()
-    var isActive by mutableStateOf(preferences.firstLaunch)
+    val backendService = BackendService(context)
+    var isActive by mutableStateOf(backendService.isFirstLaunch())
     var currentStepIndex by mutableStateOf(0)
     val currentStep get() = if (isActive) tourSteps.getOrNull(currentStepIndex) else null
 
@@ -49,8 +49,8 @@ class GuidedTour(
 
     fun skipTour() {
         isActive = false
-        preferences.firstLaunch = false
-        Preferences(context).write(preferences)
+//        preferences.firstLaunch = false
+//        Preferences(context).write(preferences)
     }
 }
 

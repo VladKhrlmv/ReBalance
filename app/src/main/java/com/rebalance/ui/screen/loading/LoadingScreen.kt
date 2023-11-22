@@ -1,7 +1,5 @@
 package com.rebalance.ui.screen.loading
 
-import android.os.Handler
-import android.os.Looper
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,23 +16,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rebalance.service.Preferences
-import com.rebalance.service.PreferencesData
-import com.rebalance.activity.AuthenticationActivity
-import com.rebalance.activity.MainActivity
-import com.rebalance.ui.navigation.switchActivityTo
+import com.rebalance.backend.service.BackendService
 import com.rebalance.util.alertUser
 import kotlinx.coroutines.delay
-import java.net.HttpURLConnection
-import java.net.URL
 
 
 @Composable
 fun LoadingScreen() {
     val context = LocalContext.current
-    val preferences = Preferences(LocalContext.current).read()
+    val backendService = BackendService(context)
     val isLoading = remember { mutableStateOf(true) }
-    val connected = remember { mutableStateOf(0) }
+    val connected = remember { mutableStateOf(false) }
 
     Scaffold(
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
@@ -55,45 +47,20 @@ fun LoadingScreen() {
 
     LaunchedEffect(Unit) {
         while (true) {
-            tryConnect(preferences) {
-                connected.value = it
-            }
-
+            connected.value = backendService.checkConnectivity()
 
             delay(5000)
         }
     }
 
-    if (connected.value == 1) {
-        if (!preferences.exists()) {
-            switchActivityTo(context, AuthenticationActivity::class)
-        } else {
-            switchActivityTo(context, MainActivity::class)
-        }
-    } else if (connected.value == -1) {
+    if (connected.value) {
+//        if (!preferences.exists()) {
+//            switchActivityTo(context, AuthenticationActivity::class)
+//        } else {
+//            switchActivityTo(context, MainActivity::class)
+//        }
+        alertUser("Success", context)
+    } else {
         alertUser("Can't establish connection. Retrying in 5 seconds", context)
     }
-}
-
-fun tryConnect(
-    preferences: PreferencesData,
-    onConnect: (Int) -> Unit
-) {
-    val mainLooper = Looper.getMainLooper()
-
-    Thread {
-        try {
-            val imageUrl = URL("http://${preferences.serverIp}/connect/test")
-
-            val httpConnection = imageUrl.openConnection() as HttpURLConnection
-            httpConnection.doInput = true
-            httpConnection.connect()
-
-            Handler(mainLooper).post {
-                onConnect(1)
-            }
-        } catch (e: Exception) {
-            onConnect(-1)
-        }
-    }.start()
 }

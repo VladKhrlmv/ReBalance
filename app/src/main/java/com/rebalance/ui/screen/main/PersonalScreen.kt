@@ -17,8 +17,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
-import com.rebalance.service.Preferences
-import com.rebalance.service.PreferencesData
 import com.rebalance.backend.service.BackendService
 import com.rebalance.backend.service.ExpenseItem
 import com.rebalance.backend.service.ScaleItem
@@ -35,10 +33,10 @@ fun PersonalScreen(
     navHostController: NavHostController,
     setOnPlusClick: (() -> Unit) -> Unit
 ) {
-    val preferences = rememberSaveable { Preferences(context).read() }
+    val backendService = BackendService(context)
 
     // initialize scale variables
-    val scaleItems = BackendService(preferences).getScaleItems() // list of scales
+    val scaleItems = backendService.getScaleItems() // list of scales
     var selectedScaleIndex by rememberSaveable { mutableStateOf(0) } // selected index of scale
 
     // initialize tabs
@@ -48,7 +46,7 @@ fun PersonalScreen(
     val expandableListState = rememberLazyListState()
 
     LaunchedEffect(Unit) {
-        setOnPlusClick{
+        setOnPlusClick {
             navigateSingleTo(navHostController, Routes.AddSpending)
         }
     }
@@ -58,7 +56,7 @@ fun PersonalScreen(
         type: String
     ) {
         tabItems.clear()
-        tabItems.addAll(BackendService(preferences).getScaledDateItems(type))
+        tabItems.addAll(backendService.getScaledDateItems(type))
         if (selectedTabIndex >= tabItems.size) selectedTabIndex = tabItems.size - 1
     }
     // fill initial tabs
@@ -98,7 +96,7 @@ fun PersonalScreen(
                 updateTabItems(scaleItems[selectedScaleIndex].type)
                 data.clear()
                 data.addAll(
-                    BackendService(preferences).getPersonal(
+                    backendService.getPersonal(
                         tabItems[selectedTabIndex].dateFrom,
                         tabItems[selectedTabIndex].dateTo
                     )
@@ -113,7 +111,7 @@ fun PersonalScreen(
             } else {
                 DisplayList(
                     data,
-                    preferences,
+                    backendService,
                     openCategory,
                     expandableListState,
                     updateData = {
@@ -198,7 +196,7 @@ private fun DisplayPieChart(
 @Composable
 private fun DisplayList(
     data: List<ExpenseItem>,
-    preferences: PreferencesData,
+    backendService: BackendService,
     openCategory: MutableState<String>,
     expandableListState: LazyListState,
     updateData: () -> Unit
@@ -211,10 +209,11 @@ private fun DisplayList(
     ) {
         ExpandableList(
             items = data,
-            preferences,
+            backendService,
             LocalContext.current,
             openCategory,
             updateData,
-            expandableListState)
+            expandableListState
+        )
     }
 }

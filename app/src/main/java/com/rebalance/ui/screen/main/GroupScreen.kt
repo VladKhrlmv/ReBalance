@@ -2,7 +2,9 @@ package com.rebalance.ui.screen.main
 
 import android.content.Context
 import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -12,14 +14,12 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
-import com.rebalance.service.Preferences
-import com.rebalance.service.PreferencesData
 import com.rebalance.backend.api.entities.Expense
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.main.BarChart
+import com.rebalance.ui.component.main.GroupContextMenu
 import com.rebalance.ui.component.main.GroupSelection
 import com.rebalance.ui.component.main.GroupSpendingList
-import com.rebalance.ui.component.main.GroupContextMenu
 import com.rebalance.ui.navigation.Routes
 import com.rebalance.ui.navigation.navigateSingleTo
 
@@ -30,7 +30,7 @@ fun GroupScreen(
     navHostController: NavHostController,
     setOnPlusClick: (() -> Unit) -> Unit
 ) {
-    val preferences = rememberSaveable { Preferences(context).read() }
+    val backendService = BackendService(context)
     // initialize tabs
     val tabItems = listOf("Visual", "List")
     var selectedTabIndex by rememberSaveable { mutableStateOf(0) } // selected index of tab
@@ -53,7 +53,12 @@ fun GroupScreen(
         }
 
         // selection of groups
-        DisplayGroupSelection(context, preferences, navHostController, groupId.value) { newGroupId ->
+        DisplayGroupSelection(
+            context,
+            backendService,
+            navHostController,
+            groupId.value
+        ) { newGroupId ->
             groupId.value = newGroupId
         }
 
@@ -64,13 +69,13 @@ fun GroupScreen(
                     .fillMaxSize()
             ) {
                 // show bar chart
-                DisplayVisual(preferences, groupId.value)
+                DisplayVisual(backendService, groupId.value)
             }
         } else { // if list tab
             // show list
             DisplayGroupList(
-                BackendService(preferences).getGroupList(groupId.value),
-                preferences,
+                backendService.getGroupList(groupId.value),
+                backendService,
                 groupId.value,
                 context,
                 refreshAndOpenGroup = { newGroupId ->
@@ -107,7 +112,7 @@ private fun DisplayTabs(
 @Composable
 private fun DisplayGroupSelection(
     context: Context,
-    preferences: PreferencesData,
+    backendService: BackendService,
     navHostController: NavHostController,
     groupId: Long,
     onSwitch: (Long) -> Unit
@@ -122,8 +127,8 @@ private fun DisplayGroupSelection(
     ) {
         // show group selection to fill remaining space after button
         GroupSelection(
-            preferences,
-            if (groupId == -1L) "" else BackendService(preferences).getGroupById(groupId).getName(),
+            backendService,
+            if (groupId == -1L) "" else backendService.getGroupById(groupId).getName(),
             Modifier
                 .padding(start = 10.dp)
                 .weight(1f)
@@ -158,10 +163,10 @@ private fun DisplayGroupSelection(
 
 @Composable
 private fun DisplayVisual(
-    preferences: PreferencesData,
+    backendService: BackendService,
     groupId: Long,
 ) {
-    val data = BackendService(preferences).getGroupVisualBarChart(groupId)
+    val data = backendService.getGroupVisualBarChart(groupId)
 
     Box(
         modifier = Modifier
@@ -176,7 +181,7 @@ private fun DisplayVisual(
 @Composable
 private fun DisplayGroupList(
     data: List<Expense>,
-    preferences: PreferencesData,
+    backendService: BackendService,
     groupId: Long,
     context: Context,
     refreshAndOpenGroup: (Long) -> Unit
@@ -189,7 +194,7 @@ private fun DisplayGroupList(
     ) {
         GroupSpendingList(
             data,
-            preferences,
+            backendService,
             groupId,
             context,
             refreshAndOpenGroup

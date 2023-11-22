@@ -5,14 +5,14 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.rebalance.service.PreferencesData
 import com.rebalance.backend.api.entities.ApplicationUser
+import com.rebalance.backend.service.BackendService
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroupMemberSelection(
-    preferences: PreferencesData,
+    backendService: BackendService,
     memberSet: Set<ApplicationUser>,
     memberName: String,
     modifier: Modifier = Modifier,
