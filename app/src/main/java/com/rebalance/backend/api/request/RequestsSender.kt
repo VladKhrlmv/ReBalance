@@ -1,11 +1,39 @@
 package com.rebalance.backend.api.request
 
 import com.rebalance.backend.exceptions.ServerException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
 
-class RequestsSender {
+class RequestsSender(
+    private val baseUrl: String
+) {
+    fun sendGet(url: String): Deferred<Pair<Int, String>> {
+        return CoroutineScope(Dispatchers.IO).async {
+            var respCode: Int
+            var respBody: String
+
+            val request = URL(baseUrl + url)
+            with(request.openConnection() as HttpURLConnection) {
+                requestMethod = "GET"
+                doInput = true
+                setRequestProperty("Content-Type", "application/json; utf-8")
+                setRequestProperty("Accept", "application/json")
+                println("Sent 'GET' request to URL : $url; Response Code : $responseCode")
+                respCode = responseCode
+                inputStream.bufferedReader().use {
+                    respBody = it.readText()
+                }
+            }
+
+            return@async Pair(respCode, respBody)
+        }
+    }
+
     companion object {
         fun sendGet(toWhere: String): String {
             var res = ""
@@ -29,7 +57,7 @@ class RequestsSender {
             with(url.openConnection() as HttpURLConnection) {
                 requestMethod = "POST"
                 doInput = true
-                doOutput=true
+                doOutput = true
                 setRequestProperty("Content-Type", "application/json")
                 val outputStreamWriter = OutputStreamWriter(outputStream)
                 outputStreamWriter.write(requestBody)
