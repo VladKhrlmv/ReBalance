@@ -24,7 +24,7 @@ class BackendService(
         db.settingsDao().saveSettings(
             Settings(
                 id = 1,
-                server_ip = "10.182.14.234:8080",
+                server_ip = "http://10.182.14.234:8080/v1",
                 user_id = -1,
                 group_ip = -1,
                 first_launch = true,
@@ -32,6 +32,24 @@ class BackendService(
             )
         )
         db.settingsDao().getSettings() as Settings
+    }
+    private val requestsSender = RequestsSender(settings.server_ip)
+
+    fun getUserId(): Long {
+        return settings.user_id
+    }
+
+    fun getGroupId(): Long {
+        return settings.group_ip
+    }
+
+    fun isFirstLaunch(): Boolean {
+        return settings.first_launch
+    }
+
+    suspend fun checkConnectivity(): Boolean {
+        val (responseCode, responseBody) = requestsSender.sendGet("/connect/test").await()
+        return responseCode == 200
     }
 
     fun setPolicy() {
