@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.End
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -17,19 +18,19 @@ fun ExpenseDistribution(preferences: PreferencesData, groupId: Long) {
     val groupCurrency =
         if (groupId == -1L) "" else BackendService(preferences).getGroupById(groupId).getCurrency()
     val debtSettlement = DebtSettlement(preferences, groupId)
-    Box(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
             .wrapContentHeight()
-            .padding(bottom = 85.dp),
-        contentAlignment = Alignment.Center
+            .padding(bottom = 85.dp)
     ) {
         for (item in debtSettlement.getListTransaction()) {
             Card(
                 modifier = Modifier
                     .padding(10.dp)
                     .fillMaxWidth()
-                    .wrapContentHeight(),
+                    .wrapContentHeight()
+                    .align(CenterHorizontally),
                 shape = MaterialTheme.shapes.medium,
                 elevation = CardDefaults.cardElevation(8.dp),
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)

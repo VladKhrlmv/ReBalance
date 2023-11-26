@@ -72,7 +72,7 @@ fun AddSpendingScreen(
     var groupId by remember { mutableStateOf(0L) }
     var groupIdLast by remember { mutableStateOf(0L) }
     var groupList by remember { mutableStateOf(listOf<ExpenseGroup>()) }
-    val payer = mutableStateOf(ApplicationUser())
+    var payer = remember { mutableStateOf(ApplicationUser()) }
     val membersSelection = remember { mutableStateMapOf<ApplicationUser, Pair<Boolean, Int>>() }
 
     var selectedPhoto by remember { mutableStateOf(callerPhoto) }
@@ -112,6 +112,10 @@ fun AddSpendingScreen(
                 alertUser("Choose at least one member", context)
                 return@setOnPlusClick
             }
+            if (isGroupExpense && payer.value.getId() == -1L) {
+                alertUser("Set the payer", context)
+                return@setOnPlusClick
+            }
 
             try {
                 addExpense(
@@ -119,6 +123,7 @@ fun AddSpendingScreen(
                     membersSelection,
                     preferences,
                     groupId,
+                    payer.value.getId(),
                     costValue,
                     date,
                     selectedCategory,
@@ -132,6 +137,7 @@ fun AddSpendingScreen(
                 isGroupExpense = false
                 groupName = ""
                 groupId = 0L
+                payer.value = ApplicationUser()
                 membersSelection.clear()
 
                 alertUser("Expense saved!", context)
@@ -518,6 +524,7 @@ fun addExpense(
     membersSelection: SnapshotStateMap<ApplicationUser, Pair<Boolean, Int>>,
     preferences: PreferencesData,
     groupId: Long,
+    payer: Long,
     costValue: TextFieldValue,
     date: MutableState<String>,
     selectedCategory: TextFieldValue,
