@@ -541,7 +541,8 @@ fun addExpense(
                 selectedCategory.text,
                 spendingName.text
             ),
-            groupId
+            groupId,
+            payer
         )
         for (member in activeMembers) {
             BackendService(preferences).addExpense(
