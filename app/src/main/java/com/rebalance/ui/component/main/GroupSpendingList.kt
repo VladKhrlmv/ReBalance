@@ -59,7 +59,7 @@ fun GroupSpendingList(
         verticalArrangement = Arrangement.Top
     ) {
         val expensesByGlobalId: Map<Long?, List<Expense>> = data.groupBy { it.getGlobalId() }
-        val filteredData = data.filter { it.getAmount() >= 0 }
+        val filteredData = data.filter { it.getAmount() >= 0 }.sortedByDescending { it.getDateStamp() }
         items(
             items = filteredData,
             itemContent = { expense ->
