@@ -33,6 +33,7 @@ fun GroupSelection(
             value = groupName,
             onValueChange = { },
             readOnly = true,
+            singleLine = true,
             label = {
                 Text(text = "Group")
             },

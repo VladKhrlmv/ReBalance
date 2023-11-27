@@ -58,7 +58,8 @@ fun DatePickerField(mDate: MutableState<String>, modifier: Modifier) {
                 ),
                 trailingIcon = {
                     Icon(EvaIcons.Fill.Calendar, "Date")
-                }
+                },
+                singleLine = true
             )
             Box(
                 modifier = Modifier

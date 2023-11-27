@@ -32,6 +32,7 @@ fun GroupMemberSelection(
             value = memberName,
             onValueChange = { },
             readOnly = true,
+            singleLine = true,
             label = {
                 Text(text = "Payer")
             },

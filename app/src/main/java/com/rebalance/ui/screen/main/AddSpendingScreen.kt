@@ -190,7 +190,7 @@ fun AddSpendingScreen(
                             focusManager.moveFocus(FocusDirection.Down)
                         }
                     ),
-                    maxLines = 1
+                    singleLine = true
                 )
                 IconButton(
                     onClick = { galleryLauncher.launch("image/*") },
@@ -274,7 +274,7 @@ fun AddSpendingScreen(
                         focusManager.moveFocus(FocusDirection.Down)
                     }
                 ),
-                maxLines = 1
+                singleLine = true
             )
             // Cost field
             TextField(
@@ -308,7 +308,7 @@ fun AddSpendingScreen(
                 colors = TextFieldDefaults.textFieldColors(
                     containerColor = Color.Transparent,
                 ),
-                maxLines = 1,
+                singleLine = true,
                 trailingIcon = {
                     Text(
                         text = BackendService(preferences).getGroupById(if (groupId == 0L) preferences.groupId else groupId)
@@ -492,7 +492,7 @@ fun AddSpendingScreen(
                                                 colors = TextFieldDefaults.textFieldColors(
                                                     containerColor = Color.Transparent,
                                                 ),
-                                                maxLines = 1
+                                                singleLine = true
                                             )
                                         }
                                     }
