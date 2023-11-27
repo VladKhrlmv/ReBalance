@@ -60,7 +60,13 @@ fun ExpandableList(
                     trailingContent = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = item.amount.toString() + " PLN",
+                                text = String.format(
+                                    if (item.amount >= 100000)
+                                        "%,.0f"
+                                    else
+                                        "%,.2f",
+                                    item.amount
+                                ) + " PLN",
                                 fontSize = 14.sp,
                                 color = Color.hsl(358f, 0.63f, 0.49f)
                             )
