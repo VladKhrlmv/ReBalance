@@ -90,29 +90,26 @@ fun PersonalScreen(
             // pie chart or list
             // initialize data
             val data = rememberSaveable {
-                mutableListOf<ExpenseItem>()
+                mutableStateOf(listOf<ExpenseItem>())
             }
 
             // declare function to update data
             fun updateData() {
                 updateTabItems(scaleItems[selectedScaleIndex].type)
-                data.clear()
-                data.addAll(
-                    BackendService(preferences).getPersonal(
+                data.value = BackendService(preferences).getPersonal(
                         tabItems[selectedTabIndex].dateFrom,
                         tabItems[selectedTabIndex].dateTo
                     )
-                )
             }
             // fill initial data
             updateData()
 
             // display pie chart or list
             if (pieChartActive.value) {
-                DisplayPieChart(data, pieChartActive, openCategory, expandableListState)
+                DisplayPieChart(data.value, pieChartActive, openCategory, expandableListState)
             } else {
                 DisplayList(
-                    data,
+                    data.value,
                     preferences,
                     openCategory,
                     expandableListState,
