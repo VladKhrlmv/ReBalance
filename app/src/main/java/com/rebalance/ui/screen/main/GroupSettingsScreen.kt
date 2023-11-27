@@ -1,9 +1,8 @@
 package com.rebalance.ui.screen.main
 
 import android.content.Context
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -16,6 +15,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -49,11 +49,14 @@ fun GroupSettingsScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(10.dp)
-            .verticalScroll(scrollState),
+            .padding(10.dp),
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Column {
+        Column (
+            modifier = Modifier
+                .weight(1f)
+                .padding(bottom = 10.dp)
+        ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -101,17 +104,17 @@ fun GroupSettingsScreen(
                     fontSize = 30.sp
                 )
             }
-            LazyColumn(
+            Column(
                 modifier = Modifier
-                    .height(350.dp)
+                    .verticalScroll(scrollState)
             ) {
-                items(items = groupMembers) {
+                for (it in groupMembers) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp, horizontal = 10.dp)
+                            .padding(10.dp)
                     ) {
                         Text(text = it.getUsername())
                         IconButton(onClick = { /* Handle member deletion */ }) {
@@ -124,7 +127,8 @@ fun GroupSettingsScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp),
+                .padding(horizontal = 10.dp)
+                .height(50.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Button(onClick = { setShowDialog(true) }) {
