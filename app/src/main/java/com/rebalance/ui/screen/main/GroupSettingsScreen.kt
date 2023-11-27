@@ -1,7 +1,6 @@
 package com.rebalance.ui.screen.main
 
 import android.content.Context
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
@@ -15,7 +14,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -67,8 +66,11 @@ fun GroupSettingsScreen(
                 TextField(
                     value = groupName,
                     onValueChange = { newGroupName -> groupName = newGroupName },
-                    label = { Text("Group Name") },
-                    modifier = Modifier.padding(end = 10.dp),
+                    label = { Text("Group Name", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    modifier = Modifier
+                        .padding(end = 10.dp)
+                        .width(270.dp),
+                    singleLine = true,
                     colors = TextFieldDefaults.textFieldColors(
                         containerColor = Color.Transparent
                     )
@@ -79,7 +81,8 @@ fun GroupSettingsScreen(
                         if (currencyRegex().matches(newCurrency))
                             groupCurrency = newCurrency
                     },
-                    label = { Text("Currency") },
+                    singleLine = true,
+                    label = { Text("Currency", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                     colors = TextFieldDefaults.textFieldColors(
                         containerColor = Color.Transparent
                     )
@@ -184,11 +187,14 @@ private fun DisplayInviteFields(
         TextField(
             value = email,
             onValueChange = { newEmail -> email = newEmail },
-            label = { Text("Add Member") },
+            label = { Text("Add Member", maxLines = 1, overflow = TextOverflow.Ellipsis) },
             placeholder = { Text("user@example.com")},
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { /* Handle action */ }),
-            modifier = Modifier.padding(end = 10.dp),
+            modifier = Modifier
+                .padding(end = 10.dp)
+                .width(270.dp),
+            singleLine = true,
             colors = TextFieldDefaults.textFieldColors(
                 containerColor = Color.Transparent
             )
