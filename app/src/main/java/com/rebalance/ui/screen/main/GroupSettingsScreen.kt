@@ -1,6 +1,7 @@
 package com.rebalance.ui.screen.main
 
 import android.content.Context
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
@@ -10,8 +11,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
@@ -44,11 +48,19 @@ fun GroupSettingsScreen(
     val scrollState = rememberScrollState()
     val (showDialog, setShowDialog) = remember { mutableStateOf(false) }
     val coroutineScope = rememberCoroutineScope()
+    val focusManager: FocusManager = LocalFocusManager.current
 
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(10.dp),
+            .padding(10.dp)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = { /* Do nothing on press to avoid ripple effect */
+                    },
+                    onTap = { focusManager.clearFocus() }
+                )
+            },
         verticalArrangement = Arrangement.SpaceBetween
     ) {
         Column (

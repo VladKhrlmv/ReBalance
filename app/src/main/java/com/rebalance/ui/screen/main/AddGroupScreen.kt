@@ -1,6 +1,7 @@
 package com.rebalance.ui.screen.main
 
 import android.content.Context
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -9,7 +10,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
@@ -29,12 +33,19 @@ fun AddGroupScreen(
     onCreate: (Long) -> Unit
 ) {
     val preferences = rememberSaveable { Preferences(context).read() }
-
+    val focusManager: FocusManager = LocalFocusManager.current
     var groupName by remember { mutableStateOf(TextFieldValue()) }
     var groupCurrency by remember { mutableStateOf(TextFieldValue()) }
     Surface(
         modifier = Modifier
-            .padding(10.dp),
+            .padding(10.dp)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = { /* Do nothing on press to avoid ripple effect */
+                    },
+                    onTap = { focusManager.clearFocus() }
+                )
+            },
         shape = RoundedCornerShape(16.dp),
         shadowElevation = 8.dp
     ) {

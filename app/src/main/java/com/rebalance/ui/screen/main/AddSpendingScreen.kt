@@ -10,6 +10,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -20,11 +21,10 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
-import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
@@ -78,7 +78,6 @@ fun AddSpendingScreen(
     var selectedPhoto by remember { mutableStateOf(callerPhoto) }
     var photoName by remember { mutableStateOf("") }
 
-    val focusRequesters = remember { List(3) { FocusRequester() } }
     val focusManager = LocalFocusManager.current
 
     val galleryLauncher =
@@ -153,6 +152,14 @@ fun AddSpendingScreen(
     // outer column
     Column(
         modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = { /* Do nothing on press to avoid ripple effect */
+                    },
+                    onTap = { focusManager.clearFocus() }
+                )
+            }
     ) {
         // scrollable column with other content
         Column(
@@ -175,7 +182,6 @@ fun AddSpendingScreen(
                     },
                     modifier = Modifier
                         .padding(horizontal = 10.dp, vertical = 5.dp)
-                        .focusRequester(focusRequesters[0])
                         .align(Alignment.CenterStart)
                         .width(275.dp),
                     colors = TextFieldDefaults.textFieldColors(
@@ -260,8 +266,7 @@ fun AddSpendingScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 10.dp, vertical = 5.dp)
-                    .focusRequester(focusRequesters[1]),
+                    .padding(horizontal = 10.dp, vertical = 5.dp),
                 colors = TextFieldDefaults.textFieldColors(
                     containerColor = Color.Transparent,
                 ),
@@ -294,7 +299,6 @@ fun AddSpendingScreen(
                 modifier = Modifier
                     .padding(horizontal = 10.dp, vertical = 5.dp)
                     .fillMaxWidth()
-                    .focusRequester(focusRequesters[2])
                     .onFocusChanged {
                         if (!it.isFocused) {
                             val tempCostValue = costValue.text

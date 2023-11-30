@@ -1,11 +1,15 @@
 package com.rebalance.ui.screen.authentication
 
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -20,7 +24,17 @@ import com.rebalance.ui.navigation.navigateTo
 fun SignUpScreen(navHostController: NavHostController) {
     Scaffold(
         content = { padding ->
-            Box(modifier = Modifier.padding(padding)) {
+            val focusManager: FocusManager = LocalFocusManager.current
+            Box(modifier = Modifier
+                .padding(padding)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onPress = { /* Do nothing on press to avoid ripple effect */
+                        },
+                        onTap = { focusManager.clearFocus() }
+                    )
+                }
+            ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
