@@ -15,6 +15,7 @@ import com.rebalance.ui.navigation.navigateToGroup
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
 import compose.icons.evaicons.fill.MoreVertical
+import compose.icons.evaicons.fill.Plus
 
 @Composable
 fun GroupContextMenu(
@@ -26,46 +27,49 @@ fun GroupContextMenu(
         val expanded = remember { mutableStateOf(false) }
 
         Icon(
-            imageVector = EvaIcons.Fill.MoreVertical,
+            imageVector =
+                if (groupId == -1L)
+                    EvaIcons.Fill.Plus
+                else
+                    EvaIcons.Fill.MoreVertical,
             contentDescription = "More actions",
             modifier = Modifier
-                .clickable { expanded.value = true }
+                .clickable {
+                    if (groupId == -1L)
+                        showAddGroupDialog.value = true
+                    else
+                        expanded.value = true
+                }
                 .padding(12.dp),
             tint = MaterialTheme.colorScheme.onBackground
         )
 
-        DropdownMenu(
-            expanded = expanded.value,
-            onDismissRequest = { expanded.value = false },
-        ) {
-            if (groupId != -1L) {
+        if (groupId != -1L) {
+            DropdownMenu(
+                expanded = expanded.value,
+                onDismissRequest = { expanded.value = false },
+            ) {
+                if (groupId != -1L) {
+                    DropdownMenuItem(
+                        onClick = {
+                            expanded.value = false
+                            navigateToGroup(navHostController, groupId)
+                        },
+                        text = {
+                            Text("Edit group")
+                        }
+                    )
+                }
                 DropdownMenuItem(
                     onClick = {
                         expanded.value = false
-                        navigateToGroup(navHostController, groupId)
+                        showAddGroupDialog.value = true
                     },
                     text = {
-                        Text("Edit group")
+                        Text("Create group")
                     }
                 )
             }
-            DropdownMenuItem(
-                onClick = {
-                    expanded.value = false
-                    showAddGroupDialog.value = true
-                },
-                text = {
-                    Text("Create group")
-                }
-            )
-            DropdownMenuItem(
-                onClick = {
-                    expanded.value = false
-                },
-                text = {
-                    Text("Export to Excel")
-                }
-            )
         }
     }
 }
