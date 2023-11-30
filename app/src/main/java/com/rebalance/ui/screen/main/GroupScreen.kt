@@ -1,6 +1,7 @@
 package com.rebalance.ui.screen.main
 
 import android.content.Context
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -10,6 +11,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -30,21 +34,27 @@ fun GroupScreen(
     setOnPlusClick: (() -> Unit) -> Unit
 ) {
     val preferences = rememberSaveable { Preferences(context).read() }
-    // initialize tabs
     val tabItems = listOf("Visual", "List")
     var selectedTabIndex by rememberSaveable { mutableStateOf(0) } // selected index of tab
     var groupId = rememberSaveable { mutableStateOf(-1L) }
+    val focusManager: FocusManager = LocalFocusManager.current
 
     LaunchedEffect(Unit) {
         setOnPlusClick {
             navigateSingleTo(navHostController, Routes.AddSpending)
         }
     }
-    println("Set for group")
 
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = { /* Do nothing on press to avoid ripple effect */
+                    },
+                    onTap = { focusManager.clearFocus() }
+                )
+            }
     ) {
         // top tabs
         DisplayTabs(tabItems, selectedTabIndex) { tabIndex ->
