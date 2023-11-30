@@ -130,7 +130,10 @@ private fun DisplayAddSpendingButton(
     navHostController: NavHostController,
     onClick: () -> Unit
 ) {
-    if (navBackStackEntry?.destination?.route != Routes.GroupSettings.paramRoute) {
+    if (
+        navBackStackEntry?.destination?.route != Routes.GroupSettings.paramRoute &&
+        navBackStackEntry?.destination?.route != Routes.Settings.route
+    ) {
         AddSpendingButton(
             navBackStackEntry,
             navHostController,
