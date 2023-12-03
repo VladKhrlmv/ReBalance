@@ -4,10 +4,8 @@ import android.content.Context
 import android.os.Parcelable
 import android.os.StrictMode
 import android.util.Base64
-import android.util.Log
 import com.google.gson.Gson
-import com.rebalance.backend.api.entities.*
-import com.rebalance.backend.api.request.*
+import com.rebalance.backend.api.*
 import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.backend.localdb.db.AppDatabase
 import com.rebalance.backend.localdb.entities.Settings
@@ -27,7 +25,7 @@ class BackendService(context: Context) {
 
     private val db: AppDatabase
     private val settings: Settings
-    private val requestsSender: RequestsSender
+    private val requestSender: RequestSender
 
     init {
         // initialize db

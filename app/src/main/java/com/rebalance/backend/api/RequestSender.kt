@@ -1,4 +1,4 @@
-package com.rebalance.backend.api.request
+package com.rebalance.backend.api
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -7,7 +7,7 @@ import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
 
-class RequestsSender(
+class RequestSender(
     private val baseUrl: String
 ) {
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
