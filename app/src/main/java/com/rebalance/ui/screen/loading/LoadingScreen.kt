@@ -16,20 +16,29 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.rebalance.activity.AuthenticationActivity
+import com.rebalance.activity.MainActivity
+import com.rebalance.backend.dto.LoginResult
 import com.rebalance.backend.service.BackendService
-import com.rebalance.util.alertUser
+import com.rebalance.ui.navigation.switchActivityTo
 import kotlinx.coroutines.delay
 
 
 @Composable
 fun LoadingScreen() {
     val context = LocalContext.current
-    val backendService = BackendService(context)
-    val isLoading = remember { mutableStateOf(true) }
-    val connected = remember { mutableStateOf(false) }
+    val backendService = remember { BackendService(context) }
+    val connected = remember { mutableStateOf(LoginResult.ServerUnreachable) }
+
+    LaunchedEffect(Unit) {
+        while (connected.value == LoginResult.ServerUnreachable) {
+            connected.value = backendService.checkLogin()
+            delay(5000)
+        }
+    }
 
     Scaffold(
-        content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
+        content = { padding ->
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -38,29 +47,15 @@ fun LoadingScreen() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(text = "ReBalance", fontSize = 30.sp, modifier = Modifier.padding(90.dp))
-                if (isLoading.value) {
-                    CircularProgressIndicator()
+                when (connected.value) {
+                    LoginResult.LoggedIn -> switchActivityTo(context, MainActivity::class)
+                    LoginResult.TokenInspired -> switchActivityTo(
+                        context,
+                        AuthenticationActivity::class
+                    )
+                    LoginResult.ServerUnreachable -> CircularProgressIndicator()
                 }
             }
         }
     )
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            connected.value = backendService.checkConnectivity()
-
-            delay(5000)
-        }
-    }
-
-    if (connected.value) {
-//        if (!preferences.exists()) {
-//            switchActivityTo(context, AuthenticationActivity::class)
-//        } else {
-//            switchActivityTo(context, MainActivity::class)
-//        }
-        alertUser("Success", context)
-    } else {
-        alertUser("Can't establish connection. Retrying in 5 seconds", context)
-    }
 }

@@ -51,6 +51,7 @@ class BackendService(context: Context) {
         this.requestSender = RequestSender(this.settings.server_ip, this.settings.token!!)
     }
 
+    //region settings
     fun getUserId(): Long {
         return settings.user_id
     }
@@ -62,11 +63,25 @@ class BackendService(context: Context) {
     fun isFirstLaunch(): Boolean {
         return settings.first_launch
     }
+    //endregion
 
-    suspend fun checkConnectivity(): Boolean {
-        val (responseCode, _) = requestsSender.sendGet("/connect/test")
-        return responseCode == 200
+    //region connection
+    suspend fun checkLogin(): LoginResult {
+        val (responseCode, responseBody) = requestSender.sendGet("/user/info")
+        return when (responseCode) {
+            200 -> {
+                val user = RequestParser.responseToUser(responseBody)
+                if (user.id == settings.user_id &&
+                    user.personalGroupId == settings.group_ip
+                ) {
+                    LoginResult.LoggedIn
+                } else LoginResult.TokenInspired
+            }
+            401 -> LoginResult.TokenInspired
+            else -> LoginResult.ServerUnreachable
+        }
     }
+    //endregion
 
     fun setPolicy() {
         val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
