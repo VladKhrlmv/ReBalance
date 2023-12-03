@@ -2,7 +2,6 @@ package com.rebalance.backend.api.request
 
 import com.rebalance.backend.exceptions.ServerException
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import java.io.OutputStreamWriter
@@ -12,8 +11,10 @@ import java.net.URL
 class RequestsSender(
     private val baseUrl: String
 ) {
-    fun sendGet(url: String): Deferred<Pair<Int, String>> {
-        return CoroutineScope(Dispatchers.IO).async {
+    private val coroutineScope = CoroutineScope(Dispatchers.Main)
+
+    suspend fun sendGet(url: String): Pair<Int, String> =
+        coroutineScope.async(Dispatchers.IO) {
             var respCode: Int
             var respBody: String
 
@@ -23,7 +24,6 @@ class RequestsSender(
                 doInput = true
                 setRequestProperty("Content-Type", "application/json; utf-8")
                 setRequestProperty("Accept", "application/json")
-                println("Sent 'GET' request to URL : $url; Response Code : $responseCode")
                 respCode = responseCode
                 inputStream.bufferedReader().use {
                     respBody = it.readText()
@@ -31,8 +31,7 @@ class RequestsSender(
             }
 
             return@async Pair(respCode, respBody)
-        }
-    }
+        }.await()
 
     companion object {
         fun sendGet(toWhere: String): String {

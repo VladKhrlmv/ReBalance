@@ -48,7 +48,7 @@ class BackendService(
     }
 
     suspend fun checkConnectivity(): Boolean {
-        val (responseCode, responseBody) = requestsSender.sendGet("/connect/test").await()
+        val (responseCode, _) = requestsSender.sendGet("/connect/test")
         return responseCode == 200
     }
 
