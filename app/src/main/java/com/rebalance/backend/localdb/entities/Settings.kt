@@ -18,6 +18,19 @@ data class Settings(
     val first_launch: Boolean,
     @ColumnInfo(name = "token")
     val token: String?
-)
+) {
+    companion object {
+        fun getDefaultInstance(): Settings {
+            return Settings(
+                id = 1,
+                server_ip = "http://26.129.34.140:8080/v1",
+                user_id = -1,
+                group_ip = -1,
+                first_launch = true,
+                token = null
+            )
+        }
+    }
+}
 
 
