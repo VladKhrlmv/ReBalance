@@ -8,14 +8,15 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 class RequestSender(
-    private val baseUrl: String
+    private val baseUrl: String,
+    private val token: String
 ) {
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
     suspend fun sendGet(url: String): Pair<Int, String> =
         coroutineScope.async(Dispatchers.IO) {
             var respCode: Int
-            var respBody: String
+            var respBody = ""
 
             val request = URL(baseUrl + url)
             with(request.openConnection() as HttpURLConnection) {
@@ -23,10 +24,13 @@ class RequestSender(
                 doInput = true
                 setRequestProperty("Content-Type", "application/json; utf-8")
                 setRequestProperty("Accept", "application/json")
+                setRequestProperty("Authorization", "Bearer $token")
 
                 respCode = responseCode
-                inputStream.bufferedReader().use {
-                    respBody = it.readText()
+                if (responseCode == 200) {
+                    inputStream.bufferedReader().use {
+                        respBody = it.readText()
+                    }
                 }
             }
 
@@ -36,7 +40,7 @@ class RequestSender(
     suspend fun sendPost(url: String, body: String): Pair<Int, String> =
         coroutineScope.async(Dispatchers.IO) {
             var respCode: Int
-            var respBody: String
+            var respBody = ""
 
             val request = URL(baseUrl + url)
             with(request.openConnection() as HttpURLConnection) {
@@ -45,13 +49,16 @@ class RequestSender(
                 doOutput = true
                 setRequestProperty("Content-Type", "application/json; utf-8")
                 setRequestProperty("Accept", "application/json")
+                setRequestProperty("Authorization", "Bearer $token")
                 val outputStreamWriter = OutputStreamWriter(outputStream)
                 outputStreamWriter.write(body)
                 outputStreamWriter.flush()
 
                 respCode = responseCode
-                inputStream.bufferedReader().use {
-                    respBody = it.readText()
+                if (responseCode == 200 || responseCode == 201) {
+                    inputStream.bufferedReader().use {
+                        respBody = it.readText()
+                    }
                 }
             }
 
@@ -61,7 +68,7 @@ class RequestSender(
     suspend fun sendPut(url: String, body: String): Pair<Int, String> =
         coroutineScope.async(Dispatchers.IO) {
             var respCode: Int
-            var respBody: String
+            var respBody = ""
 
             val request = URL(baseUrl + url)
             with(request.openConnection() as HttpURLConnection) {
@@ -70,13 +77,16 @@ class RequestSender(
                 doOutput = true
                 setRequestProperty("Content-Type", "application/json; utf-8")
                 setRequestProperty("Accept", "application/json")
+                setRequestProperty("Authorization", "Bearer $token")
                 val outputStreamWriter = OutputStreamWriter(outputStream)
                 outputStreamWriter.write(body)
                 outputStreamWriter.flush()
 
                 respCode = responseCode
-                inputStream.bufferedReader().use {
-                    respBody = it.readText()
+                if (responseCode == 200 || responseCode == 201) {
+                    inputStream.bufferedReader().use {
+                        respBody = it.readText()
+                    }
                 }
             }
 
@@ -86,21 +96,17 @@ class RequestSender(
     suspend fun sendDelete(url: String): Pair<Int, String> =
         coroutineScope.async(Dispatchers.IO) {
             var respCode: Int
-            var respBody: String
 
             val request = URL(baseUrl + url)
             with(request.openConnection() as HttpURLConnection) {
                 requestMethod = "DELETE"
-                doInput = true
                 setRequestProperty("Content-Type", "application/json; utf-8")
                 setRequestProperty("Accept", "application/json")
+                setRequestProperty("Authorization", "Bearer $token")
 
                 respCode = responseCode
-                inputStream.bufferedReader().use {
-                    respBody = it.readText()
-                }
             }
 
-            return@async Pair(respCode, respBody)
+            return@async Pair(respCode, "")
         }.await()
 }

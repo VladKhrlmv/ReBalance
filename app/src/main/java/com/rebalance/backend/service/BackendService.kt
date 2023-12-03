@@ -48,7 +48,7 @@ class BackendService(context: Context) {
         }
         // initialize settings from db and requests sender
         this.settings = settings as Settings
-        this.requestsSender = RequestsSender(this.settings.server_ip)
+        this.requestSender = RequestSender(this.settings.server_ip, this.settings.token!!)
     }
 
     fun getUserId(): Long {
