@@ -4,36 +4,54 @@ import android.content.Context
 import android.os.Parcelable
 import android.os.StrictMode
 import android.util.Base64
+import android.util.Log
 import com.google.gson.Gson
 import com.rebalance.backend.api.entities.*
 import com.rebalance.backend.api.request.*
 import com.rebalance.backend.exceptions.ServerException
 import com.rebalance.backend.localdb.db.AppDatabase
 import com.rebalance.backend.localdb.entities.Settings
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.parcelize.Parcelize
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-class BackendService(
-    private val context: Context
-) {
+class BackendService(context: Context) {
     private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
-    private val db = AppDatabase.getDatabase(context)
-    private val settings = db.settingsDao().getSettings() ?: run {
-        db.settingsDao().saveSettings(
-            Settings(
-                id = 1,
-                server_ip = "http://10.182.14.234:8080/v1",
-                user_id = -1,
-                group_ip = -1,
-                first_launch = true,
-                token = null
-            )
-        )
-        db.settingsDao().getSettings() as Settings
+
+    private val mainScope = CoroutineScope(Dispatchers.Main)
+
+    private val db: AppDatabase
+    private val settings: Settings
+    private val requestsSender: RequestsSender
+
+    init {
+        // initialize db
+        db = AppDatabase.getDatabase(context)
+        var settings: Settings? = Settings.getDefaultInstance()
+        mainScope.launch {
+            // try load settings
+            settings = withContext(Dispatchers.IO) {
+                db.settingsDao().getSettings()
+            }
+            // if first launch (no settings), save default to db and read them
+            if (settings == null) {
+                withContext(Dispatchers.IO) {
+                    db.settingsDao().saveSettings(Settings.getDefaultInstance())
+                }
+                settings = withContext(Dispatchers.IO) {
+                    db.settingsDao().getSettings()
+                }
+            }
+        }
+        // initialize settings from db and requests sender
+        this.settings = settings as Settings
+        this.requestsSender = RequestsSender(this.settings.server_ip)
     }
-    private val requestsSender = RequestsSender(settings.server_ip)
 
     fun getUserId(): Long {
         return settings.user_id

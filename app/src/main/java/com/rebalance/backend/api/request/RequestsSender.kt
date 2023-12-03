@@ -34,6 +34,10 @@ class RequestsSender(
         }.await()
 
     companion object {
+        fun getDefaultInstance(): RequestsSender {
+            return RequestsSender("")
+        }
+
         fun sendGet(toWhere: String): String {
             var res = ""
             val url = URL(toWhere)
