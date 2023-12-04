@@ -1,23 +1,19 @@
 package com.rebalance.backend.service
 
 import android.content.Context
-import android.os.Parcelable
-import android.os.StrictMode
+import androidx.compose.ui.graphics.ImageBitmap
 import com.rebalance.backend.api.RequestParser
 import com.rebalance.backend.api.RequestSender
 import com.rebalance.backend.api.dto.request.ApiLoginRequest
 import com.rebalance.backend.api.dto.request.ApiRegisterRequest
-import com.rebalance.backend.dto.LoginResult
-import com.rebalance.backend.dto.RegisterResult
+import com.rebalance.backend.dto.*
 import com.rebalance.backend.localdb.db.AppDatabase
+import com.rebalance.backend.localdb.entities.Expense
 import com.rebalance.backend.localdb.entities.Settings
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import kotlinx.parcelize.Parcelize
+import kotlinx.coroutines.*
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 class BackendService {
@@ -64,7 +60,7 @@ class BackendService {
         }
     }
 
-    //region private functions
+    //region updating user in db
     private suspend fun updateUser(userId: Long, personalGroupId: Long, token: String) {
         this.settings.user_id = userId
         this.settings.group_ip = personalGroupId
@@ -155,11 +151,6 @@ class BackendService {
     }
     //endregion
 
-    fun setPolicy() {
-        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-        StrictMode.setThreadPolicy(policy)
-    }
-
     //region Personal screen
     /** Returns scale items that is scrollable vertically in personal screen (day, week, month, year) **/
     fun getScaleItems(): List<ScaleItem> {
@@ -172,86 +163,93 @@ class BackendService {
     }
 
     /** Returns scaled date items that is scrollable horizontally in personal screen **/
-    fun getScaledDateItems(scale: String): List<ScaledDateItem> {
-        setPolicy()
-
-        val jsonBodyExpenses = RequestsSender.sendGet(
-            "http://${settings.server_ip}/groups/${settings.group_ip}/expenses"
-        )
-        val expenses: List<Expense> = jsonArrayToExpenses(jsonBodyExpenses)
-
+    suspend fun getTabItems(scale: String): List<ScaledDateItem> {
         val list = ArrayList<ScaledDateItem>()
 
         when (scale) {
             "Day" -> {
-                for (ex in expenses) {
-                    val date = LocalDate.parse(ex.getDateStamp(), formatter)
-                    if (list.any {
-                            it.dateTo.year == date.year &&
-                                    it.dateTo.dayOfYear == date.dayOfYear
-                        }) {
-                        continue // if not the same date
+                // get unique dates from db
+                val dates = mainScope.async {
+                    var dates: List<LocalDateTime>
+                    withContext(Dispatchers.IO) {
+                        dates = db.expenseDao().getUniqueExpenseDays(settings.group_ip)
                     }
-                    list.add(ScaledDateItem(ex.getDateStamp(), date, date))
+                    return@async dates
+                }.await()
+                // add dates to return list
+                dates.forEach { d ->
+                    list.add(
+                        ScaledDateItem(
+                            d.format(formatter),
+                            d,
+                            d
+                        )
+                    )
                 }
             }
             "Week" -> {
-                for (ex in expenses) {
-                    val date = LocalDate.parse(ex.getDateStamp(), formatter)
-                    if (list.any {
-                            it.dateTo.year == date.year &&
-                                    date.dayOfYear - it.dateFrom.dayOfYear < 7 &&
-                                    it.dateTo.dayOfYear - date.dayOfYear < 7 &&
-                                    date.dayOfWeek >= it.dateFrom.dayOfWeek &&
-                                    date.dayOfWeek <= it.dateTo.dayOfWeek
-                        }) {
-                        continue // if not the same week
+                // get unique years from db
+                val dates = mainScope.async {
+                    var dates: List<String>
+                    withContext(Dispatchers.IO) {
+                        dates = db.expenseDao().getUniqueExpenseWeeks(settings.group_ip)
                     }
-                    val dateFrom = date.with(DayOfWeek.MONDAY)
-                    val dateTo = date.with(DayOfWeek.SUNDAY)
+                    return@async dates
+                }.await()
+                // add dates to return list
+                dates.forEach { d ->
+                    val startDate =
+                        LocalDate.parse(d, DateTimeFormatter.ofPattern("yyyy-WW")).atStartOfDay()
+                    val endDate = startDate.plusWeeks(1).minusSeconds(1)
                     list.add(
                         ScaledDateItem(
-                            dateFrom.format(formatter) +
-                                    "\n" +
-                                    dateTo.format(formatter), dateFrom, dateTo
+                            startDate.format(formatter),
+                            startDate,
+                            endDate
                         )
                     )
                 }
             }
             "Month" -> {
-                for (ex in expenses) {
-                    val date = LocalDate.parse(ex.getDateStamp(), formatter)
-                    if (list.any {
-                            it.dateFrom.year == date.year &&
-                                    it.dateFrom.month == date.month
-                        }) {
-                        continue // if not the same year
+                // get unique years from db
+                val dates = mainScope.async {
+                    var dates: List<String>
+                    withContext(Dispatchers.IO) {
+                        dates = db.expenseDao().getUniqueExpenseMonths(settings.group_ip)
                     }
-                    val from = date.minusDays(date.dayOfMonth.toLong() - 1)
-                    val to = date.plusMonths(1).minusDays(date.dayOfMonth.toLong())
+                    return@async dates
+                }.await()
+                // add dates to return list
+                dates.forEach { d ->
+                    val startDate =
+                        LocalDate.parse(d, DateTimeFormatter.ofPattern("yyyy-MM")).atStartOfDay()
+                    val endDate = startDate.plusMonths(1).minusSeconds(1)
                     list.add(
                         ScaledDateItem(
-                            date.month.toString() + " " + date.year.toString(),
-                            from, to
+                            startDate.month.toString() + " " + startDate.year.toString(),
+                            startDate,
+                            endDate
                         )
                     )
                 }
             }
             "Year" -> {
-                for (ex in expenses) {
-                    val date = LocalDate.parse(ex.getDateStamp(), formatter)
-                    if (list.any { it.dateFrom.year == date.year }) {
-                        continue // if not the same year
+                // get unique years from db
+                val dates = mainScope.async {
+                    var dates: List<Int>
+                    withContext(Dispatchers.IO) {
+                        dates = db.expenseDao().getUniqueExpenseYears(settings.group_ip)
                     }
-                    val year = LocalDate.parse(
-                        date.year.toString() + "-01-01",
-                        DateTimeFormatter.ofPattern("yyyy-MM-dd")
-                    )
+                    return@async dates
+                }.await()
+                // add dates to return list
+                dates.forEach { d ->
+                    val startYear = LocalDateTime.of(d, 1, 1, 0, 0, 0)
                     list.add(
                         ScaledDateItem(
-                            year.year.toString(),
-                            year,
-                            year.plusYears(1).minusDays(1)
+                            d.toString(),
+                            startYear,
+                            startYear.plusYears(1).minusSeconds(1)
                         )
                     )
                 }
@@ -260,7 +258,7 @@ class BackendService {
 
         if (list.isEmpty()) { // if empty list add current date otherwise app crash
             var name = ""
-            val date = LocalDate.now()
+            val date = LocalDateTime.now()
             when (scale) {
                 "Day" -> {
                     name = date.format(formatter)
@@ -281,80 +279,65 @@ class BackendService {
             list.add(
                 ScaledDateItem(
                     name,
-                    LocalDate.now(),
-                    LocalDate.now()
+                    LocalDateTime.now(),
+                    LocalDateTime.now()
                 )
             )
         }
 
-        return list.sortedWith(compareBy({ it.dateFrom.year }, { it.dateFrom.dayOfYear }))
+        return list.sortedWith(
+            compareBy(
+                { it.dateFrom.year },
+                { it.dateFrom.dayOfYear })
+        )
     }
 
-    /** Returns list of expenses grouped by category **/
-    fun getPersonal(dateFrom: LocalDate, dateTo: LocalDate): List<ExpenseItem> {
-        setPolicy()
-
-        val list = ArrayList<ExpenseItem>()
-
-        val jsonBodyGet = RequestsSender.sendGet(
-            "http://${settings.server_ip}/expenses/group/${settings.group_ip}/between/${
-                dateFrom.format(
-                    formatter
+    /** Returns categories and their sums in the provided dates range **/
+    suspend fun getPieChartData(scaledDateItem: ScaledDateItem): List<SumByCategoryItem> {
+        return mainScope.async {
+            var sums: List<SumByCategoryItem>
+            withContext(Dispatchers.IO) {
+                sums = db.expenseDao().getSumsByCategories(
+                    settings.group_ip,
+                    scaledDateItem.dateFrom,
+                    scaledDateItem.dateTo
                 )
-            }/${
-                dateTo.format(
-                    formatter
-                )
-            }"
-        )
-        val listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
-        val categoryMap: HashMap<String, ExpenseItem> = HashMap()
-        listExpense.forEach { entry ->
-            if (categoryMap.containsKey(entry.getCategory())) {
-                val item = categoryMap.getValue(entry.getCategory())
-                item.amount = item.amount + entry.getAmount()
-                item.expenses.add(entry)
-                categoryMap[entry.getCategory()] = item
-            } else {
-                categoryMap[entry.getCategory()] = ExpenseItem(entry)
             }
+            return@async sums
+        }.await()
+    }
+
+    /** Returns list of expenses grouped by category in the provided dates range **/
+    suspend fun getExpensesByCategory(category: String, scaledDateItem: ScaledDateItem): List<Expense> {
+        return mainScope.async {
+            var sums: List<Expense>
+            withContext(Dispatchers.IO) {
+                sums = db.expenseDao().getExpensesByCategory(settings.group_ip, category, scaledDateItem.dateFrom, scaledDateItem.dateTo)
+            }
+            return@async sums
+        }.await()
+    }
+
+    /** Deletes personal expense from localdb and server, returns result of an operation **/
+    suspend fun deletePersonalExpenseById(expenseId: Long): DeleteResult {
+        // delete from server
+        val (responseCode, _) = requestSender.sendDelete("/personal/expenses/$expenseId")
+        return when (responseCode) {
+            204 -> {
+                // id successful, delete from localdb
+                mainScope.async {
+                    withContext(Dispatchers.IO) {
+                        db.expenseDao().deleteById(expenseId)
+                    }
+                    return@async
+                }.await()
+                DeleteResult.Deleted
+            }
+            //TODO: correctly handle other cases
+            404 -> DeleteResult.NotFound
+            409 -> DeleteResult.IncorrectId
+            else -> DeleteResult.ServerError
         }
-        for (entry in categoryMap.values) {
-            list.add(entry)
-        }
-
-        return list
-    }
-    //endregion
-
-    //region Add spending screen
-    fun getGroups(userId: Long? = null): List<ExpenseGroup> {
-        setPolicy()
-
-        val jsonBodyGroups = RequestsSender.sendGet(
-            "http://${settings.server_ip}/users/${userId ?: settings.user_id}/groups"
-        )
-        val groups: List<ExpenseGroup> = jsonArrayToExpenseGroups(jsonBodyGroups)
-
-        //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
-        return groups
-    }
-
-    fun addExpense(expense: Expense, groupId: Long, userId: Long? = null): Expense {
-        setPolicy()
-        val jsonBodyPOST = RequestsSender.sendPost(
-            "http://${settings.server_ip}/expenses/user/${userId ?: settings.user_id}/group/${groupId}/${settings.user_id}",
-            Gson().toJson(expense)
-        )
-        return jsonToExpense(jsonBodyPOST)
-    }
-
-    fun addExpenseImage(imageBase64String: String, expenseGlobalId: Long?) {
-        val body = """{"image": "$imageBase64String"}""".replace("\n", "")
-        RequestsSender.sendPost(
-            "http://${settings.server_ip}/expenses/${expenseGlobalId}/image",
-            body
-        )
     }
     //endregion
 
