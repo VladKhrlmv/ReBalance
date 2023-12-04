@@ -3,10 +3,12 @@ package com.rebalance.backend.service
 import android.content.Context
 import android.os.Parcelable
 import android.os.StrictMode
-import android.util.Base64
-import com.google.gson.Gson
-import com.rebalance.backend.api.*
-import com.rebalance.backend.exceptions.ServerException
+import com.rebalance.backend.api.RequestParser
+import com.rebalance.backend.api.RequestSender
+import com.rebalance.backend.api.dto.request.ApiLoginRequest
+import com.rebalance.backend.api.dto.request.ApiRegisterRequest
+import com.rebalance.backend.dto.LoginResult
+import com.rebalance.backend.dto.RegisterResult
 import com.rebalance.backend.localdb.db.AppDatabase
 import com.rebalance.backend.localdb.entities.Settings
 import kotlinx.coroutines.CoroutineScope
@@ -62,6 +64,19 @@ class BackendService {
         }
     }
 
+    //region private functions
+    private suspend fun updateUser(userId: Long, personalGroupId: Long, token: String) {
+        this.settings.user_id = userId
+        this.settings.group_ip = personalGroupId
+        this.settings.token = token
+        mainScope.launch {
+            withContext(Dispatchers.IO) {
+                db.settingsDao().saveSettings(settings)
+            }
+        }
+    }
+    //endregion
+
     //region settings
     fun getUserId(): Long {
         return settings.user_id
@@ -90,6 +105,57 @@ class BackendService {
             }
             401 -> LoginResult.TokenInspired
             else -> LoginResult.ServerUnreachable
+        }
+    }
+    //endregion
+
+    //region user
+    suspend fun login(request: ApiLoginRequest): LoginResult {
+        val (responseCodeLogin, responseBodyLogin) = requestSender.sendPost(
+            "/user/login",
+            request.toJson()
+        )
+        return when (responseCodeLogin) {
+            200 -> {
+                // if login successful, set new token to RequestSender
+                val token = RequestParser.responseToLogin(responseBodyLogin).token
+                this.requestSender.token = token
+
+                // get user info
+                val (responseCodeInfo, responseBodyInfo) = requestSender.sendGet("/user/info")
+                if (responseCodeInfo != 200) {
+                    // if (somehow) fail, remove token and return BadCredentials
+                    this.requestSender.token = ""
+                    return LoginResult.TokenInspired
+                }
+
+                // update settings in db
+                val user = RequestParser.responseToUser(responseBodyInfo)
+                updateUser(user.id, user.personalGroupId, token)
+
+                LoginResult.LoggedIn
+            }
+            400 -> LoginResult.BadCredentials
+            else -> LoginResult.ServerUnreachable
+        }
+    }
+
+    suspend fun register(request: ApiRegisterRequest): RegisterResult {
+        val (responseCode, responseBody) = requestSender.sendPost(
+            "/user/register",
+            request.toJson()
+        )
+        return when (responseCode) {
+            201 -> {
+                // update settings in db
+                val user = RequestParser.responseToRegister(responseBody)
+                updateUser(user.id, user.personalGroupId, user.token)
+
+                RegisterResult.Registered
+            }
+            400 -> RegisterResult.IncorrectData
+            409 -> RegisterResult.EmailAlreadyTaken
+            else -> RegisterResult.ServerError
         }
     }
     //endregion

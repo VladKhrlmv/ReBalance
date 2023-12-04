@@ -1,5 +1,6 @@
 package com.rebalance.backend.api
 
+import android.util.Log
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -9,7 +10,7 @@ import java.net.URL
 
 class RequestSender(
     private val baseUrl: String,
-    private val token: String
+    var token: String
 ) {
     private val coroutineScope = CoroutineScope(Dispatchers.Main)
 
@@ -26,6 +27,7 @@ class RequestSender(
                 setRequestProperty("Accept", "application/json")
                 setRequestProperty("Authorization", "Bearer $token")
 
+                Log.d("net", "get to $url : $responseCode token $token")
                 respCode = responseCode
                 if (responseCode == 200) {
                     inputStream.bufferedReader().use {
@@ -54,6 +56,7 @@ class RequestSender(
                 outputStreamWriter.write(body)
                 outputStreamWriter.flush()
 
+                Log.d("net", "post to $url : $responseCode token $token")
                 respCode = responseCode
                 if (responseCode == 200 || responseCode == 201) {
                     inputStream.bufferedReader().use {
@@ -82,6 +85,7 @@ class RequestSender(
                 outputStreamWriter.write(body)
                 outputStreamWriter.flush()
 
+                Log.d("net", "put to $url : $responseCode token $token")
                 respCode = responseCode
                 if (responseCode == 200 || responseCode == 201) {
                     inputStream.bufferedReader().use {
@@ -104,6 +108,7 @@ class RequestSender(
                 setRequestProperty("Accept", "application/json")
                 setRequestProperty("Authorization", "Bearer $token")
 
+                Log.d("net", "delete to $url : $responseCode token $token")
                 respCode = responseCode
             }
 
