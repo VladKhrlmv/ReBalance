@@ -93,16 +93,11 @@ class BackendService {
 
     //region connection
     suspend fun checkLogin(): LoginResult {
-        val (responseCode, responseBody) = requestSender.sendGet("/user/info")
+        // when no token, go to auth screen
+        if (settings.token.isEmpty()) return LoginResult.TokenInspired
+        val (responseCode, _) = requestSender.sendGet("/user/info")
         return when (responseCode) {
-            200 -> {
-                val user = RequestParser.responseToUser(responseBody)
-                if (user.id == settings.user_id &&
-                    user.personalGroupId == settings.group_ip
-                ) {
-                    LoginResult.LoggedIn
-                } else LoginResult.TokenInspired
-            }
+            200 -> LoginResult.LoggedIn
             401 -> LoginResult.TokenInspired
             else -> LoginResult.ServerUnreachable
         }
