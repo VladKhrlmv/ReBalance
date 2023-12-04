@@ -18,37 +18,48 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-class BackendService(context: Context) {
+class BackendService {
     private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
     private val mainScope = CoroutineScope(Dispatchers.Main)
 
-    private val db: AppDatabase
-    private val settings: Settings
-    private val requestSender: RequestSender
+    private lateinit var db: AppDatabase
+    private lateinit var settings: Settings
+    private lateinit var requestSender: RequestSender
 
-    init {
+    companion object {
+        @Volatile
+        private var INSTANCE: BackendService? = null
+
+        // ensure that only one instance is used in all composables
+        fun get(): BackendService =
+            INSTANCE ?: synchronized(this) {
+                BackendService().also { INSTANCE = it }
+            }
+    }
+
+    suspend fun initialize(context: Context, onInit: () -> Unit) {
         // initialize db
-        db = AppDatabase.getDatabase(context)
-        var settings: Settings? = Settings.getDefaultInstance()
+        this.db = AppDatabase.getDatabase(context)
         mainScope.launch {
             // try load settings
-            settings = withContext(Dispatchers.IO) {
+            var settingsFromDB = withContext(Dispatchers.IO) {
                 db.settingsDao().getSettings()
             }
             // if first launch (no settings), save default to db and read them
-            if (settings == null) {
+            if (settingsFromDB == null) {
                 withContext(Dispatchers.IO) {
                     db.settingsDao().saveSettings(Settings.getDefaultInstance())
                 }
-                settings = withContext(Dispatchers.IO) {
+                settingsFromDB = withContext(Dispatchers.IO) {
                     db.settingsDao().getSettings()
                 }
             }
+            // initialize settings from db and requests sender
+            settings = settingsFromDB as Settings
+            requestSender = RequestSender(settings.server_ip, settings.token)
+            onInit()
         }
-        // initialize settings from db and requests sender
-        this.settings = settings as Settings
-        this.requestSender = RequestSender(this.settings.server_ip, this.settings.token!!)
     }
 
     //region settings
