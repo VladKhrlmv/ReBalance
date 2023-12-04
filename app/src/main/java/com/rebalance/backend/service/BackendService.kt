@@ -71,6 +71,16 @@ class BackendService {
             }
         }
     }
+
+    suspend fun updateFirstLaunch(firstLaunch: Boolean): Boolean {
+        this.settings.first_launch = firstLaunch
+        return mainScope.async {
+            withContext(Dispatchers.IO) {
+                db.settingsDao().saveSettings(settings)
+            }
+            return@async settings.first_launch
+        }.await()
+    }
     //endregion
 
     //region settings
