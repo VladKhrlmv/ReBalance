@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import java.math.BigDecimal
 import java.time.LocalDateTime
 
 @Entity(
@@ -34,8 +35,8 @@ data class Expense(
     val dbId: Long?,
     @ColumnInfo(name = "changed")
     val changed: Boolean,
-    @ColumnInfo(name = "currency")
-    val amount: Float,
+    @ColumnInfo(name = "amount")
+    val amount: BigDecimal,
     @ColumnInfo(name = "description")
     val description: String,
     @ColumnInfo(name = "date")

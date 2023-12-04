@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import java.math.BigDecimal
 
 @Entity(
     tableName = "expense_user",
@@ -29,7 +30,7 @@ data class ExpenseUser(
     @ColumnInfo(name = "changed")
     val changed: Boolean,
     @ColumnInfo(name = "amount")
-    val amount: Double,
+    val amount: BigDecimal,
     @ColumnInfo(name = "multiplier")
     val multiplier: Int,
     @ColumnInfo(name = "user_id")

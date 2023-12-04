@@ -5,12 +5,13 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import com.rebalance.backend.localdb.converter.BigDecimalConverter
 import com.rebalance.backend.localdb.converter.LocalDateTimeConverter
 import com.rebalance.backend.localdb.dao.ExpenseDao
 import com.rebalance.backend.localdb.dao.SettingsDao
 import com.rebalance.backend.localdb.entities.*
 
-@TypeConverters(LocalDateTimeConverter::class)
+@TypeConverters(LocalDateTimeConverter::class, BigDecimalConverter::class)
 @Database(
     entities = [User::class, Group::class, UserGroup::class, Expense::class, ExpenseUser::class, Settings::class],
     version = 1
