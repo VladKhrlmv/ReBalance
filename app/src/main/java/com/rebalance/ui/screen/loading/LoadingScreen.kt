@@ -7,10 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -21,19 +18,25 @@ import com.rebalance.activity.MainActivity
 import com.rebalance.backend.dto.LoginResult
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.navigation.switchActivityTo
-import kotlinx.coroutines.delay
+import com.rebalance.util.alertUser
 
 
 @Composable
 fun LoadingScreen() {
     val context = LocalContext.current
-    val backendService = remember { BackendService(context) }
-    val connected = remember { mutableStateOf(LoginResult.ServerUnreachable) }
+    val backendService = remember { BackendService.get() }
+    var connected by remember { mutableStateOf(LoginResult.Placeholder) }
+    var backendServiceInitialized by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        while (connected.value == LoginResult.ServerUnreachable) {
-            connected.value = backendService.checkLogin()
-            delay(5000)
+        // initialize BackendService (will be done only once per application launch)
+        backendService.initialize(context) {
+            backendServiceInitialized = true
+        }
+    }
+    if (backendServiceInitialized) {
+        LaunchedEffect(Unit) {
+            connected = backendService.checkLogin()
         }
     }
 
@@ -47,13 +50,17 @@ fun LoadingScreen() {
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 Text(text = "ReBalance", fontSize = 30.sp, modifier = Modifier.padding(90.dp))
-                when (connected.value) {
+                when (connected) {
                     LoginResult.LoggedIn -> switchActivityTo(context, MainActivity::class)
                     LoginResult.TokenInspired -> switchActivityTo(
                         context,
                         AuthenticationActivity::class
                     )
-                    LoginResult.ServerUnreachable -> CircularProgressIndicator()
+                    LoginResult.ServerUnreachable -> alertUser( //TODO: go to main screen with offline mode
+                        "Server unavailable. Please try again later",
+                        context
+                    )
+                    else -> CircularProgressIndicator()
                 }
             }
         }
