@@ -4,13 +4,14 @@ import android.content.Context
 import androidx.compose.ui.graphics.ImageBitmap
 import com.rebalance.backend.api.RequestParser
 import com.rebalance.backend.api.RequestSender
+import com.rebalance.backend.api.dto.request.ApiGroupCreateRequest
 import com.rebalance.backend.api.dto.request.ApiLoginRequest
 import com.rebalance.backend.api.dto.request.ApiRegisterRequest
 import com.rebalance.backend.dto.*
 import com.rebalance.backend.localdb.db.AppDatabase
-import com.rebalance.backend.localdb.entities.Expense
-import com.rebalance.backend.localdb.entities.Settings
+import com.rebalance.backend.localdb.entities.*
 import kotlinx.coroutines.*
+import java.math.BigDecimal
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -60,16 +61,17 @@ class BackendService {
         }
     }
 
-    //region updating user in db
-    private suspend fun updateUser(userId: Long, personalGroupId: Long, token: String) {
+    //region updating settings in db
+    private suspend fun updateUserInSettings(userId: Long, personalGroupId: Long, token: String) {
         this.settings.user_id = userId
         this.settings.group_ip = personalGroupId
         this.settings.token = token
-        mainScope.launch {
+        mainScope.async {
             withContext(Dispatchers.IO) {
                 db.settingsDao().saveSettings(settings)
             }
-        }
+            return@async
+        }.await()
     }
 
     suspend fun updateFirstLaunch(firstLaunch: Boolean): Boolean {
