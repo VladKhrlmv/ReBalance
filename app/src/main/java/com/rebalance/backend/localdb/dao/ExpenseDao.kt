@@ -2,6 +2,7 @@ package com.rebalance.backend.localdb.dao
 
 import androidx.room.Dao
 import androidx.room.Query
+import com.rebalance.backend.dto.GroupExpenseItem
 import com.rebalance.backend.dto.SumByCategoryItem
 import com.rebalance.backend.localdb.entities.Expense
 import java.time.LocalDateTime
@@ -51,4 +52,14 @@ interface ExpenseDao {
 
     @Query("DELETE FROM expenses WHERE id = :expenseId")
     suspend fun deleteById(expenseId: Long)
+
+    @Query(
+        "SELECT e.id, e.amount, e.description, e.date, e.category, u.nickname AS initiator " +
+                "FROM expenses e " +
+                "INNER JOIN users u ON e.initiator_id = u.id " +
+                "WHERE e.group_id = :groupId " +
+                "ORDER BY e.date DESC " +
+                "LIMIT 20 OFFSET :offset"
+    )
+    suspend fun getGroupExpenses(groupId: Long, offset: Int): List<GroupExpenseItem>
 }

@@ -7,8 +7,7 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.rebalance.backend.localdb.converter.BigDecimalConverter
 import com.rebalance.backend.localdb.converter.LocalDateTimeConverter
-import com.rebalance.backend.localdb.dao.ExpenseDao
-import com.rebalance.backend.localdb.dao.SettingsDao
+import com.rebalance.backend.localdb.dao.*
 import com.rebalance.backend.localdb.entities.*
 
 @TypeConverters(LocalDateTimeConverter::class, BigDecimalConverter::class)
@@ -18,7 +17,11 @@ import com.rebalance.backend.localdb.entities.*
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun expenseDao(): ExpenseDao
+    abstract fun expenseUserDao(): ExpenseUserDao
+    abstract fun groupDao(): GroupDao
     abstract fun settingsDao(): SettingsDao
+    abstract fun userDao(): UserDao
+    abstract fun userGroupDao(): UserGroupDao
 
     companion object {
         @Volatile
