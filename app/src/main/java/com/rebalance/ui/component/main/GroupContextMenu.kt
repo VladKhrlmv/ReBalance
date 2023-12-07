@@ -4,10 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -19,29 +16,29 @@ import compose.icons.evaicons.fill.MoreVertical
 @Composable
 fun GroupContextMenu(
     navHostController: NavHostController,
-    showAddGroupDialog: MutableState<Boolean>,
-    groupId: Long = -1L
+    groupId: Long = -1L,
+    onCreateGroupClick: () -> Unit
 ) {
     Column {
-        val expanded = remember { mutableStateOf(false) }
+        var expanded by remember { mutableStateOf(false) }
 
         Icon(
             imageVector = EvaIcons.Fill.MoreVertical,
             contentDescription = "More actions",
             modifier = Modifier
-                .clickable { expanded.value = true }
+                .clickable { expanded = true }
                 .padding(12.dp),
             tint = MaterialTheme.colorScheme.onBackground
         )
 
         DropdownMenu(
-            expanded = expanded.value,
-            onDismissRequest = { expanded.value = false },
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
         ) {
             if (groupId != -1L) {
                 DropdownMenuItem(
                     onClick = {
-                        expanded.value = false
+                        expanded = false
                         navigateToGroup(navHostController, groupId)
                     },
                     text = {
@@ -51,8 +48,8 @@ fun GroupContextMenu(
             }
             DropdownMenuItem(
                 onClick = {
-                    expanded.value = false
-                    showAddGroupDialog.value = true
+                    expanded = false
+                    onCreateGroupClick()
                 },
                 text = {
                     Text("Create group")
@@ -60,7 +57,8 @@ fun GroupContextMenu(
             )
             DropdownMenuItem(
                 onClick = {
-                    expanded.value = false
+                    expanded = false
+                    //TODO: implement
                 },
                 text = {
                     Text("Export to Excel")
