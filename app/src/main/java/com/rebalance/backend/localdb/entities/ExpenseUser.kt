@@ -25,10 +25,6 @@ import java.math.BigDecimal
 data class ExpenseUser(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
-    @ColumnInfo(name = "db_id")
-    val dbId: Long?,
-    @ColumnInfo(name = "changed")
-    val changed: Boolean,
     @ColumnInfo(name = "amount")
     val amount: BigDecimal,
     @ColumnInfo(name = "multiplier")

@@ -2,24 +2,14 @@ package com.rebalance.backend.localdb.entities
 
 import androidx.room.ColumnInfo
 import androidx.room.Entity
-import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 
 @Entity(
-    tableName = "groups",
-    foreignKeys = [
-        ForeignKey(
-            entity = User::class,
-            parentColumns = ["id"],
-            childColumns = ["creator_id"]
-        )
-    ]
+    tableName = "groups"
 )
 data class Group(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
-    @ColumnInfo(name = "db_id")
-    val dbId: Long?,
     @ColumnInfo(name = "changed")
     val changed: Boolean,
     @ColumnInfo(name = "name")
@@ -27,7 +17,5 @@ data class Group(
     @ColumnInfo(name = "currency")
     val currency: String,
     @ColumnInfo(name = "personal")
-    val personal: Boolean,
-    @ColumnInfo(name = "creator_id")
-    val creator_id: Long
+    val personal: Boolean
 )

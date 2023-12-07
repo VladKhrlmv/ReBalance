@@ -4,6 +4,7 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
+import java.math.BigDecimal
 
 @Entity(
     tableName = "user_group",
@@ -24,10 +25,6 @@ import androidx.room.PrimaryKey
 data class UserGroup(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
-    @ColumnInfo(name = "db_id")
-    val dbId: Long?,
-    @ColumnInfo(name = "changed")
-    val changed: Boolean,
     @ColumnInfo(name = "favorite")
     val favorite: Boolean,
     @ColumnInfo(name = "user_id")
