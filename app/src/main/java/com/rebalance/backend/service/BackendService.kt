@@ -369,11 +369,19 @@ class BackendService {
     }
 
     /** Returns list of expenses grouped by category in the provided dates range **/
-    suspend fun getExpensesByCategory(category: String, scaledDateItem: ScaledDateItem): List<Expense> {
+    suspend fun getExpensesByCategory(
+        category: String,
+        scaledDateItem: ScaledDateItem
+    ): List<Expense> {
         return mainScope.async {
             var sums: List<Expense>
             withContext(Dispatchers.IO) {
-                sums = db.expenseDao().getExpensesByCategory(settings.group_ip, category, scaledDateItem.dateFrom, scaledDateItem.dateTo)
+                sums = db.expenseDao().getExpensesByCategory(
+                    settings.group_ip,
+                    category,
+                    scaledDateItem.dateFrom,
+                    scaledDateItem.dateTo
+                )
             }
             return@async sums
         }.await()
@@ -385,7 +393,7 @@ class BackendService {
         val (responseCode, _) = requestSender.sendDelete("/personal/expenses/$expenseId")
         return when (responseCode) {
             204 -> {
-                // id successful, delete from localdb
+                // if successful, delete from localdb
                 mainScope.async {
                     withContext(Dispatchers.IO) {
                         db.expenseDao().deleteById(expenseId)
@@ -402,164 +410,119 @@ class BackendService {
     }
     //endregion
 
-    //region Group by id
-    fun getGroupById(id: Long): ExpenseGroup {
-        setPolicy()
-
-        val jsonBodyGroup = RequestsSender.sendGet(
-            "http://${settings.server_ip}/groups/${id}"
-        )
-
-        //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
-        return jsonToExpenseGroup(jsonBodyGroup)
-    }
-    //endregion
-
     //region Group screen
-    fun getGroupVisualBarChart(groupId: Long): List<BarChartData> {
-        setPolicy()
-        val entries = ArrayList<BarChartData>()
-
-        val jsonBodyGetUsersFromGroup = if (groupId == -1L) "[]" else RequestsSender.sendGet(
-            //todo change to group choice
-            "http://${settings.server_ip}/groups/${groupId}/users"
-        )
-        val userExpenseMap: HashMap<Long, Pair<String, Double>> = HashMap()
-
-        val userList =
-            if (groupId == -1L) listOf() else jsonArrayToApplicationUsers(jsonBodyGetUsersFromGroup)
-        println(userList)
-        for (user in userList) {
-            val jsonBodyGet = RequestsSender.sendGet(
-                //todo change to group choice
-                "http://${settings.server_ip}/groups/${groupId}/users/${user.getId()}/expenses"
-            )
-            val listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
-            var sumForUser = 0.0
-            for (expense in listExpense) {
-                sumForUser += expense.getAmount()
+    suspend fun getGroupById(groupId: Long): Group? {
+        return mainScope.async {
+            var group: Group?
+            withContext(Dispatchers.IO) {
+                group = db.groupDao().getGroupById(groupId)
             }
-            userExpenseMap[user.getId()] = Pair(user.getUsername(), sumForUser)
-        }
-        for (entry in userExpenseMap.entries.iterator()) {
-            entries.add(BarChartData(entry.key, entry.value))
-        }
-        //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
-        return entries.sortedByDescending { it.data.first }
+            return@async group
+        }.await()
     }
 
-    fun getGroupList(groupId: Long): List<Expense> {
-        setPolicy()
+    suspend fun getUserGroups(): List<Group> {
+        return mainScope.async {
+            var groups: List<Group>
+            withContext(Dispatchers.IO) {
+                groups = db.groupDao().getUserGroups(settings.user_id)
+            }
+            return@async groups
+        }.await()
+    }
 
-        val responseGroupList = if (groupId == -1L) "[]" else RequestsSender.sendGet(
-            //todo change to group choice
-            "http://${settings.server_ip}/groups/${groupId}/expenses"
+    suspend fun createGroup(request: ApiGroupCreateRequest): Long {
+        // send request to create new group
+        val (responseCode, responseBody) = requestSender.sendPost(
+            "/group",
+            request.toJson()
         )
+        return when (responseCode) {
+            201 -> { //TODO: check if server available
+                val groupResponse = RequestParser.responseToGroup(responseBody)
+                // save new group in db
+                val group = Group(
+                    groupResponse.id,
+                    false,
+                    groupResponse.name,
+                    groupResponse.currency,
+                    false
+                )
+                mainScope.async {
+                    withContext(Dispatchers.IO) {
+                        db.groupDao().saveGroup(group)
+                    }
+                    return@async
+                }.await()
+                // save UserGroup with current user in db
+                val userGroup = UserGroup(
+                    0L,
+                    groupResponse.favorite,
+                    BigDecimal.ZERO,
+                    settings.user_id,
+                    groupResponse.id
+                )
+                mainScope.async {
+                    withContext(Dispatchers.IO) {
+                        db.userGroupDao().saveUserGroup(userGroup)
+                    }
+                    return@async
+                }.await()
 
-        return jsonArrayToExpenses(responseGroupList).sortedBy {
-            LocalDate.parse(it.getDateStamp(), DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-        }.reversed()
-    }
-
-    fun getExpensePicture(globalId: Long?): ByteArray? {
-        setPolicy()
-        if (globalId == null) {
-            return null
-        }
-
-        return try {
-            val responseJson = RequestsSender.sendGet(
-                "http://${settings.server_ip}/expenses/${globalId}/image"
-            )
-            println(responseJson)
-            val imageClass: ExpenseImage = Gson().fromJson(responseJson, ExpenseImage::class.java)
-            Base64.decode(imageClass.getImage(), Base64.DEFAULT)
-        } catch (e: ServerException) {
-            println(e.message)
-            null
-        }
-    }
-
-    fun getExpenseIcon(globalId: Long?): ByteArray? {
-        setPolicy()
-        if (globalId == null) {
-            return null
-        }
-
-        return try {
-            val responseJson = RequestsSender.sendGet(
-                "http://${settings.server_ip}/expenses/${globalId}/icon"
-            )
-            println(responseJson)
-            val imageClass: ExpenseImage = Gson().fromJson(responseJson, ExpenseImage::class.java)
-            Base64.decode(imageClass.getImage(), Base64.DEFAULT)
-        } catch (e: ServerException) {
-            println(e.message)
-            null
+                return group.id
+            }
+            else -> -1L
         }
     }
 
-    fun deleteExpenseByGlobalId(globalId: Long?) {
-        setPolicy()
-        RequestsSender.sendDelete(
-            "http://${settings.server_ip}/expenses/${globalId}"
-        )
+    suspend fun getBarChartData(groupId: Long): List<BarChartItem> {
+        return mainScope.async {
+            val balances: List<BarChartItem>
+            withContext(Dispatchers.IO) {
+                balances = db.userGroupDao().getUserBalancesForGroup(groupId)
+            }
+            return@async balances
+        }.await()
     }
 
-    fun createGroup(groupCurrency: String, groupName: String, userId: Long? = null): ExpenseGroup {
-        setPolicy()
-        val responseJson = RequestsSender.sendPost(
-            "http://${settings.server_ip}/users/${userId ?: settings.user_id}/groups",
-            "{\"currency\": \"${groupCurrency}\", \"name\": \"${groupName}\"}"
-        )
-        return jsonToExpenseGroup(responseJson)
+    suspend fun getGroupExpenses(groupId: Long, offset: Int): List<GroupExpenseItem> {
+        return mainScope.async {
+            val expenses: List<GroupExpenseItem>
+            withContext(Dispatchers.IO) {
+                expenses = db.expenseDao().getGroupExpenses(groupId, offset)
+            }
+            return@async expenses
+        }.await()
     }
 
-    fun addUserToGroup(userId: Long, groupId: Long) {
-        setPolicy()
-        RequestsSender.sendPost(
-            "http://${settings.server_ip}/users/${userId}/groups",
-            "{\"id\": ${groupId}}"
-        )
-    }
-    //endregion
-
-    //region Notifications
-    fun getNotifications(): List<Notification> {
-        setPolicy()
-        val responseJson = RequestsSender.sendGet(
-            "http://${settings.server_ip}/users/${
-                settings.user_id
-            }/notifications"
-        )
-        return jsonArrayToNotification(responseJson)
-    }
-    //endregion
-
-    //region Login
-    fun login(email: String, password: String): ApplicationUser {
-        setPolicy()
-        val responseJson = RequestsSender.sendPost(
-            "http://${settings.server_ip}/users/login",
-            Gson().toJson(LoginAndPassword(email, password))
-        )
-        return jsonToApplicationUser(responseJson)
+    suspend fun getGroupExpenseDeptors(expenseId: Long): List<GroupExpenseItemUser> {
+        return mainScope.async {
+            val expenseUsers: List<GroupExpenseItemUser>
+            withContext(Dispatchers.IO) {
+                expenseUsers = db.expenseUserDao().getGroupExpenseDeptors(expenseId)
+            }
+            return@async expenseUsers
+        }.await()
     }
 
-    fun register(email: String, username: String, password: String): LoginAndPassword {
-        setPolicy()
-        val responseJson = RequestsSender.sendPost(
-            "http://${settings.server_ip}/users",
-            Gson().toJson(ApplicationUser(username, email, password))
-        )
-        return jsonToLoginAndPassword(responseJson)
-    }
-
-    fun getUserByEmail(email: String): ApplicationUser {
-        setPolicy()
-        val responseJson =
-            RequestsSender.sendGet("http://${settings.server_ip}/users/email/${email}")
-        return jsonToApplicationUser(responseJson)
+    suspend fun deleteGroupExpenseById(expenseId: Long): DeleteResult {
+        val (responseCode, _) = requestSender.sendDelete("/group/expenses/$expenseId")
+        return when (responseCode) {
+            204 -> {
+                // if successful, delete from localdb
+                mainScope.async {
+                    withContext(Dispatchers.IO) {
+                        db.expenseDao().deleteById(expenseId)
+                    }
+                    return@async
+                }.await()
+                DeleteResult.Deleted
+            }
+            //TODO: correctly handle other cases
+            404 -> DeleteResult.NotFound
+            409 -> DeleteResult.IncorrectId
+            else -> DeleteResult.ServerError
+        }
     }
     //endregion
 }
