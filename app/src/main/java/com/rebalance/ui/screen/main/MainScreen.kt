@@ -37,7 +37,7 @@ fun MainScreen(
         })
     }
     val context = LocalContext.current
-    var pieChartActive = rememberSaveable { mutableStateOf(true) }
+    var pieChartActive = rememberSaveable { mutableStateOf(true) } //TODO: move to settings
     val navBackStackEntry by navHostController.currentBackStackEntryAsState()
 
     Scaffold(
@@ -75,7 +75,7 @@ fun MainScreen(
                 }
 
                 // start guided tour
-                ToolTipOverlay(context, navHostController)
+                ToolTipOverlay(navHostController)
             }
         }
     )
