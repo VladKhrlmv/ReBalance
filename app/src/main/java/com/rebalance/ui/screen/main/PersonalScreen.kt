@@ -16,10 +16,10 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.rebalance.backend.dto.DeleteResult
+import com.rebalance.backend.dto.ScaleItem
 import com.rebalance.backend.dto.ScaledDateItem
 import com.rebalance.backend.dto.SumByCategoryItem
 import com.rebalance.backend.service.BackendService
-import com.rebalance.backend.service.ScaleItem
 import com.rebalance.ui.component.main.ExpandableList
 import com.rebalance.ui.component.main.scaffold.PieChart
 import com.rebalance.ui.navigation.Routes
@@ -34,7 +34,7 @@ fun PersonalScreen(
     navHostController: NavHostController,
     setOnPlusClick: (() -> Unit) -> Unit
 ) {
-    val backendService = BackendService.get()
+    val backendService = remember { BackendService.get() }
     val personalScope = rememberCoroutineScope()
 
     val scaleItems = rememberSaveable { backendService.getScaleItems() }
