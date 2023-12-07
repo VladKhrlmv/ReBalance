@@ -27,6 +27,8 @@ data class UserGroup(
     val id: Long,
     @ColumnInfo(name = "favorite")
     val favorite: Boolean,
+    @ColumnInfo(name = "balance")
+    val balance: BigDecimal = BigDecimal.ZERO,
     @ColumnInfo(name = "user_id")
     val userId: Long,
     @ColumnInfo(name = "group_id")
