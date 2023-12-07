@@ -13,22 +13,26 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rebalance.backend.api.entities.ExpenseGroup
+import com.rebalance.backend.api.dto.request.ApiGroupCreateRequest
 import com.rebalance.backend.service.BackendService
 import com.rebalance.util.alertUser
 import com.rebalance.util.currencyRegex
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddGroupScreen(
     context: Context,
-    onCancel: () -> Unit,
+    backendService: BackendService,
+    onClose: () -> Unit,
     onCreate: (Long) -> Unit
 ) {
-    val backendService = BackendService(context)
-
     var groupName by remember { mutableStateOf(TextFieldValue()) }
     var groupCurrency by remember { mutableStateOf(TextFieldValue()) }
+
+    val addGroupScope = rememberCoroutineScope()
+    var newGroupId by remember { mutableStateOf(-1L) }
+
     Surface(
         modifier = Modifier
             .padding(10.dp),
@@ -63,7 +67,7 @@ fun AddGroupScreen(
                         groupCurrency = it
                 },
                 label = { Text("Currency") },
-                placeholder = { Text("ABC") },
+                placeholder = { Text("ABC") }, //TODO: choose from list of existing codes
                 singleLine = true,
                 keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                 keyboardActions = KeyboardActions(onDone = { /* Handle the 'done' action */ }),
@@ -77,39 +81,34 @@ fun AddGroupScreen(
                 horizontalArrangement = Arrangement.End
             ) {
                 TextButton(
-                    onClick = onCancel,
+                    onClick = onClose,
                 ) {
                     Text("Cancel")
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = {
-                        // Handle group creation
-                        val group = createGroup(groupCurrency, groupName, context, backendService)
-                            ?: return@Button
-                        alertUser("Group was created!", context)
-                        onCancel()
-                        onCreate(group.getId())
+                        if (groupCurrency.text.length != 3 || groupName.text.isBlank()) {
+                            alertUser("Fill in all fields!", context)
+                            return@Button
+                        }
+
+                        addGroupScope.launch {
+                            newGroupId = backendService.createGroup(
+                                ApiGroupCreateRequest(
+                                    groupName.text, groupCurrency.text
+                                )
+                            )
+                        }
                     }
                 ) {
                     Text("Save")
                 }
+
+                if (newGroupId != -1L) {
+                    onCreate(newGroupId)
+                }
             }
         }
     }
-}
-
-fun createGroup(
-    groupCurrency: TextFieldValue,
-    groupName: TextFieldValue,
-    context: Context,
-    backendService: BackendService
-): ExpenseGroup? {
-    if (groupCurrency.text.length != 3 || groupName.text.isBlank()) {
-        alertUser("Fill in all fields!", context)
-        return null
-    }
-    val group = backendService.createGroup(groupCurrency.text, groupName.text)
-    alertUser("Group was created!", context)
-    return group
 }
