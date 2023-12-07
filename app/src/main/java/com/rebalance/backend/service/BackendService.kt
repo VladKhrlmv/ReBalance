@@ -113,6 +113,33 @@ class BackendService {
     //endregion
 
     //region user
+    private suspend fun updateCurrentUser(
+        userId: Long,
+        nickname: String,
+        email: String,
+        personalGroupId: Long,
+        currency: String
+    ) {
+        mainScope.async {
+            // save/update user
+            val user = User(userId, nickname, email)
+            withContext(Dispatchers.IO) {
+                db.userDao().save(user)
+            }
+            // save/update group
+            val personalGroup = Group(personalGroupId, false, "personal_$email", currency, true)
+            withContext(Dispatchers.IO) {
+                db.groupDao().saveGroup(personalGroup)
+            }
+            // save/update UserGroup relation
+            val userGroup = UserGroup(0, false, BigDecimal.ZERO, userId, personalGroupId)
+            withContext(Dispatchers.IO) {
+                db.userGroupDao().saveUserGroup(userGroup)
+            }
+            return@async
+        }.await()
+    }
+
     suspend fun login(request: ApiLoginRequest): LoginResult {
         val (responseCodeLogin, responseBodyLogin) = requestSender.sendPost(
             "/user/login",
@@ -134,7 +161,16 @@ class BackendService {
 
                 // update settings in db
                 val user = RequestParser.responseToUser(responseBodyInfo)
-                updateUser(user.id, user.personalGroupId, token)
+                updateUserInSettings(user.id, user.personalGroupId, token)
+
+                // update current user in db
+                updateCurrentUser(
+                    user.id,
+                    user.nickname,
+                    user.email,
+                    user.personalGroupId,
+                    user.currency
+                )
 
                 LoginResult.LoggedIn
             }
@@ -152,7 +188,20 @@ class BackendService {
             201 -> {
                 // update settings in db
                 val user = RequestParser.responseToRegister(responseBody)
-                updateUser(user.id, user.personalGroupId, user.token)
+                updateUserInSettings(
+                    user.id,
+                    user.personalGroupId,
+                    user.token
+                )
+
+                // update user in db
+                updateCurrentUser(
+                    user.id,
+                    user.nickname,
+                    user.email,
+                    user.personalGroupId,
+                    user.currency
+                )
 
                 RegisterResult.Registered
             }
