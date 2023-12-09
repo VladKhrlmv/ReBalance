@@ -1,6 +1,7 @@
 package com.rebalance.ui.component.main
 
 import android.content.Context
+import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -13,6 +14,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
 import com.rebalance.backend.service.BackendService
 import com.rebalance.util.alertUser
@@ -29,15 +32,18 @@ fun DisplayExpenseImage(
 ) {
     val backendService = remember { BackendService.get() }
 
+    //TODO: save Image and show original name
     var icon by remember { mutableStateOf<ImageBitmap?>(null) }
     var image by remember { mutableStateOf<ImageBitmap?>(null) }
 
-    LaunchedEffect(Unit) {
-        icon = backendService.getIconByExpenseId(expenseId)
-    }
     LaunchedEffect(showPicture) {
         if (showPicture) {
             image = backendService.getImageByExpenseId(expenseId)
+            if (image != null) {
+                icon = Bitmap.createScaledBitmap(
+                    image!!.asAndroidBitmap(), 100, 100, false
+                ).asImageBitmap()
+            }
         }
     }
 
