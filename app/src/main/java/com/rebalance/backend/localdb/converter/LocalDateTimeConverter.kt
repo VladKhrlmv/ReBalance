@@ -7,11 +7,11 @@ import java.time.format.DateTimeFormatter
 class LocalDateTimeConverter {
     @TypeConverter
     fun fromDate(date: LocalDateTime): String {
-        return "${date.dayOfMonth}-${date.monthValue}-${date.year}T${date.hour}:${date.minute}:${date.second}"
+        return date.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
     }
 
     @TypeConverter
     fun toDate(date: String): LocalDateTime {
-        return LocalDateTime.parse(date, DateTimeFormatter.ofPattern("dd-MM-yyyyTHH:mm:ss"))
+        return LocalDateTime.parse(date, DateTimeFormatter.ISO_LOCAL_DATE_TIME)
     }
 }
