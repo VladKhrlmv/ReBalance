@@ -25,7 +25,7 @@ class NotificationService(
     val context: Context,
 ) {
     private var notificationId = 0
-    val backendService = BackendService(context)
+    val backendService = BackendService.get()
     fun start() {
         createNotificationChannel()
 
@@ -35,25 +35,25 @@ class NotificationService(
         Thread {
             try {
                 while (true) {
-                    val notifications = backendService.getNotifications()
-
-                    if (notifications.isNotEmpty()) {
-                        for (notification in notifications) {
-                            if (notification.getUserId().toString() == preferences.userId &&
-                                notification.getAmount() < 0 &&
-                                notification.getUserFromId().toString() != preferences.userId
-                            ) {
-                                Handler(mainLooper).post {
-                                    if (notification.getExpenseId() != -1L) {
-                                        sendNotification("Added new expense")
-                                    }
-                                    if (notification.getGroupId() != -1L) {
-                                        sendNotification("Added to new group")
-                                    }
-                                }
-                            }
-                        }
-                    }
+//                    val notifications = backendService.getNotifications()
+//
+//                    if (notifications.isNotEmpty()) {
+//                        for (notification in notifications) {
+//                            if (notification.getUserId().toString() == preferences.userId &&
+//                                notification.getAmount() < 0 &&
+//                                notification.getUserFromId().toString() != preferences.userId
+//                            ) {
+//                                Handler(mainLooper).post {
+//                                    if (notification.getExpenseId() != -1L) {
+//                                        sendNotification("Added new expense")
+//                                    }
+//                                    if (notification.getGroupId() != -1L) {
+//                                        sendNotification("Added to new group")
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
 
                     Thread.sleep(5_000)
                 }
