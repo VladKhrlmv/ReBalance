@@ -19,6 +19,9 @@ import com.rebalance.ui.component.authentication.ReferenceButton
 import com.rebalance.ui.component.authentication.SecondaryButton
 import com.rebalance.ui.navigation.Routes
 import com.rebalance.ui.navigation.navigateTo
+import compose.icons.EvaIcons
+import compose.icons.evaicons.Fill
+import compose.icons.evaicons.fill.Email
 
 @Composable
 fun SignUpScreen(navHostController: NavHostController) {
@@ -53,7 +56,7 @@ fun SignUpScreen(navHostController: NavHostController) {
 
 //                    ReferenceButton("Google", 20.dp, R.drawable.google50, onClick = {})
 //                    ReferenceButton("Facebook", 20.dp, R.drawable.facebook48, onClick = {})
-                    ReferenceButton("Mail", 20.dp, R.drawable.mailicon, onClick = {
+                    ReferenceButton("Mail", 20.dp, EvaIcons.Fill.Email, onClick = {
                         navigateTo(navHostController, Routes.RegisterMail)
                     })
                     SecondaryButton("SIGN IN", 20.dp, onClick = {
