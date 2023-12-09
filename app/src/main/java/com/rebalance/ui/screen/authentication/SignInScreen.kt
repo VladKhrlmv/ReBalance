@@ -3,13 +3,11 @@ package com.rebalance.ui.screen.authentication
 import android.content.Context
 import android.os.StrictMode
 import androidx.compose.foundation.gestures.detectTapGestures
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusManager
@@ -20,9 +18,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.rebalance.Preferences
-import com.rebalance.PreferencesData
 import com.rebalance.activity.MainActivity
+import com.rebalance.backend.api.dto.request.ApiLoginRequest
+import com.rebalance.backend.dto.LoginResult
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.authentication.CustomInput
 import com.rebalance.ui.component.authentication.CustomPasswordInput
@@ -32,16 +30,21 @@ import com.rebalance.ui.navigation.Routes
 import com.rebalance.ui.navigation.navigateTo
 import com.rebalance.ui.navigation.switchActivityTo
 import com.rebalance.util.alertUser
+import kotlinx.coroutines.launch
 
 @Composable
 fun SignInScreen(context: Context, navHostController: NavHostController) {
-    val preferences = rememberSaveable { Preferences(context).read() }
+    val backendService = remember { BackendService.get() }
     val login = remember { mutableStateOf("") }
     val password = remember { mutableStateOf("") }
 
     val loginFocusRequester = remember { FocusRequester() }
     val passwordFocusRequester = remember { FocusRequester() }
     val focusManager: FocusManager = LocalFocusManager.current
+
+    val loginScope = rememberCoroutineScope()
+    var loginResult by remember { mutableStateOf(LoginResult.Placeholder) }
+    var isLoginLoading by remember { mutableStateOf(false) }
 
     Scaffold(
         content = { padding ->
@@ -83,42 +86,39 @@ fun SignInScreen(context: Context, navHostController: NavHostController) {
                         focusRequester = passwordFocusRequester
                     )
 
-                    PrimaryButton("SIGN IN", 20.dp, onClick = {
+                    PrimaryButton("SIGN IN", 20.dp, isLoginLoading, onClick = {
+                        // validate data
                         if (login.value.isEmpty() || password.value.isEmpty()) {
                             alertUser("No empty fields allowed", context)
                             return@PrimaryButton
                         }
-                        try {
-                            val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-                            StrictMode.setThreadPolicy(policy)
-                            val user = BackendService(preferences).login(
-                                login.value,
-                                password.value
+
+                        // initiate logging
+                        loginScope.launch {
+                            isLoginLoading = true
+                            loginResult = backendService.login(
+                                ApiLoginRequest(
+                                    login.value,
+                                    password.value
+                                )
                             )
-
-                            val groups = BackendService(preferences).getGroups(user.getId())
-                            for (group in groups) {
-                                if (group.getName() == "per${user.getEmail()}") {
-                                    val preferencesData =
-                                        PreferencesData(
-                                            "",
-                                            user.getId().toString(),
-                                            group.getId(),
-                                            false,
-                                            "systemChannel"
-                                        )
-                                    Preferences(context).write(preferencesData)
-                                }
-                            }
-
-                            switchActivityTo(context, MainActivity::class)
-                        } catch (error: Exception) {
-                            alertUser("Wrong email or password", context)
+                            Log.d("login", "result ${loginResult.name}")
+                            isLoginLoading = false
                         }
                     })
                     SecondaryButton("SIGN UP", 5.dp, onClick = {
                         navigateTo(navHostController, Routes.Register)
                     })
+
+                    when (loginResult) {
+                        LoginResult.Placeholder -> {}
+                        LoginResult.LoggedIn -> switchActivityTo(
+                            context,
+                            MainActivity::class
+                        )
+                        LoginResult.BadCredentials -> alertUser("Bad credentials", context)
+                        else -> alertUser("Please try again later", context)
+                    }
                 }
             }
         }

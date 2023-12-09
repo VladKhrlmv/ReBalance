@@ -1,6 +1,6 @@
 package com.rebalance.ui.component
 
-import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -14,6 +14,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -28,12 +29,13 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.rebalance.Preferences
+import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.navigation.Routes
 import com.rebalance.ui.navigation.navigateSingleTo
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
 import compose.icons.evaicons.fill.*
+import kotlinx.coroutines.launch
 
 data class TourStep(
     val screen: Routes,
@@ -44,36 +46,14 @@ data class TourStep(
     val iconContent: String? = null
 )
 
-class GuidedTour(
-    private val tourSteps: List<TourStep>,
-    val context: Context,
-    val navHostController: NavHostController
-) {
-    val preferences = Preferences(context).read()
-    var isActive by mutableStateOf(preferences.firstLaunch)
-    var currentStepIndex by mutableStateOf(0)
-    val currentStep get() = if (isActive) tourSteps.getOrNull(currentStepIndex) else null
-
-    fun nextStep() {
-        val currentScreen = currentStep?.screen
-        currentStepIndex++
-        val nextScreen = currentStep?.screen
-
-        if (currentScreen != nextScreen) {
-            navigateSingleTo(navHostController, nextScreen ?: return)
-        }
-    }
-
-    fun skipTour() {
-        isActive = false
-        preferences.firstLaunch = false
-        Preferences(context).write(preferences)
-    }
-}
-
 @Composable
-fun ToolTipOverlay(context: Context, navHostController: NavHostController) {
-    val tooltips = listOf(
+fun ToolTipOverlay(navHostController: NavHostController) {
+    Log.d("tooltip", "init")
+    val backendService = remember { BackendService.get() }
+    val tourScope = rememberCoroutineScope()
+    var isActive by rememberSaveable { mutableStateOf(backendService.isFirstLaunch()) }
+
+    val tourSteps = listOf(
         TourStep(
             Routes.Personal,
             Offset(100f, 200f),
@@ -163,25 +143,32 @@ fun ToolTipOverlay(context: Context, navHostController: NavHostController) {
             isEnd = true
         ),
     )
-    val guidedTour = remember {
-        GuidedTour(
-            tooltips,
-            context,
-            navHostController
-        )
-    }
-    if (guidedTour.isActive) {
-        guidedTour.currentStep?.let { currentStep ->
-            if (currentStep.screen.route == navHostController.currentBackStackEntry?.destination?.route) {
-                ToolTipStep(
-                    anchor = currentStep.anchor,
-                    text = currentStep.text,
-                    icon = currentStep.icon,
-                    iconContentDescription = currentStep.iconContent,
-                    isEnd = currentStep.isEnd,
-                    guidedTour = guidedTour,
-                )
+    var currentStepIndex by rememberSaveable { mutableStateOf(0) }
+
+    if (isActive) {
+        tourSteps.getOrNull(currentStepIndex)?.let { step ->
+            if (step.screen.route != navHostController.currentBackStackEntry?.destination?.route) {
+                Log.d("tooltip", "next screen")
+                navigateSingleTo(navHostController, step.screen)
             }
+            ToolTipStep(
+                anchor = step.anchor,
+                text = step.text,
+                icon = currentStep.icon,
+                iconContentDescription = currentStep.iconContent,
+                isEnd = step.isEnd,
+                nextStep = {
+                    currentStepIndex += 1
+                    Log.d("tooltip", "next tip $currentStepIndex")
+                },
+                skipTour = {
+                    tourScope.launch {
+                        Log.d("tooltip", "update first launch")
+                        isActive = backendService.updateFirstLaunch(false)
+                    }
+                }
+            )
+
         }
     }
 }
@@ -193,7 +180,8 @@ fun ToolTipStep(
     icon: ImageVector?,
     iconContentDescription: String?,
     isEnd: Boolean,
-    guidedTour: GuidedTour
+    nextStep: () -> Unit,
+    skipTour: () -> Unit
 ) {
     val shape = RoundedCornerShape(16.dp)
     Box(
@@ -227,15 +215,15 @@ fun ToolTipStep(
                     if (!isEnd) {
                         Text(
                             text = "Skip",
-                            modifier = Modifier.clickable(onClick = guidedTour::skipTour),
+                            modifier = Modifier.clickable(onClick = { skipTour() }),
                             color = Color.Red
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Button(onClick = { guidedTour.nextStep() }) {
+                        Button(onClick = { nextStep() }) {
                             Text("Next")
                         }
                     } else {
-                        Button(onClick = { guidedTour.skipTour() }) {
+                        Button(onClick = { skipTour() }) {
                             Text("End")
                         }
                     }

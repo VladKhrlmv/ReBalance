@@ -5,22 +5,26 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.rebalance.PreferencesData
+import com.rebalance.backend.localdb.entities.Group
 import com.rebalance.backend.service.BackendService
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroupSelection(
-    preferences: PreferencesData,
-    groupName: String,
+    group: Group?,
     modifier: Modifier = Modifier,
     innerModifier: Modifier = Modifier,
     onSwitch: (Long) -> Unit
 ) {
+    val backendService = BackendService.get()
+
     var expandedDropdownGroups by remember { mutableStateOf(false) }
-    val groupList = BackendService(preferences).getGroups()
-        .filter { group -> group.getId() != preferences.groupId }
+    var groupList by remember { mutableStateOf(listOf<Group>()) }
+
+    LaunchedEffect(group) {
+        groupList = backendService.getUserGroups()
+    }
 
     ExposedDropdownMenuBox(
         expanded = expandedDropdownGroups,
@@ -30,7 +34,7 @@ fun GroupSelection(
         modifier = modifier
     ) {
         TextField(
-            value = groupName,
+            value = group?.name ?: "",
             onValueChange = { },
             readOnly = true,
             singleLine = true,
@@ -56,9 +60,9 @@ fun GroupSelection(
         ) {
             groupList.forEach { group ->
                 DropdownMenuItem(
-                    text = { Text(group.getName()) },
+                    text = { Text(group.name) },
                     onClick = {
-                        onSwitch(group.getId())
+                        onSwitch(group.id)
                         expandedDropdownGroups = false
                     },
                     modifier = innerModifier

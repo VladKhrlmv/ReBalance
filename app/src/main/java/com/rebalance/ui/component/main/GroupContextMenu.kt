@@ -4,10 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -20,11 +17,11 @@ import compose.icons.evaicons.fill.Plus
 @Composable
 fun GroupContextMenu(
     navHostController: NavHostController,
-    showAddGroupDialog: MutableState<Boolean>,
-    groupId: Long = -1L
+    groupId: Long = -1L,
+    onCreateGroupClick: () -> Unit
 ) {
     Column {
-        val expanded = remember { mutableStateOf(false) }
+        var expanded by remember { mutableStateOf(false) }
 
         Icon(
             imageVector =
@@ -34,42 +31,36 @@ fun GroupContextMenu(
                     EvaIcons.Fill.MoreVertical,
             contentDescription = "More actions",
             modifier = Modifier
-                .clickable {
-                    if (groupId == -1L)
-                        showAddGroupDialog.value = true
-                    else
-                        expanded.value = true
-                }
+                .clickable { expanded = true }
                 .padding(12.dp),
             tint = MaterialTheme.colorScheme.onBackground
         )
 
-        if (groupId != -1L) {
-            DropdownMenu(
-                expanded = expanded.value,
-                onDismissRequest = { expanded.value = false },
-            ) {
-                if (groupId != -1L) {
-                    DropdownMenuItem(
-                        onClick = {
-                            expanded.value = false
-                            navigateToGroup(navHostController, groupId)
-                        },
-                        text = {
-                            Text("Edit group")
-                        }
-                    )
-                }
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            if (groupId != -1L) {
                 DropdownMenuItem(
                     onClick = {
-                        expanded.value = false
-                        showAddGroupDialog.value = true
+                        expanded = false
+                        navigateToGroup(navHostController, groupId)
                     },
                     text = {
-                        Text("Create group")
+                        Text("Edit group")
                     }
                 )
             }
+            DropdownMenuItem(
+                onClick = {
+                    expanded = false
+                    onCreateGroupClick()
+                },
+                text = {
+                    Text("Create group")
+                }
+            )
+
         }
     }
 }

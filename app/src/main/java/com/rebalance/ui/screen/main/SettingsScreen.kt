@@ -23,7 +23,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rebalance.Preferences
+import com.rebalance.service.Preferences
 import com.rebalance.R
 import com.rebalance.ui.component.SoundPlayer
 import compose.icons.EvaIcons

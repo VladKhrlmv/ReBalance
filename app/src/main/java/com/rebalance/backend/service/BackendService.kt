@@ -1,29 +1,224 @@
 package com.rebalance.backend.service
 
-import android.os.Parcelable
-import android.os.StrictMode
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.util.Base64
-import com.google.gson.Gson
-import com.rebalance.PreferencesData
-import com.rebalance.backend.api.*
-import com.rebalance.backend.entities.*
-import com.rebalance.backend.exceptions.ServerException
-import kotlinx.parcelize.Parcelize
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.asImageBitmap
+import com.rebalance.backend.api.RequestParser
+import com.rebalance.backend.api.RequestSender
+import com.rebalance.backend.api.dto.request.ApiGroupAddUserRequest
+import com.rebalance.backend.api.dto.request.ApiGroupCreateRequest
+import com.rebalance.backend.api.dto.request.ApiLoginRequest
+import com.rebalance.backend.api.dto.request.ApiRegisterRequest
+import com.rebalance.backend.dto.*
+import com.rebalance.backend.localdb.db.AppDatabase
+import com.rebalance.backend.localdb.entities.*
+import kotlinx.coroutines.*
+import java.io.ByteArrayOutputStream
+import java.math.BigDecimal
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
-class BackendService(
-    private val preferences: PreferencesData
-) {
+class BackendService {
     private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
-    //TODO: make requests in different thread
+    private val mainScope = CoroutineScope(Dispatchers.Main)
 
-    fun setPolicy() {
-        val policy = StrictMode.ThreadPolicy.Builder().permitAll().build()
-        StrictMode.setThreadPolicy(policy)
+    private lateinit var db: AppDatabase
+    private lateinit var settings: Settings
+    private lateinit var requestSender: RequestSender
+
+    companion object {
+        @Volatile
+        private var INSTANCE: BackendService? = null
+
+        // ensure that only one instance is used in all composables
+        fun get(): BackendService =
+            INSTANCE ?: synchronized(this) {
+                BackendService().also { INSTANCE = it }
+            }
     }
+
+    suspend fun initialize(context: Context, onInit: () -> Unit) {
+        // initialize db
+        this.db = AppDatabase.getDatabase(context)
+        mainScope.launch {
+            // try load settings
+            var settingsFromDB = withContext(Dispatchers.IO) {
+                db.settingsDao().getSettings()
+            }
+            // if first launch (no settings), save default to db and read them
+            if (settingsFromDB == null) {
+                withContext(Dispatchers.IO) {
+                    db.settingsDao().saveSettings(Settings.getDefaultInstance())
+                }
+                settingsFromDB = withContext(Dispatchers.IO) {
+                    db.settingsDao().getSettings()
+                }
+            }
+            // initialize settings from db and requests sender
+            settings = settingsFromDB as Settings
+            requestSender = RequestSender(settings.server_ip, settings.token)
+            onInit()
+        }
+    }
+
+    //region updating settings in db
+    private suspend fun updateUserInSettings(userId: Long, personalGroupId: Long, token: String) {
+        this.settings.user_id = userId
+        this.settings.group_ip = personalGroupId
+        this.settings.token = token
+        mainScope.async {
+            withContext(Dispatchers.IO) {
+                db.settingsDao().saveSettings(settings)
+            }
+            return@async
+        }.await()
+    }
+
+    suspend fun updateFirstLaunch(firstLaunch: Boolean): Boolean {
+        this.settings.first_launch = firstLaunch
+        return mainScope.async {
+            withContext(Dispatchers.IO) {
+                db.settingsDao().saveSettings(settings)
+            }
+            return@async settings.first_launch
+        }.await()
+    }
+    //endregion
+
+    //region settings
+    fun getUserId(): Long {
+        return settings.user_id
+    }
+
+    fun getGroupId(): Long {
+        return settings.group_ip
+    }
+
+    fun isFirstLaunch(): Boolean {
+        return settings.first_launch
+    }
+    //endregion
+
+    //region connection
+    suspend fun checkLogin(): LoginResult {
+        // when no token, go to auth screen
+        if (settings.token.isEmpty()) return LoginResult.TokenInspired
+        val (responseCode, _) = requestSender.sendGet("/user/info")
+        return when (responseCode) {
+            200 -> LoginResult.LoggedIn
+            401 -> LoginResult.TokenInspired
+            else -> LoginResult.ServerUnreachable
+        }
+    }
+    //endregion
+
+    //region user
+    private suspend fun updateCurrentUser(
+        userId: Long,
+        nickname: String,
+        email: String,
+        personalGroupId: Long,
+        currency: String
+    ) {
+        mainScope.async {
+            // save/update user
+            val user = User(userId, nickname, email)
+            withContext(Dispatchers.IO) {
+                db.userDao().save(user)
+            }
+            // save/update group
+            val personalGroup = Group(personalGroupId, false, "personal_$email", currency, true)
+            withContext(Dispatchers.IO) {
+                db.groupDao().saveGroup(personalGroup)
+            }
+            // save/update UserGroup relation
+            val userGroup = UserGroup(0, false, BigDecimal.ZERO, userId, personalGroupId)
+            withContext(Dispatchers.IO) {
+                db.userGroupDao().saveUserGroup(userGroup)
+            }
+            return@async
+        }.await()
+    }
+
+    suspend fun login(request: ApiLoginRequest): LoginResult {
+        val (responseCodeLogin, responseBodyLogin) = requestSender.sendPost(
+            "/user/login",
+            request.toJson()
+        )
+        return when (responseCodeLogin) {
+            200 -> {
+                // if login successful, set new token to RequestSender
+                val token = RequestParser.responseToLogin(responseBodyLogin).token
+                this.requestSender.token = token
+
+                // get user info
+                val (responseCodeInfo, responseBodyInfo) = requestSender.sendGet("/user/info")
+                if (responseCodeInfo != 200) {
+                    // if (somehow) fail, remove token and return BadCredentials
+                    this.requestSender.token = ""
+                    return LoginResult.TokenInspired
+                }
+
+                // update settings in db
+                val user = RequestParser.responseToUser(responseBodyInfo)
+                updateUserInSettings(user.id, user.personalGroupId, token)
+
+                // update current user in db
+                updateCurrentUser(
+                    user.id,
+                    user.nickname,
+                    user.email,
+                    user.personalGroupId,
+                    user.currency
+                )
+
+                LoginResult.LoggedIn
+            }
+            400 -> LoginResult.BadCredentials
+            else -> LoginResult.ServerUnreachable
+        }
+    }
+
+    suspend fun register(request: ApiRegisterRequest): RegisterResult {
+        val (responseCode, responseBody) = requestSender.sendPost(
+            "/user/register",
+            request.toJson()
+        )
+        return when (responseCode) {
+            201 -> {
+                // update settings in db
+                val user = RequestParser.responseToRegister(responseBody)
+                updateUserInSettings(
+                    user.id,
+                    user.personalGroupId,
+                    user.token
+                )
+
+                // update user in db
+                updateCurrentUser(
+                    user.id,
+                    user.nickname,
+                    user.email,
+                    user.personalGroupId,
+                    user.currency
+                )
+
+                RegisterResult.Registered
+            }
+            400 -> RegisterResult.IncorrectData
+            409 -> RegisterResult.EmailAlreadyTaken
+            else -> RegisterResult.ServerError
+        }
+    }
+    //endregion
 
     //region Personal screen
     /** Returns scale items that is scrollable vertically in personal screen (day, week, month, year) **/
@@ -37,86 +232,93 @@ class BackendService(
     }
 
     /** Returns scaled date items that is scrollable horizontally in personal screen **/
-    fun getScaledDateItems(scale: String): List<ScaledDateItem> {
-        setPolicy()
-
-        val jsonBodyExpenses = RequestsSender.sendGet(
-            "http://${preferences.serverIp}/groups/${preferences.groupId}/expenses"
-        )
-        val expenses: List<Expense> = jsonArrayToExpenses(jsonBodyExpenses)
-
+    suspend fun getTabItems(scale: String): List<ScaledDateItem> {
         val list = ArrayList<ScaledDateItem>()
 
         when (scale) {
             "Day" -> {
-                for (ex in expenses) {
-                    val date = LocalDate.parse(ex.getDateStamp(), formatter)
-                    if (list.any {
-                            it.dateTo.year == date.year &&
-                                    it.dateTo.dayOfYear == date.dayOfYear
-                        }) {
-                        continue // if not the same date
+                // get unique dates from db
+                val dates = mainScope.async {
+                    var dates: List<LocalDateTime>
+                    withContext(Dispatchers.IO) {
+                        dates = db.expenseDao().getUniqueExpenseDays(settings.group_ip)
                     }
-                    list.add(ScaledDateItem(ex.getDateStamp(), date, date))
+                    return@async dates
+                }.await()
+                // add dates to return list
+                dates.forEach { d ->
+                    list.add(
+                        ScaledDateItem(
+                            d.format(formatter),
+                            d,
+                            d
+                        )
+                    )
                 }
             }
             "Week" -> {
-                for (ex in expenses) {
-                    val date = LocalDate.parse(ex.getDateStamp(), formatter)
-                    if (list.any {
-                            it.dateTo.year == date.year &&
-                                    date.dayOfYear - it.dateFrom.dayOfYear < 7 &&
-                                    it.dateTo.dayOfYear - date.dayOfYear < 7 &&
-                                    date.dayOfWeek >= it.dateFrom.dayOfWeek &&
-                                    date.dayOfWeek <= it.dateTo.dayOfWeek
-                        }) {
-                        continue // if not the same week
+                // get unique years from db
+                val dates = mainScope.async {
+                    var dates: List<String>
+                    withContext(Dispatchers.IO) {
+                        dates = db.expenseDao().getUniqueExpenseWeeks(settings.group_ip)
                     }
-                    val dateFrom = date.with(DayOfWeek.MONDAY)
-                    val dateTo = date.with(DayOfWeek.SUNDAY)
+                    return@async dates
+                }.await()
+                // add dates to return list
+                dates.forEach { d ->
+                    val startDate =
+                        LocalDate.parse(d, DateTimeFormatter.ofPattern("yyyy-WW")).atStartOfDay()
+                    val endDate = startDate.plusWeeks(1).minusSeconds(1)
                     list.add(
                         ScaledDateItem(
-                            dateFrom.format(formatter) +
-                                    "\n" +
-                                    dateTo.format(formatter), dateFrom, dateTo
+                            startDate.format(formatter),
+                            startDate,
+                            endDate
                         )
                     )
                 }
             }
             "Month" -> {
-                for (ex in expenses) {
-                    val date = LocalDate.parse(ex.getDateStamp(), formatter)
-                    if (list.any {
-                            it.dateFrom.year == date.year &&
-                                    it.dateFrom.month == date.month
-                        }) {
-                        continue // if not the same year
+                // get unique years from db
+                val dates = mainScope.async {
+                    var dates: List<String>
+                    withContext(Dispatchers.IO) {
+                        dates = db.expenseDao().getUniqueExpenseMonths(settings.group_ip)
                     }
-                    val from = date.minusDays(date.dayOfMonth.toLong() - 1)
-                    val to = date.plusMonths(1).minusDays(date.dayOfMonth.toLong())
+                    return@async dates
+                }.await()
+                // add dates to return list
+                dates.forEach { d ->
+                    val startDate =
+                        LocalDate.parse(d, DateTimeFormatter.ofPattern("yyyy-MM")).atStartOfDay()
+                    val endDate = startDate.plusMonths(1).minusSeconds(1)
                     list.add(
                         ScaledDateItem(
-                            date.month.toString() + " " + date.year.toString(),
-                            from, to
+                            startDate.month.toString() + " " + startDate.year.toString(),
+                            startDate,
+                            endDate
                         )
                     )
                 }
             }
             "Year" -> {
-                for (ex in expenses) {
-                    val date = LocalDate.parse(ex.getDateStamp(), formatter)
-                    if (list.any { it.dateFrom.year == date.year }) {
-                        continue // if not the same year
+                // get unique years from db
+                val dates = mainScope.async {
+                    var dates: List<Int>
+                    withContext(Dispatchers.IO) {
+                        dates = db.expenseDao().getUniqueExpenseYears(settings.group_ip)
                     }
-                    val year = LocalDate.parse(
-                        date.year.toString() + "-01-01",
-                        DateTimeFormatter.ofPattern("yyyy-MM-dd")
-                    )
+                    return@async dates
+                }.await()
+                // add dates to return list
+                dates.forEach { d ->
+                    val startYear = LocalDateTime.of(d, 1, 1, 0, 0, 0)
                     list.add(
                         ScaledDateItem(
-                            year.year.toString(),
-                            year,
-                            year.plusYears(1).minusDays(1)
+                            d.toString(),
+                            startYear,
+                            startYear.plusYears(1).minusSeconds(1)
                         )
                     )
                 }
@@ -125,7 +327,7 @@ class BackendService(
 
         if (list.isEmpty()) { // if empty list add current date otherwise app crash
             var name = ""
-            val date = LocalDate.now()
+            val date = LocalDateTime.now()
             when (scale) {
                 "Day" -> {
                     name = date.format(formatter)
@@ -146,297 +348,407 @@ class BackendService(
             list.add(
                 ScaledDateItem(
                     name,
-                    LocalDate.now(),
-                    LocalDate.now()
+                    LocalDateTime.now(),
+                    LocalDateTime.now()
                 )
             )
         }
 
-        return list.sortedWith(compareBy({ it.dateFrom.year }, { it.dateFrom.dayOfYear }))
+        return list.sortedWith(
+            compareBy(
+                { it.dateFrom.year },
+                { it.dateFrom.dayOfYear })
+        )
     }
 
-    /** Returns list of expenses grouped by category **/
-    fun getPersonal(dateFrom: LocalDate, dateTo: LocalDate): List<ExpenseItem> {
-        setPolicy()
-
-        val list = ArrayList<ExpenseItem>()
-
-        val jsonBodyGet = RequestsSender.sendGet(
-            "http://${preferences.serverIp}/expenses/group/${preferences.groupId}/between/${
-                dateFrom.format(
-                    formatter
+    /** Returns categories and their sums in the provided dates range **/
+    suspend fun getPieChartData(scaledDateItem: ScaledDateItem): List<SumByCategoryItem> {
+        return mainScope.async {
+            var sums: List<SumByCategoryItem>
+            withContext(Dispatchers.IO) {
+                sums = db.expenseDao().getSumsByCategories(
+                    settings.group_ip,
+                    scaledDateItem.dateFrom,
+                    scaledDateItem.dateTo
                 )
-            }/${
-                dateTo.format(
-                    formatter
-                )
-            }"
-        )
-        val listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
-        val categoryMap: HashMap<String, ExpenseItem> = HashMap()
-        listExpense.forEach { entry ->
-            if (categoryMap.containsKey(entry.getCategory())) {
-                val item = categoryMap.getValue(entry.getCategory())
-                item.amount = item.amount + entry.getAmount()
-                item.expenses.add(entry)
-                categoryMap[entry.getCategory()] = item
-            } else {
-                categoryMap[entry.getCategory()] = ExpenseItem(entry)
             }
+            return@async sums
+        }.await()
+    }
+
+    /** Returns list of expenses grouped by category in the provided dates range **/
+    suspend fun getExpensesByCategory(
+        category: String,
+        scaledDateItem: ScaledDateItem
+    ): List<Expense> {
+        return mainScope.async {
+            var sums: List<Expense>
+            withContext(Dispatchers.IO) {
+                sums = db.expenseDao().getExpensesByCategory(
+                    settings.group_ip,
+                    category,
+                    scaledDateItem.dateFrom,
+                    scaledDateItem.dateTo
+                )
+            }
+            return@async sums
+        }.await()
+        //TODO: convert dates to current timezone
+    }
+
+    /** Deletes personal expense from localdb and server, returns result of an operation **/
+    suspend fun deletePersonalExpenseById(expenseId: Long): DeleteResult {
+        // delete from server
+        val (responseCode, _) = requestSender.sendDelete("/personal/expenses/$expenseId")
+        return when (responseCode) {
+            204 -> {
+                // if successful, delete from localdb
+                mainScope.async {
+                    withContext(Dispatchers.IO) {
+                        db.expenseDao().deleteById(expenseId)
+                    }
+                    return@async
+                }.await()
+                DeleteResult.Deleted
+            }
+            //TODO: correctly handle other cases
+            404 -> DeleteResult.NotFound
+            409 -> DeleteResult.IncorrectId
+            else -> DeleteResult.ServerError
         }
-        for (entry in categoryMap.values) {
-            list.add(entry)
-        }
-
-        return list
-    }
-    //endregion
-
-    //region Add spending screen
-    fun getGroups(userId: Long? = null): List<ExpenseGroup> {
-        setPolicy()
-
-        val jsonBodyGroups = RequestsSender.sendGet(
-            "http://${preferences.serverIp}/users/${userId ?: preferences.userId}/groups"
-        )
-        val groups: List<ExpenseGroup> = jsonArrayToExpenseGroups(jsonBodyGroups)
-
-        //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
-        return groups
-    }
-
-    fun addExpense(expense: Expense, groupId: Long, userId: Long? = null): Expense {
-        setPolicy()
-        val jsonBodyPOST = RequestsSender.sendPost(
-            "http://${preferences.serverIp}/expenses/user/${userId ?: preferences.userId}/group/${groupId}/${preferences.userId}",
-            Gson().toJson(expense)
-        )
-        return jsonToExpense(jsonBodyPOST)
-    }
-
-    fun addExpenseImage(imageBase64String: String, expenseGlobalId: Long?) {
-        val body = """{"image": "$imageBase64String"}""".replace("\n", "")
-        RequestsSender.sendPost(
-            "http://${preferences.serverIp}/expenses/${expenseGlobalId}/image",
-            body
-        )
-    }
-    //endregion
-
-    //region Group by id
-    fun getGroupById(id: Long): ExpenseGroup {
-        setPolicy()
-
-        val jsonBodyGroup = RequestsSender.sendGet(
-            "http://${preferences.serverIp}/groups/${id}"
-        )
-
-        //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
-        return jsonToExpenseGroup(jsonBodyGroup)
     }
     //endregion
 
     //region Group screen
-    fun getGroupVisualBarChart(groupId: Long): List<BarChartData> {
-        setPolicy()
-        val entries = ArrayList<BarChartData>()
-
-        val jsonBodyGetUsersFromGroup = if (groupId == -1L) "[]" else RequestsSender.sendGet(
-            //todo change to group choice
-            "http://${preferences.serverIp}/groups/${groupId}/users"
-        )
-        val userExpenseMap: HashMap<Long, Pair<String, Double>> = HashMap()
-
-        val userList =
-            if (groupId == -1L) listOf() else jsonArrayToApplicationUsers(jsonBodyGetUsersFromGroup)
-        println(userList)
-        for (user in userList) {
-            val jsonBodyGet = RequestsSender.sendGet(
-                //todo change to group choice
-                "http://${preferences.serverIp}/groups/${groupId}/users/${user.getId()}/expenses"
-            )
-            val listExpense: List<Expense> = jsonArrayToExpenses(jsonBodyGet)
-            var sumForUser = 0.0
-            for (expense in listExpense) {
-                sumForUser += expense.getAmount()
+    suspend fun getGroupById(groupId: Long): Group? {
+        return mainScope.async {
+            var group: Group?
+            withContext(Dispatchers.IO) {
+                group = db.groupDao().getGroupById(groupId)
             }
-            userExpenseMap[user.getId()] = Pair(user.getUsername(), sumForUser)
-        }
-        for (entry in userExpenseMap.entries.iterator()) {
-            entries.add(BarChartData(entry.key, entry.value))
-        }
-        //todo https://stackoverflow.com/questions/6343166/how-can-i-fix-android-os-networkonmainthreadexception#:~:text=Implementation%20summary
-        return entries.sortedByDescending { it.data.first }
+            return@async group
+        }.await()
     }
 
-    fun getGroupList(groupId: Long): List<Expense> {
-        setPolicy()
+    suspend fun getUserGroups(): List<Group> {
+        return mainScope.async {
+            var groups: List<Group>
+            withContext(Dispatchers.IO) {
+                groups = db.groupDao().getUserGroups(settings.user_id)
+            }
+            return@async groups
+        }.await()
+    }
 
-        val responseGroupList = if (groupId == -1L) "[]" else RequestsSender.sendGet(
-            //todo change to group choice
-            "http://${preferences.serverIp}/groups/${groupId}/expenses"
+    suspend fun createGroup(request: ApiGroupCreateRequest): Long {
+        // send request to create new group
+        val (responseCode, responseBody) = requestSender.sendPost(
+            "/group",
+            request.toJson()
         )
+        return when (responseCode) {
+            201 -> { //TODO: check if server available
+                val groupResponse = RequestParser.responseToGroup(responseBody)
+                // save new group in db
+                val group = Group(
+                    groupResponse.id,
+                    false,
+                    groupResponse.name,
+                    groupResponse.currency,
+                    false
+                )
+                mainScope.async {
+                    withContext(Dispatchers.IO) {
+                        db.groupDao().saveGroup(group)
+                    }
+                    return@async
+                }.await()
+                // save UserGroup with current user in db
+                val userGroup = UserGroup(
+                    0L,
+                    groupResponse.favorite,
+                    BigDecimal.ZERO,
+                    settings.user_id,
+                    groupResponse.id
+                )
+                mainScope.async {
+                    withContext(Dispatchers.IO) {
+                        db.userGroupDao().saveUserGroup(userGroup)
+                    }
+                    return@async
+                }.await()
 
-        return jsonArrayToExpenses(responseGroupList).sortedBy {
-            LocalDate.parse(it.getDateStamp(), DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-        }.reversed()
-    }
-
-    fun getExpensePicture(globalId: Long?): ByteArray? {
-        setPolicy()
-        if (globalId == null) {
-            return null
-        }
-
-        return try {
-            val responseJson = RequestsSender.sendGet(
-                "http://${preferences.serverIp}/expenses/${globalId}/image"
-            )
-            println(responseJson)
-            val imageClass: ExpenseImage = Gson().fromJson(responseJson, ExpenseImage::class.java)
-            Base64.decode(imageClass.getImage(), Base64.DEFAULT)
-        } catch (e: ServerException) {
-            println(e.message)
-            null
-        }
-    }
-
-    fun getExpenseIcon(globalId: Long?): ByteArray? {
-        setPolicy()
-        if (globalId == null) {
-            return null
-        }
-
-        return try {
-            val responseJson = RequestsSender.sendGet(
-                "http://${preferences.serverIp}/expenses/${globalId}/icon"
-            )
-            println(responseJson)
-            val imageClass: ExpenseImage = Gson().fromJson(responseJson, ExpenseImage::class.java)
-            Base64.decode(imageClass.getImage(), Base64.DEFAULT)
-        } catch (e: ServerException) {
-            println(e.message)
-            null
+                return group.id
+            }
+            else -> -1L
         }
     }
 
-    fun deleteExpenseByGlobalId(globalId: Long?) {
-        setPolicy()
-        RequestsSender.sendDelete(
-            "http://${preferences.serverIp}/expenses/${globalId}"
-        )
+    suspend fun getBarChartData(groupId: Long): List<BarChartItem> {
+        return mainScope.async {
+            val balances: List<BarChartItem>
+            withContext(Dispatchers.IO) {
+                balances = db.userGroupDao().getUserBalancesForGroup(groupId)
+            }
+            return@async balances
+        }.await()
     }
 
-    fun createGroup(groupCurrency: String, groupName: String, userId: Long? = null): ExpenseGroup {
-        setPolicy()
-        val responseJson = RequestsSender.sendPost(
-            "http://${preferences.serverIp}/users/${userId ?: preferences.userId}/groups",
-            "{\"currency\": \"${groupCurrency}\", \"name\": \"${groupName}\"}"
-        )
-        return jsonToExpenseGroup(responseJson)
+    suspend fun getGroupExpenses(groupId: Long, offset: Int): List<GroupExpenseItem> {
+        return mainScope.async {
+            val expenses: List<GroupExpenseItem>
+            withContext(Dispatchers.IO) {
+                expenses = db.expenseDao().getGroupExpenses(groupId, offset)
+            }
+            return@async expenses
+        }.await()
+        //TODO: convert dates to current timezone
     }
 
-    fun addUserToGroup(userId: Long, groupId: Long) {
-        setPolicy()
-        RequestsSender.sendPost(
-            "http://${preferences.serverIp}/users/${userId}/groups",
-            "{\"id\": ${groupId}}"
-        )
+    suspend fun getGroupExpenseDeptors(expenseId: Long): List<GroupExpenseItemUser> {
+        return mainScope.async {
+            val expenseUsers: List<GroupExpenseItemUser>
+            withContext(Dispatchers.IO) {
+                expenseUsers = db.expenseUserDao().getGroupExpenseDeptors(expenseId)
+            }
+            return@async expenseUsers
+        }.await()
+    }
+
+    suspend fun deleteGroupExpenseById(expenseId: Long): DeleteResult {
+        val (responseCode, _) = requestSender.sendDelete("/group/expenses/$expenseId")
+        return when (responseCode) {
+            204 -> {
+                // if successful, delete from localdb
+                mainScope.async {
+                    withContext(Dispatchers.IO) {
+                        db.expenseDao().deleteById(expenseId)
+                    }
+                    return@async
+                }.await()
+                DeleteResult.Deleted
+            }
+            //TODO: correctly handle other cases
+            404 -> DeleteResult.NotFound
+            409 -> DeleteResult.IncorrectId
+            else -> DeleteResult.ServerError
+        }
+    }
+
+    suspend fun addUserToGroup(groupId: Long, email: String): AddUserToGroupResult {
+        val request = ApiGroupAddUserRequest(groupId, email)
+        val (responseCode, responseBody) = requestSender.sendPost("/group/users", request.toJson())
+        return when (responseCode) {
+            200 -> {
+                val response = RequestParser.responseToUserGroup(responseBody)
+                val (responseUserCode, responseUserBody) = requestSender.sendGet("/user/email/$email")
+                val userResponse = RequestParser.responseToUser(responseUserBody)
+                if (responseUserCode == 200) {
+                    // if successful adding user to group and getting user, add UserGroup and User to db
+                    mainScope.async {
+                        withContext(Dispatchers.IO) {
+                            db.userDao().save(
+                                User(
+                                    userResponse.id,
+                                    userResponse.nickname,
+                                    userResponse.email
+                                )
+                            )
+                        }
+                        withContext(Dispatchers.IO) {
+                            db.userGroupDao().saveUserGroup(
+                                UserGroup(
+                                    0L,
+                                    response.favorite,
+                                    BigDecimal.ZERO,
+                                    response.userId,
+                                    response.groupId
+                                )
+                            )
+                        }
+                        return@async
+                    }.await()
+                } else {
+                    AddUserToGroupResult.CannotSaveUser
+                }
+                AddUserToGroupResult.Added
+            }
+            404 -> AddUserToGroupResult.UserNotFound
+            409 -> AddUserToGroupResult.UserInGroup
+            else -> AddUserToGroupResult.ServerError
+        }
     }
     //endregion
 
-    //region Notifications
-    fun getNotifications(): List<Notification> {
-        setPolicy()
-        val responseJson = RequestsSender.sendGet(
-            "http://${preferences.serverIp}/users/${
-                preferences.userId
-            }/notifications"
-        )
-        return jsonArrayToNotification(responseJson)
-    }
-    //endregion
-
-    //region Login
-    fun login(email: String, password: String): ApplicationUser {
-        setPolicy()
-        val responseJson = RequestsSender.sendPost(
-            "http://${preferences.serverIp}/users/login",
-            Gson().toJson(LoginAndPassword(email, password))
-        )
-        return jsonToApplicationUser(responseJson)
+    //region Add spending screen
+    suspend fun getUserById(userId: Long): User? {
+        return mainScope.async {
+            val user: User?
+            withContext(Dispatchers.IO) {
+                user = db.userDao().getUserById(userId)
+            }
+            return@async user
+        }.await()
     }
 
-    fun register(email: String, username: String, password: String): LoginAndPassword {
-        setPolicy()
-        val responseJson = RequestsSender.sendPost(
-            "http://${preferences.serverIp}/users",
-            Gson().toJson(ApplicationUser(username, email, password))
-        )
-        return jsonToLoginAndPassword(responseJson)
+    suspend fun getUsersOfGroup(groupId: Long): List<SpendingDeptor> {
+        return mainScope.async {
+            val users: List<SpendingDeptor>
+            withContext(Dispatchers.IO) {
+                users = db.userDao().getGroupUsers(groupId)
+            }
+            return@async users
+        }.await()
     }
 
-    fun getUserByEmail(email: String): ApplicationUser {
-        setPolicy()
-        val responseJson =
-            RequestsSender.sendGet("http://${preferences.serverIp}/users/email/${email}")
-        return jsonToApplicationUser(responseJson)
+    suspend fun addNewPersonalExpense(
+        expense: NewPersonalSpending,
+        image: ImageBitmap?,
+        imageName: String?
+    ) {
+        // save expense to db
+        mainScope.async {
+            val personalExpense = Expense(
+                0,
+                null,
+                true,
+                expense.amount,
+                expense.description,
+                LocalDateTime.ofInstant(expense.date.toInstant(), ZoneId.of("UTC")),
+                expense.category,
+                settings.user_id,
+                settings.user_id,
+                settings.group_ip
+            )
+            var expenseId: Long
+            withContext(Dispatchers.IO) {
+                expenseId = db.expenseDao().saveExpense(personalExpense)
+            }
+            // save image to db if exists
+            if (image != null) {
+                val img = Image(expenseId, true, imageName ?: "", compressImage(image))
+                db.imageDao().save(img)
+            }
+            return@async
+        }.await()
+    }
+
+    suspend fun addNewGroupExpense(
+        expense: NewGroupSpending,
+        image: ImageBitmap?,
+        imageName: String?
+    ) {
+        mainScope.async {
+            // save expense to db
+            val groupExpense = Expense(
+                0,
+                null,
+                true,
+                expense.amount,
+                expense.description,
+                LocalDateTime.ofInstant(expense.date.toInstant(), ZoneId.of("UTC")),
+                expense.category,
+                expense.initiatorUserId,
+                settings.user_id,
+                expense.groupId
+            )
+            var expenseId: Long
+            withContext(Dispatchers.IO) {
+                expenseId = db.expenseDao().saveExpense(groupExpense)
+            }
+            // save all participants
+            val users = expense.users.map { user ->
+                ExpenseUser(
+                    0L,
+                    expense.amount.divide(BigDecimal.valueOf(user.multiplier.toDouble())),
+                    user.multiplier,
+                    user.userId,
+                    expenseId
+                )
+            }
+            withContext(Dispatchers.IO) {
+                users.forEach { user -> db.expenseUserDao().saveExpenseUser(user) }
+            }
+            // save image to db if exists
+            if (image != null) {
+                val img = Image(expenseId, true, imageName ?: "", compressImage(image))
+                db.imageDao().save(img)
+            }
+            return@async
+        }.await()
+    }
+
+//    //region Group screen
+//    fun addUserToGroup(userId: Long, groupId: Long) {
+//        setPolicy()
+//        RequestSender.sendPost(
+//            "http://${settings.server_ip}/users/${userId}/groups",
+//            "{\"id\": ${groupId}}"
+//        )
+//    }
+//    //endregion
+//
+//    //region Notifications
+//    fun getNotifications(): List<Notification> {
+//        setPolicy()
+//        val responseJson = RequestSender.sendGet(
+//            "http://${settings.server_ip}/users/${
+//                settings.user_id
+//            }/notifications"
+//        )
+//        return jsonArrayToNotification(responseJson)
+//    }
+//    //endregion
+//endregion
+
+    //region images
+    suspend fun getImageByExpenseId(expenseId: Long): ImageBitmap? {
+        return mainScope.async {
+            // get image from db
+            val image: Image?
+            withContext(Dispatchers.IO) {
+                image = db.imageDao().getByExpenseId(expenseId)
+            }
+            // return image if exists
+            if (image == null) {
+                return@async null
+            } else {
+                val imageData = Base64.decode(image.data, Base64.DEFAULT)
+                return@async BitmapFactory.decodeByteArray(
+                    imageData,
+                    0,
+                    imageData.size
+                ).asImageBitmap()
+            }
+        }.await()
+    }
+
+    private fun compressImage(image: ImageBitmap): String {
+        val maxWidth = 1920
+        val maxHeight = 1080
+
+        // Calculate the scaling factor
+        val scaleFactor = maxOf(
+            image.width.toFloat() / maxWidth,
+            image.height.toFloat() / maxHeight,
+            1f
+        )
+
+        // Scale the bitmap
+        val scaledBitmap = Bitmap.createScaledBitmap(
+            image.asAndroidBitmap(),
+            (image.width / scaleFactor).toInt(),
+            (image.height / scaleFactor).toInt(),
+            true
+        )
+
+        // Compress the bitmap to JPEG
+        val quality = 50
+        val outputStream = ByteArrayOutputStream()
+        scaledBitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
+
+        // Convert to Base64
+        return Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
     }
     //endregion
 }
-
-//region Personal screen
-/** Item used for changing scales on personal screen (vertical navigation) **/
-data class ScaleItem(
-    val type: String,
-    val name: String
-)
-
-/** Item used for selecting scaled date on personal screen (horizontal navigation) **/
-@Parcelize
-data class ScaledDateItem(
-    var name: String,
-    var dateFrom: LocalDate,
-    var dateTo: LocalDate
-) : Parcelable
-
-@Parcelize
-data class ExpenseItem(
-    var text: String,
-    var amount: Double,
-    var expenses: ArrayList<Expense>
-) : Parcelable {
-    constructor(expense: Expense) : this(
-        expense.getCategory(),
-        expense.getAmount(),
-        arrayListOf(expense)
-    )
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as ExpenseItem
-
-        if (text != other.text) return false
-        if (amount != other.amount) return false
-        if (expenses != other.expenses) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = text.hashCode()
-        result = 31 * result + amount.hashCode()
-        result = 31 * result + expenses.hashCode()
-        return result
-    }
-}
-//endregion
-
-//region Group screen
-data class BarChartData(
-    var id: Long,
-    var data: Pair<String, Double>
-)
-//endregion

@@ -1,11 +1,9 @@
 package com.rebalance.ui.screen.main
 
-import android.annotation.SuppressLint
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.provider.MediaStore
-import android.util.Base64
+import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -16,138 +14,174 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.rebalance.Preferences
-import com.rebalance.PreferencesData
-import com.rebalance.backend.entities.ApplicationUser
-import com.rebalance.backend.entities.Expense
-import com.rebalance.backend.entities.ExpenseGroup
+import com.rebalance.backend.dto.NewGroupSpending
+import com.rebalance.backend.dto.NewPersonalSpending
+import com.rebalance.backend.dto.SpendingDeptor
+import com.rebalance.backend.localdb.entities.Group
+import com.rebalance.backend.localdb.entities.User
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.main.DatePickerField
 import com.rebalance.ui.component.main.GroupMemberSelection
 import com.rebalance.ui.component.main.GroupSelection
-import com.rebalance.ui.navigation.navigateUp
 import com.rebalance.util.*
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
 import compose.icons.evaicons.fill.Image
 import compose.icons.evaicons.fill.Trash
-import java.io.ByteArrayOutputStream
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import kotlinx.coroutines.launch
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
-@SuppressLint("UnrememberedMutableState")
 @Composable
 fun AddSpendingScreen(
     context: Context,
     navHostController: NavHostController,
-    callerPhoto: Bitmap? = null,
+    callerPhoto: ImageBitmap? = null,
     setOnPlusClick: (() -> Unit) -> Unit
 ) {
-    val preferences = rememberSaveable { Preferences(context).read() }
-    var spendingName by remember { mutableStateOf(TextFieldValue()) }
-    var selectedCategory by remember { mutableStateOf(TextFieldValue()) }
-    var costValue by remember { mutableStateOf(TextFieldValue()) }
-    val date = remember { mutableStateOf("") }
+    val backendService = remember { BackendService.get() }
+    val addSpendingScreenScope = rememberCoroutineScope()
+
+    var spendingName by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf("") }
+    var costValue by remember { mutableStateOf("") }
+    var date by remember { mutableStateOf(Date()) }
     var isGroupExpense by remember { mutableStateOf(false) }
-    var groupName by remember { mutableStateOf("") }
-    var groupId by remember { mutableStateOf(0L) }
-    var groupIdLast by remember { mutableStateOf(0L) }
-    var groupList by remember { mutableStateOf(listOf<ExpenseGroup>()) }
-    var payer = remember { mutableStateOf(ApplicationUser()) }
-    val membersSelection = remember { mutableStateMapOf<ApplicationUser, Pair<Boolean, Int>>() }
+
+    var personalGroup: Group? by remember { mutableStateOf(null) }
+    var groupList by remember { mutableStateOf(listOf<Group>()) }
+    var groupIndex by remember { mutableStateOf(0) }
+
+    var payer: User? by remember { mutableStateOf(null) }
+    var payerId by remember { mutableStateOf(0L) }
+    var membersSelection by remember { mutableStateOf(listOf<SpendingDeptor>()) }
 
     var selectedPhoto by remember { mutableStateOf(callerPhoto) }
     var photoName by remember { mutableStateOf("") }
 
+    //TODO: add focusers to each field
+//    val focusRequesters = remember { List(3) { FocusRequester() } }
     val focusManager = LocalFocusManager.current
 
+    // selecting image
     val galleryLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri ->
             if (uri != null) {
+                Log.d("add", "start getting image")
                 val bitmap = context.contentResolver.openInputStream(uri)?.use {
                     BitmapFactory.decodeStream(it)
                 }
+                Log.d("add", "image ${bitmap?.height}x${bitmap?.width}")
 
                 val fileNameColumn = arrayOf(MediaStore.Images.Media.DISPLAY_NAME)
+                Log.d("add", "image name $fileNameColumn")
                 val cursor = context.contentResolver.query(uri, fileNameColumn, null, null, null)
+                Log.d("add", "open cursor")
                 if (cursor != null && cursor.moveToFirst()) {
                     val columnIndex = cursor.getColumnIndex(fileNameColumn[0])
                     photoName = cursor.getString(columnIndex)
                     cursor.close()
+                    Log.d("add", "photo name $photoName")
                 }
 
                 if (bitmap != null) {
-                    selectedPhoto = bitmap
+                    selectedPhoto = bitmap.asImageBitmap()
+                    Log.d("add", "select photo")
                 }
             }
         }
+
+    // on start fetch personal group and group list
+    LaunchedEffect(Unit) {
+        personalGroup = backendService.getGroupById(backendService.getGroupId())
+        groupList = backendService.getUserGroups()
+    }
+
+    // set action for floating button
     LaunchedEffect(Unit) {
         setOnPlusClick {
-            if (spendingName.text.isEmpty() || costValue.text.isEmpty() || selectedCategory.text.isEmpty()) {
+            if (spendingName.isEmpty() || costValue.isEmpty() || selectedCategory.isEmpty()) {
                 alertUser("Fill in all data", context)
                 return@setOnPlusClick
             }
-            if (isGroupExpense && membersSelection.filterValues { flag -> flag.first }
-                    .isEmpty()) {
+            if (isGroupExpense && membersSelection.all { deptor -> !deptor.selected }) {
                 alertUser("Choose at least one member", context)
                 return@setOnPlusClick
             }
-            if (isGroupExpense && payer.value.getId() == -1L) {
+            if (isGroupExpense && payer == null) {
                 alertUser("Set the payer", context)
                 return@setOnPlusClick
             }
 
-            try {
-                addExpense(
-                    isGroupExpense,
-                    membersSelection,
-                    preferences,
-                    groupId,
-                    payer.value.getId(),
-                    costValue,
-                    date,
-                    selectedCategory,
+            if (isGroupExpense) {
+                val newGroupSpending = NewGroupSpending(
+                    backendService.getUserId(),
+                    groupList[groupIndex].id,
+                    costValue.toBigDecimal(),
                     spendingName,
-                    compressImage(selectedPhoto)
+                    selectedCategory,
+                    date,
+                    membersSelection.filter { it.selected }
                 )
-                spendingName = TextFieldValue("")
-                costValue = TextFieldValue("")
-                selectedCategory = TextFieldValue("")
-                date.value = ""
-                isGroupExpense = false
-                groupName = ""
-                groupId = 0L
-                payer.value = ApplicationUser()
-                membersSelection.clear()
-
-                alertUser("Expense saved!", context)
-                navigateUp(navHostController)
-            } catch (e: Exception) {
-                alertUser("Unexpected error occurred:\n" + e.message, context)
+                addSpendingScreenScope.launch {
+                    backendService.addNewGroupExpense(newGroupSpending, selectedPhoto, photoName)
+                }
+            } else {
+                val newPersonalSpending = NewPersonalSpending(
+                    costValue.toBigDecimal(),
+                    spendingName,
+                    selectedCategory,
+                    date
+                )
+                addSpendingScreenScope.launch {
+                    backendService.addNewPersonalExpense(
+                        newPersonalSpending,
+                        selectedPhoto,
+                        photoName
+                    )
+                }
             }
+            //TODO: close add spending screen after adding
         }
     }
-    // scroll state of column
-    val scrollState = rememberScrollState()
+
+    // fetch users of selected group
+    LaunchedEffect(groupIndex, groupList) {
+        if (groupList.size > groupIndex) {
+            membersSelection = backendService.getUsersOfGroup(groupList[groupIndex].id)
+        }
+    }
+
+    // fetch payer on change
+    LaunchedEffect(payerId) {
+        payer = backendService.getUserById(payerId)
+    }
+
+    fun updateSelection(userId: Long, selection: Boolean) {
+        membersSelection =
+            membersSelection.map { if (it.userId == userId) it.copyWithSelected(selection) else it }
+    }
+
+    fun updateMultiplier(userId: Long, multiplier: Int) {
+        membersSelection =
+            membersSelection.map { if (it.userId == userId) it.copyWithMultiplier(multiplier) else it }
+    }
 
     // outer column
     Column(
@@ -165,14 +199,14 @@ fun AddSpendingScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(scrollState)
+                .verticalScroll(rememberScrollState())
                 .padding(start = 10.dp, end = 10.dp)
         ) {
             // Title and image
-            Box (
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-            ){
+            ) {
                 // Title field
                 TextField(
                     value = spendingName,
@@ -211,15 +245,15 @@ fun AddSpendingScreen(
                             "Image",
                             tint = MaterialTheme.colorScheme.onBackground
                         )
-                    }
-                    else {
+                    } else {
                         Icon(
-                            Bitmap.createScaledBitmap(
-                                selectedPhoto!!,
-                                175,
-                                175,
-                                false
-                            ).asImageBitmap(),
+//                            Bitmap.createScaledBitmap(
+//                                selectedPhoto!!,
+//                                175,
+//                                175,
+//                                false
+//                            ).asImageBitmap(),
+                            selectedPhoto!!, //TODO: scale image to fit icon
                             "Image",
                             tint = Color.Unspecified
                         )
@@ -228,7 +262,7 @@ fun AddSpendingScreen(
             }
             // If picture is chosen
             if (selectedPhoto != null) {
-                Row (
+                Row(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(24.dp)
@@ -285,8 +319,8 @@ fun AddSpendingScreen(
             TextField(
                 value = costValue,
                 onValueChange = { newCostValue ->
-                    if (costValueRegex().matches(newCostValue.text)) {
-                        costValue = newCostValue
+                    if (costValueRegex().matches(newCostValue)) {
+                        costValue = newCostValue.replace(",", ".")
                     }
                 },
                 keyboardOptions = KeyboardOptions(
@@ -301,11 +335,10 @@ fun AddSpendingScreen(
                     .fillMaxWidth()
                     .onFocusChanged {
                         if (!it.isFocused) {
-                            val tempCostValue = costValue.text
+                            costValue = costValue
                                 .replace(",", ".")
                                 .replace("""^\.""".toRegex(), "0.")
                                 .replace("""\.$""".toRegex(), ".00")
-                            costValue = TextFieldValue(tempCostValue)
                         }
                     }
                     .testTag("addCost"),
@@ -315,8 +348,12 @@ fun AddSpendingScreen(
                 singleLine = true,
                 trailingIcon = {
                     Text(
-                        text = BackendService(preferences).getGroupById(if (groupId == 0L) preferences.groupId else groupId)
-                            .getCurrency()
+                        // if group expense and list of groups is loaded (or not empty), get currency from there
+                        text = if (isGroupExpense && groupList.size > groupIndex) {
+                            groupList[groupIndex].currency
+                        } else { //otherwise get personal currency (if loaded, or empty)
+                            personalGroup?.currency ?: ""
+                        }
                     )
                 }
             )
@@ -329,20 +366,16 @@ fun AddSpendingScreen(
                 DatePickerField(
                     date,
                     modifier = Modifier
-                        .width(180.dp)
+                        .width(180.dp),
+                    onChange = {
+                        date = it
+                    }
                 )
+                //TODO: wrap checkbox and text into row and make it clickable to select
                 Checkbox(
                     checked = isGroupExpense,
                     onCheckedChange = {
                         isGroupExpense = it
-                        if (isGroupExpense) {
-                            groupId = groupIdLast
-                        } else {
-                            groupIdLast = groupId
-                            groupId = 0L
-                        }
-                        groupList = BackendService(preferences).getGroups()
-                            .filter { group -> group.getId() != preferences.groupId }
                     },
                     modifier = Modifier
                         .align(Alignment.CenterVertically)
@@ -355,15 +388,6 @@ fun AddSpendingScreen(
                         .fillMaxWidth()
                         .clickable {
                             isGroupExpense = !isGroupExpense
-                            groupList = BackendService(preferences)
-                                .getGroups()
-                                .filter { group -> group.getId() != preferences.groupId }
-                            if (isGroupExpense) {
-                                groupId = groupIdLast
-                            } else {
-                                groupIdLast = groupId
-                                groupId = 0L
-                            }
                         }
                 )
             }
@@ -382,42 +406,36 @@ fun AddSpendingScreen(
                 ) {
                     // Group selection
                     GroupSelection(
-                        preferences,
-                        groupName,
+                        if (groupList.size > groupIndex) groupList[groupIndex] else null,
                         Modifier
                             .fillMaxWidth()
                             .padding(vertical = 10.dp),
                         Modifier
                             .fillMaxWidth(),
-                        onSwitch = {
-                            groupId = it
-                            val group = BackendService(preferences).getGroupById(groupId)
-                            groupName = group.getName()
-                            membersSelection.clear()
-                            group.getUsers().forEach { member ->
-                                membersSelection[member] = Pair(false, 1)
+                        onSwitch = { newGroupId ->
+                            // find group with selected id
+                            for ((index, group) in groupList.withIndex()) {
+                                if (group.id == newGroupId) {
+                                    groupIndex = index
+                                    break
+                                }
                             }
-                            payer.value = ApplicationUser()
                         }
                     )
                     // Payer field
                     GroupMemberSelection(
-                        preferences = preferences,
-                        memberSet =
-                            if (groupId != 0L)
-                                BackendService(preferences).getGroupById(groupId).getUsers()
-                            else
-                                setOf(),
-                        memberName = payer.value.getUsername(),
+                        members = membersSelection,
+                        payer = payer,
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(vertical = 10.dp),
                         innerModifier = Modifier
                             .fillMaxWidth(),
                         onSwitch = {
-                            payer.value = it
+                            payerId = it
                         }
                     )
+                    // deptors choosing
                     Column(
                         modifier = Modifier
                             .heightIn(100.dp, 175.dp)
@@ -425,80 +443,74 @@ fun AddSpendingScreen(
                             .padding(bottom = 65.dp)
                     )
                     {
-                        membersSelection.keys.toList().forEach { member ->
-                            membersSelection[member]?.let {
-                                Box(
+                        for (member in membersSelection) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(50.dp)
+                            ) {
+                                Row(
                                     modifier = Modifier
-                                        .fillMaxWidth()
-                                        .height(50.dp)
+                                        .align(Alignment.CenterStart)
+                                        .width(275.dp)
                                 ) {
-                                    Row(
+                                    Checkbox(
+                                        checked = member.selected,
+                                        onCheckedChange = { newValue ->
+                                            updateSelection(member.userId, newValue)
+                                        },
                                         modifier = Modifier
-                                            .align(Alignment.CenterStart)
-                                            .width(275.dp)
-                                    ) {
-                                        Checkbox(
-                                            checked = it.first,
-                                            onCheckedChange = { newValue ->
-                                                membersSelection[member] =
-                                                    Pair(newValue, it.second)
-                                            },
-                                            modifier = Modifier
-                                                .align(Alignment.CenterVertically)
-                                        )
-                                        Text(
-                                            text = member.getUsername(),
-                                            modifier = Modifier
-                                                .width(200.dp)
-                                                .clickable {
-                                                    membersSelection[member] =
-                                                        Pair(
-                                                            !membersSelection[member]!!.first,
-                                                            membersSelection[member]!!.second
-                                                        )
+                                            .align(Alignment.CenterVertically)
+                                    )
+                                    Text(
+                                        text = member.nickname,
+                                        modifier = Modifier
+                                            .width(200.dp)
+                                            .clickable {
+                                                updateSelection(member.userId, !member.selected)
+                                            }
+                                            .align(Alignment.CenterVertically),
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
+                                Row(
+                                    modifier = Modifier
+                                        .align(Alignment.CenterEnd)
+                                ) {
+                                    if (member.selected) {
+                                        TextField(
+                                            value = if (member.multiplier != 0)
+                                                member.multiplier.toString()
+                                            else
+                                                "",
+                                            onValueChange = { newValue: String ->
+                                                if (positiveIntegerRegex().matches(newValue)) {
+                                                    updateMultiplier(
+                                                        member.userId,
+                                                        newValue.toInt()
+                                                    )
+                                                    Log.d(
+                                                        "add",
+                                                        "mult1 $newValue ${member.multiplier}"
+                                                    )
+                                                } else if (newValue == "") {
+                                                    updateMultiplier(member.userId, 0)
+                                                    Log.d("add", "mult0 ${member.multiplier}")
                                                 }
+                                            },
+                                            keyboardOptions = KeyboardOptions(
+                                                keyboardType = KeyboardType.Number,
+                                                imeAction = ImeAction.Done
+                                            ),
+                                            modifier = Modifier
+                                                .width(50.dp)
                                                 .align(Alignment.CenterVertically),
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
+                                            colors = TextFieldDefaults.textFieldColors(
+                                                containerColor = Color.Transparent,
+                                            ),
+                                            maxLines = 1
                                         )
-                                    }
-                                    Row(
-                                        modifier = Modifier
-                                            .align(Alignment.CenterEnd)
-                                    ) {
-                                        if(membersSelection[member]!!.first) {
-                                            TextField(
-                                                value = if (membersSelection[member]!!.second != 0)
-                                                    membersSelection[member]!!.second.toString()
-                                                else
-                                                    "",
-                                                onValueChange = { newValue: String ->
-                                                    if (positiveIntegerRegex().matches(newValue)) {
-                                                        membersSelection[member] = Pair(
-                                                            membersSelection[member]!!.first,
-                                                            newValue.toInt()
-                                                        )
-                                                    }
-                                                    else if (newValue == "") {
-                                                        membersSelection[member] = Pair(
-                                                            membersSelection[member]!!.first,
-                                                            0
-                                                        )
-                                                    }
-                                                },
-                                                keyboardOptions = KeyboardOptions(
-                                                    keyboardType = KeyboardType.Number,
-                                                    imeAction = ImeAction.Done
-                                                ),
-                                                modifier = Modifier
-                                                    .width(50.dp)
-                                                    .align(Alignment.CenterVertically),
-                                                colors = TextFieldDefaults.textFieldColors(
-                                                    containerColor = Color.Transparent,
-                                                ),
-                                                singleLine = true
-                                            )
-                                        }
                                     }
                                 }
                             }
@@ -506,90 +518,6 @@ fun AddSpendingScreen(
                     }
                 }
             }
-        }
-    }
-}
-
-fun getToday(): String {
-    return LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
-}
-
-fun compressImage(originalImage: Bitmap?): ByteArrayOutputStream? {
-    if (originalImage == null) {
-        return null
-    }
-    val outputStream = ByteArrayOutputStream()
-    originalImage.compress(Bitmap.CompressFormat.JPEG, 50, outputStream)
-    return outputStream
-}
-
-fun addExpense(
-    isGroupExpense: Boolean,
-    membersSelection: SnapshotStateMap<ApplicationUser, Pair<Boolean, Int>>,
-    preferences: PreferencesData,
-    groupId: Long,
-    payer: Long,
-    costValue: TextFieldValue,
-    date: MutableState<String>,
-    selectedCategory: TextFieldValue,
-    spendingName: TextFieldValue,
-    callerPhoto: ByteArrayOutputStream?
-) {
-    if (isGroupExpense) {
-        val activeMembers =
-            membersSelection.filterValues { flag -> flag.first }
-        val resultExpense = BackendService(preferences).addExpense(
-            Expense(
-                costValue.text.toDouble(),
-                date.value.ifBlank { getToday() },
-                selectedCategory.text,
-                spendingName.text
-            ),
-            groupId,
-            payer
-        )
-        for (member in activeMembers) {
-            BackendService(preferences).addExpense(
-                Expense(
-                    costValue.text.toDouble() / activeMembers.size * -1,
-                    date.value.ifBlank { getToday() },
-                    selectedCategory.text,
-                    spendingName.text,
-                    resultExpense.getGlobalId()
-                ),
-                groupId,
-                member.key.getId()
-            )
-            if (callerPhoto != null) {
-                val b = callerPhoto.toByteArray()
-                val base64String: String = Base64.encodeToString(
-                    b,
-                    Base64.DEFAULT
-                )
-
-                BackendService(preferences).addExpenseImage(
-                    base64String,
-                    resultExpense.getGlobalId()
-                )
-            }
-        }
-    } else {
-        val resultExpense = BackendService(preferences).addExpense(
-            Expense(
-                costValue.text.toDouble(),
-                date.value.ifBlank { getToday() },
-                selectedCategory.text,
-                spendingName.text
-            ),
-            preferences.groupId
-        )
-        if (callerPhoto != null) {
-            val b = callerPhoto.toByteArray()
-            val base64String: String = Base64.encodeToString(
-                b,
-                Base64.DEFAULT
-            )
-            BackendService(preferences).addExpenseImage(base64String, resultExpense.getGlobalId())
         }
     }
 }

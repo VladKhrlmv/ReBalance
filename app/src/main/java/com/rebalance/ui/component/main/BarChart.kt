@@ -31,7 +31,7 @@ import com.github.mikephil.charting.utils.MPPointF
 import com.github.mikephil.charting.utils.Transformer
 import com.github.mikephil.charting.utils.Utils
 import com.github.mikephil.charting.utils.ViewPortHandler
-import com.rebalance.backend.service.BarChartData
+import com.rebalance.backend.dto.BarChartItem
 import com.rebalance.ui.theme.crimsonColor
 import com.rebalance.ui.theme.forestGreenColor
 import java.text.DecimalFormat
@@ -39,7 +39,7 @@ import java.text.DecimalFormat
 
 @Composable
 fun BarChart(
-    data: List<BarChartData>
+    data: List<BarChartItem>
 ) {
     Column(
         modifier = Modifier
@@ -93,43 +93,43 @@ fun BarChart(
                     .padding(5.dp)
                     .testTag("groupBarChart"),
                 update = {
-                    updateBarChartWithData(it, barChartData, onBackground)
+//                    updateBarChartWithData(it, barChartData, onBackground)
                 }
             )
         }
     }
 }
 
-fun updateBarChartWithData(
-    chart: HorizontalBarChart,
-    data: List<BarChartData>,
-    textColor: Int
-) {
-    val entries = ArrayList<BarEntry>()
-    for (i in data.indices) {
-        val item = data[i]
-        entries.add(BarEntry(i.toFloat(), item.data.second.toFloat()))
-    }
-    val ds = BarDataSet(entries, "")
-    ds.colors = data.map { if (it.data.second >= 0) forestGreenColor.toArgb() else crimsonColor.toArgb() }
-    ds.valueTextColor = textColor
-    ds.valueFormatter = object : ValueFormatter() {
-        val format = DecimalFormat("###,###,###.##")
-        override fun getFormattedValue(value: Float): String {
-            return format.format(value)
-        }
-    }
-    ds.valueTextSize = 16f
-    ds.valueTypeface = Typeface.DEFAULT_BOLD
-    val d = BarData(ds)
-    chart.data = d
-    chart.xAxis.valueFormatter = object : ValueFormatter() {
-        override fun getFormattedValue(value: Float): String {
-            return data[value.toInt()].data.first
-        }
-    }
-    chart.invalidate()
-}
+//fun updateBarChartWithData(
+//    chart: HorizontalBarChart,
+//    data: List<BarChartData>,
+//    textColor: Int
+//) {
+//    val entries = ArrayList<BarEntry>()
+//    for (i in data.indices) {
+//        val item = data[i]
+//        entries.add(BarEntry(i.toFloat(), item.data.second.toFloat()))
+//    }
+//    val ds = BarDataSet(entries, "")
+//    ds.colors = data.map { if (it.data.second >= 0) forestGreenColor.toArgb() else crimsonColor.toArgb() }
+//    ds.valueTextColor = textColor
+//    ds.valueFormatter = object : ValueFormatter() {
+//        val format = DecimalFormat("###,###,###.##")
+//        override fun getFormattedValue(value: Float): String {
+//            return format.format(value)
+//        }
+//    }
+//    ds.valueTextSize = 16f
+//    ds.valueTypeface = Typeface.DEFAULT_BOLD
+//    val d = BarData(ds)
+//    chart.data = d
+//    chart.xAxis.valueFormatter = object : ValueFormatter() {
+//        override fun getFormattedValue(value: Float): String {
+//            return data[value.toInt()].data.first
+//        }
+//    }
+//    chart.invalidate()
+//}
 
 class CustomBarChartRenderer(
     chart: BarDataProvider,
