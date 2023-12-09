@@ -1,10 +1,7 @@
 package com.rebalance.backend.api
 
 import com.google.gson.Gson
-import com.rebalance.backend.api.dto.response.ApiGroupResponse
-import com.rebalance.backend.api.dto.response.ApiLoginResponse
-import com.rebalance.backend.api.dto.response.ApiRegisterResponse
-import com.rebalance.backend.api.dto.response.ApiUserResponse
+import com.rebalance.backend.api.dto.response.*
 
 class RequestParser {
     companion object {
@@ -22,6 +19,10 @@ class RequestParser {
 
         fun responseToGroup(jsonBody: String): ApiGroupResponse {
             return Gson().fromJson(jsonBody, ApiGroupResponse::class.java)
+        }
+
+        fun responseToUserGroup(jsonBody: String): ApiUserGroupResponse {
+            return Gson().fromJson(jsonBody, ApiUserGroupResponse::class.java)
         }
     }
 }

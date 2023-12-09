@@ -9,6 +9,7 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import com.rebalance.backend.api.RequestParser
 import com.rebalance.backend.api.RequestSender
+import com.rebalance.backend.api.dto.request.ApiGroupAddUserRequest
 import com.rebalance.backend.api.dto.request.ApiGroupCreateRequest
 import com.rebalance.backend.api.dto.request.ApiLoginRequest
 import com.rebalance.backend.api.dto.request.ApiRegisterRequest
@@ -392,6 +393,7 @@ class BackendService {
             }
             return@async sums
         }.await()
+        //TODO: convert dates to current timezone
     }
 
     /** Deletes personal expense from localdb and server, returns result of an operation **/
@@ -500,6 +502,7 @@ class BackendService {
             }
             return@async expenses
         }.await()
+        //TODO: convert dates to current timezone
     }
 
     suspend fun getGroupExpenseDeptors(expenseId: Long): List<GroupExpenseItemUser> {
@@ -529,6 +532,50 @@ class BackendService {
             404 -> DeleteResult.NotFound
             409 -> DeleteResult.IncorrectId
             else -> DeleteResult.ServerError
+        }
+    }
+
+    suspend fun addUserToGroup(groupId: Long, email: String): AddUserToGroupResult {
+        val request = ApiGroupAddUserRequest(groupId, email)
+        val (responseCode, responseBody) = requestSender.sendPost("/group/users", request.toJson())
+        return when (responseCode) {
+            200 -> {
+                val response = RequestParser.responseToUserGroup(responseBody)
+                val (responseUserCode, responseUserBody) = requestSender.sendGet("/user/email/$email")
+                val userResponse = RequestParser.responseToUser(responseUserBody)
+                if (responseUserCode == 200) {
+                    // if successful adding user to group and getting user, add UserGroup and User to db
+                    mainScope.async {
+                        withContext(Dispatchers.IO) {
+                            db.userDao().save(
+                                User(
+                                    userResponse.id,
+                                    userResponse.nickname,
+                                    userResponse.email
+                                )
+                            )
+                        }
+                        withContext(Dispatchers.IO) {
+                            db.userGroupDao().saveUserGroup(
+                                UserGroup(
+                                    0L,
+                                    response.favorite,
+                                    BigDecimal.ZERO,
+                                    response.userId,
+                                    response.groupId
+                                )
+                            )
+                        }
+                        return@async
+                    }.await()
+                } else {
+                    AddUserToGroupResult.CannotSaveUser
+                }
+                AddUserToGroupResult.Added
+            }
+            404 -> AddUserToGroupResult.UserNotFound
+            409 -> AddUserToGroupResult.UserInGroup
+            else -> AddUserToGroupResult.ServerError
         }
     }
     //endregion
@@ -630,7 +677,28 @@ class BackendService {
             return@async
         }.await()
     }
-}
+
+//    //region Group screen
+//    fun addUserToGroup(userId: Long, groupId: Long) {
+//        setPolicy()
+//        RequestSender.sendPost(
+//            "http://${settings.server_ip}/users/${userId}/groups",
+//            "{\"id\": ${groupId}}"
+//        )
+//    }
+//    //endregion
+//
+//    //region Notifications
+//    fun getNotifications(): List<Notification> {
+//        setPolicy()
+//        val responseJson = RequestSender.sendGet(
+//            "http://${settings.server_ip}/users/${
+//                settings.user_id
+//            }/notifications"
+//        )
+//        return jsonArrayToNotification(responseJson)
+//    }
+//    //endregion
 //endregion
 
     //region images
