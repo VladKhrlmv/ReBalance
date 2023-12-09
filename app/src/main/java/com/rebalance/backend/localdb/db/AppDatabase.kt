@@ -12,13 +12,14 @@ import com.rebalance.backend.localdb.entities.*
 
 @TypeConverters(LocalDateTimeConverter::class, BigDecimalConverter::class)
 @Database(
-    entities = [User::class, Group::class, UserGroup::class, Expense::class, ExpenseUser::class, Settings::class],
+    entities = [User::class, Group::class, UserGroup::class, Expense::class, ExpenseUser::class, Settings::class, Image::class],
     version = 1
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun expenseDao(): ExpenseDao
     abstract fun expenseUserDao(): ExpenseUserDao
     abstract fun groupDao(): GroupDao
+    abstract fun imageDao(): ImageDao
     abstract fun settingsDao(): SettingsDao
     abstract fun userDao(): UserDao
     abstract fun userGroupDao(): UserGroupDao
