@@ -28,7 +28,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.rebalance.backend.dto.AddSpendingResult
 import com.rebalance.backend.dto.NewGroupSpending
 import com.rebalance.backend.dto.NewPersonalSpending
 import com.rebalance.backend.dto.SpendingDeptor
@@ -106,9 +105,6 @@ fun AddSpendingScreen(
             }
         }
 
-    var addSpendingResult by remember { mutableStateOf(AddSpendingResult.Placeholder) }
-    var addImageResult by remember { mutableStateOf(AddSpendingResult.Placeholder) }
-
     // on start fetch personal group and group list
     LaunchedEffect(Unit) {
         personalGroup = backendService.getGroupById(backendService.getGroupId())
@@ -148,7 +144,11 @@ fun AddSpendingScreen(
                     date
                 )
                 addSpendingScreenScope.launch {
-                    backendService.addNewPersonalExpense(newPersonalSpending, selectedPhoto, photoName)
+                    backendService.addNewPersonalExpense(
+                        newPersonalSpending,
+                        selectedPhoto,
+                        photoName
+                    )
                 }
             }
             //TODO: close add spending screen after adding
