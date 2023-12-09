@@ -50,7 +50,7 @@ class GuidedTour(
     val navHostController: NavHostController
 ) {
     val preferences = Preferences(context).read()
-    var isActive by mutableStateOf(/*preferences.firstLaunch*/true)
+    var isActive by mutableStateOf(preferences.firstLaunch)
     var currentStepIndex by mutableStateOf(0)
     val currentStep get() = if (isActive) tourSteps.getOrNull(currentStepIndex) else null
 
