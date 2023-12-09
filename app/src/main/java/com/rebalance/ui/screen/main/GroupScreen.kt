@@ -41,11 +41,11 @@ fun GroupScreen(
     var selectedTabIndex by rememberSaveable { mutableStateOf(0) }
 
     var groupId by rememberSaveable { mutableStateOf(-1L) }
-    var group by rememberSaveable { mutableStateOf<Group?>(null) }
+    var group by remember { mutableStateOf<Group?>(null) }
 
-    var barChartData by rememberSaveable { mutableStateOf(listOf<BarChartItem>()) }
+    var barChartData by remember { mutableStateOf(listOf<BarChartItem>()) }
 
-    var deleteResult by rememberSaveable { mutableStateOf(DeleteResult.Placeholder) }
+    var deleteResult by remember { mutableStateOf(DeleteResult.Placeholder) }
 
     LaunchedEffect(Unit) {
         setOnPlusClick {
