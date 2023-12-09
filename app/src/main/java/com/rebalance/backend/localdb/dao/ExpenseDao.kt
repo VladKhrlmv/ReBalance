@@ -1,6 +1,7 @@
 package com.rebalance.backend.localdb.dao
 
 import androidx.room.Dao
+import androidx.room.Insert
 import androidx.room.Query
 import com.rebalance.backend.dto.GroupExpenseItem
 import com.rebalance.backend.dto.SumByCategoryItem
@@ -62,4 +63,7 @@ interface ExpenseDao {
                 "LIMIT 20 OFFSET :offset"
     )
     suspend fun getGroupExpenses(groupId: Long, offset: Int): List<GroupExpenseItem>
+
+    @Insert
+    suspend fun saveExpense(expense: Expense): Long
 }

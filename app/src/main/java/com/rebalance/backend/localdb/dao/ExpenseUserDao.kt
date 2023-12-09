@@ -1,8 +1,10 @@
 package com.rebalance.backend.localdb.dao
 
 import androidx.room.Dao
+import androidx.room.Insert
 import androidx.room.Query
 import com.rebalance.backend.dto.GroupExpenseItemUser
+import com.rebalance.backend.localdb.entities.ExpenseUser
 
 @Dao
 interface ExpenseUserDao {
@@ -13,4 +15,7 @@ interface ExpenseUserDao {
                 "WHERE eu.expense_id = :expenseId"
     )
     suspend fun getGroupExpenseDeptors(expenseId: Long): List<GroupExpenseItemUser>
+
+    @Insert
+    suspend fun saveExpenseUser(expenseUser: ExpenseUser)
 }
