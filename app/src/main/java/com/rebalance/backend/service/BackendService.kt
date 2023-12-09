@@ -633,9 +633,54 @@ class BackendService {
 }
 //endregion
 
-//region Group screen
-data class BarChartData(
-    var id: Long,
-    var data: Pair<String, Double>
-)
-//endregion
+    //region images
+    suspend fun getImageByExpenseId(expenseId: Long): ImageBitmap? {
+        return mainScope.async {
+            // get image from db
+            val image: Image?
+            withContext(Dispatchers.IO) {
+                image = db.imageDao().getByExpenseId(expenseId)
+            }
+            // return image if exists
+            if (image == null) {
+                return@async null
+            } else {
+                val imageData = Base64.decode(image.data, Base64.DEFAULT)
+                return@async BitmapFactory.decodeByteArray(
+                    imageData,
+                    0,
+                    imageData.size
+                ).asImageBitmap()
+            }
+        }.await()
+    }
+
+    private fun compressImage(image: ImageBitmap): String {
+        val maxWidth = 1920
+        val maxHeight = 1080
+
+        // Calculate the scaling factor
+        val scaleFactor = maxOf(
+            image.width.toFloat() / maxWidth,
+            image.height.toFloat() / maxHeight,
+            1f
+        )
+
+        // Scale the bitmap
+        val scaledBitmap = Bitmap.createScaledBitmap(
+            image.asAndroidBitmap(),
+            (image.width / scaleFactor).toInt(),
+            (image.height / scaleFactor).toInt(),
+            true
+        )
+
+        // Compress the bitmap to JPEG
+        val quality = 50
+        val outputStream = ByteArrayOutputStream()
+        scaledBitmap.compress(Bitmap.CompressFormat.JPEG, quality, outputStream)
+
+        // Convert to Base64
+        return Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
+    }
+    //endregion
+}
