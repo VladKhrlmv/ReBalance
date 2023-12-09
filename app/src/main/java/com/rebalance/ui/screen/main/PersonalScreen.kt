@@ -40,15 +40,15 @@ fun PersonalScreen(
     val scaleItems = rememberSaveable { backendService.getScaleItems() }
     var selectedScaleIndex by rememberSaveable { mutableStateOf(0) }
 
-    var tabItems by rememberSaveable { mutableStateOf(listOf<ScaledDateItem>()) }
+    var tabItems by remember { mutableStateOf(listOf<ScaledDateItem>()) }
     var selectedTabIndex by rememberSaveable { mutableStateOf(-1) }
 
     var openCategory = rememberSaveable { mutableStateOf("") }
     val expandableListState = rememberLazyListState()
 
-    var sumByCategories by rememberSaveable { mutableStateOf(listOf<SumByCategoryItem>()) }
+    var sumByCategories by remember { mutableStateOf(listOf<SumByCategoryItem>()) }
 
-    var deleteResult by rememberSaveable { mutableStateOf(DeleteResult.Placeholder) }
+    var deleteResult by remember { mutableStateOf(DeleteResult.Placeholder) }
 
     LaunchedEffect(Unit) {
         setOnPlusClick {
