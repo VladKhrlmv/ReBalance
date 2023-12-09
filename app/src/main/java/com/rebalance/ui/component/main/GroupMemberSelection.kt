@@ -5,19 +5,18 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import com.rebalance.backend.api.entities.ApplicationUser
-import com.rebalance.backend.service.BackendService
+import com.rebalance.backend.dto.SpendingDeptor
+import com.rebalance.backend.localdb.entities.User
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroupMemberSelection(
-    backendService: BackendService,
-    memberSet: Set<ApplicationUser>,
-    memberName: String,
+    members: List<SpendingDeptor>,
+    payer: User?,
     modifier: Modifier = Modifier,
     innerModifier: Modifier = Modifier,
-    onSwitch: (ApplicationUser) -> Unit
+    onSwitch: (Long) -> Unit
 ) {
     var expandedDropdownMembers by remember { mutableStateOf(false) }
 
@@ -29,7 +28,7 @@ fun GroupMemberSelection(
         modifier = modifier
     ) {
         TextField(
-            value = memberName,
+            value = payer?.nickname ?: "",
             onValueChange = { },
             readOnly = true,
             label = {
@@ -52,11 +51,11 @@ fun GroupMemberSelection(
             modifier = Modifier
                 .fillMaxWidth()
         ) {
-            memberSet.forEach { member ->
+            members.forEach { member ->
                 DropdownMenuItem(
-                    text = { Text(member.getUsername()) },
+                    text = { Text(member.nickname) },
                     onClick = {
-                        onSwitch(member)
+                        onSwitch(member.userId)
                         expandedDropdownMembers = false
                     },
                     modifier = innerModifier
