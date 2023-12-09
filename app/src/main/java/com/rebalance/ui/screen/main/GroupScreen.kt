@@ -5,6 +5,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -22,6 +25,7 @@ import com.rebalance.ui.component.main.BarChart
 import com.rebalance.ui.component.main.GroupContextMenu
 import com.rebalance.ui.component.main.GroupSelection
 import com.rebalance.ui.component.main.GroupSpendingList
+import com.rebalance.ui.component.main.*
 import com.rebalance.ui.navigation.Routes
 import com.rebalance.ui.navigation.navigateSingleTo
 import com.rebalance.util.alertUser
@@ -210,4 +214,26 @@ private fun DisplayGroupSelection(
             )
         }
     }
+}
+
+@Composable
+private fun DisplayVisual(
+    preferences: PreferencesData,
+    groupId: Long,
+) {
+    val data = BackendService(preferences).getGroupVisualBarChart(groupId)
+    Column(
+        modifier = Modifier.verticalScroll(rememberScrollState())
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentHeight(),
+            contentAlignment = Center
+        ) {
+            BarChart(data)
+        }
+        ExpenseDistribution(preferences, groupId)
+    }
+
 }
