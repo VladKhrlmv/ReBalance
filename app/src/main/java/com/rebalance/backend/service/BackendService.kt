@@ -1,7 +1,12 @@
 package com.rebalance.backend.service
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.util.Base64
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import com.rebalance.backend.api.RequestParser
 import com.rebalance.backend.api.RequestSender
 import com.rebalance.backend.api.dto.request.ApiGroupCreateRequest
@@ -11,10 +16,12 @@ import com.rebalance.backend.dto.*
 import com.rebalance.backend.localdb.db.AppDatabase
 import com.rebalance.backend.localdb.entities.*
 import kotlinx.coroutines.*
+import java.io.ByteArrayOutputStream
 import java.math.BigDecimal
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 class BackendService {
@@ -525,53 +532,103 @@ class BackendService {
         }
     }
     //endregion
-}
 
-//region Personal screen
-/** Item used for changing scales on personal screen (vertical navigation) **/
-data class ScaleItem(
-    val type: String,
-    val name: String
-)
-
-/** Item used for selecting scaled date on personal screen (horizontal navigation) **/
-@Parcelize
-data class ScaledDateItem(
-    var name: String,
-    var dateFrom: LocalDate,
-    var dateTo: LocalDate
-) : Parcelable
-
-@Parcelize
-data class ExpenseItem(
-    var text: String,
-    var amount: Double,
-    var expenses: ArrayList<Expense>
-) : Parcelable {
-    constructor(expense: Expense) : this(
-        expense.getCategory(),
-        expense.getAmount(),
-        arrayListOf(expense)
-    )
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (javaClass != other?.javaClass) return false
-
-        other as ExpenseItem
-
-        if (text != other.text) return false
-        if (amount != other.amount) return false
-        if (expenses != other.expenses) return false
-
-        return true
+    //region Add spending screen
+    suspend fun getUserById(userId: Long): User? {
+        return mainScope.async {
+            val user: User?
+            withContext(Dispatchers.IO) {
+                user = db.userDao().getUserById(userId)
+            }
+            return@async user
+        }.await()
     }
 
-    override fun hashCode(): Int {
-        var result = text.hashCode()
-        result = 31 * result + amount.hashCode()
-        result = 31 * result + expenses.hashCode()
-        return result
+    suspend fun getUsersOfGroup(groupId: Long): List<SpendingDeptor> {
+        return mainScope.async {
+            val users: List<SpendingDeptor>
+            withContext(Dispatchers.IO) {
+                users = db.userDao().getGroupUsers(groupId)
+            }
+            return@async users
+        }.await()
+    }
+
+    suspend fun addNewPersonalExpense(
+        expense: NewPersonalSpending,
+        image: ImageBitmap?,
+        imageName: String?
+    ) {
+        // save expense to db
+        mainScope.async {
+            val personalExpense = Expense(
+                0,
+                null,
+                true,
+                expense.amount,
+                expense.description,
+                LocalDateTime.ofInstant(expense.date.toInstant(), ZoneId.of("UTC")),
+                expense.category,
+                settings.user_id,
+                settings.user_id,
+                settings.group_ip
+            )
+            var expenseId: Long
+            withContext(Dispatchers.IO) {
+                expenseId = db.expenseDao().saveExpense(personalExpense)
+            }
+            // save image to db if exists
+            if (image != null) {
+                val img = Image(expenseId, true, imageName ?: "", compressImage(image))
+                db.imageDao().save(img)
+            }
+            return@async
+        }.await()
+    }
+
+    suspend fun addNewGroupExpense(
+        expense: NewGroupSpending,
+        image: ImageBitmap?,
+        imageName: String?
+    ) {
+        mainScope.async {
+            // save expense to db
+            val groupExpense = Expense(
+                0,
+                null,
+                true,
+                expense.amount,
+                expense.description,
+                LocalDateTime.ofInstant(expense.date.toInstant(), ZoneId.of("UTC")),
+                expense.category,
+                expense.initiatorUserId,
+                settings.user_id,
+                expense.groupId
+            )
+            var expenseId: Long
+            withContext(Dispatchers.IO) {
+                expenseId = db.expenseDao().saveExpense(groupExpense)
+            }
+            // save all participants
+            val users = expense.users.map { user ->
+                ExpenseUser(
+                    0L,
+                    expense.amount.divide(BigDecimal.valueOf(user.multiplier.toDouble())),
+                    user.multiplier,
+                    user.userId,
+                    expenseId
+                )
+            }
+            withContext(Dispatchers.IO) {
+                users.forEach { user -> db.expenseUserDao().saveExpenseUser(user) }
+            }
+            // save image to db if exists
+            if (image != null) {
+                val img = Image(expenseId, true, imageName ?: "", compressImage(image))
+                db.imageDao().save(img)
+            }
+            return@async
+        }.await()
     }
 }
 //endregion
