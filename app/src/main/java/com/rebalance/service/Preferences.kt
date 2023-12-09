@@ -1,4 +1,4 @@
-package com.rebalance
+package com.rebalance.service
 
 import android.content.Context
 import android.os.Parcelable

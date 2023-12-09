@@ -24,15 +24,15 @@ import com.github.mikephil.charting.data.PieEntry
 import com.github.mikephil.charting.formatter.ValueFormatter
 import com.github.mikephil.charting.highlight.Highlight
 import com.github.mikephil.charting.listener.OnChartValueSelectedListener
-import com.rebalance.backend.service.ExpenseItem
+import com.rebalance.backend.dto.SumByCategoryItem
 import com.rebalance.ui.theme.categoryColors
 import com.rebalance.ui.theme.darkBlueColor
-import kotlinx.coroutines.launch
+import java.math.BigDecimal
 import java.text.DecimalFormat
 
 @Composable
 fun PieChart(
-    data: List<ExpenseItem>,
+    data: List<SumByCategoryItem>,
     pieChartActive: MutableState<Boolean>,
     openCategory: MutableState<String>,
     expandableListState: LazyListState
@@ -64,18 +64,21 @@ fun PieChart(
                     this.holeRadius = 50f
                     this.setCenterTextColor(onBackground)
                     this.setCenterTextTypeface(Typeface.DEFAULT_BOLD)
-                    this.setOnChartValueSelectedListener(object: OnChartValueSelectedListener{
+                    this.setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
                         override fun onValueSelected(e: Entry, h: Highlight) {
-                            if (e is PieEntry) {
-                                pieChartActive.value = !pieChartActive.value
-                                openCategory.value = (e.data as ExpenseItem).text
-                                val indexOfItem = data.indexOfFirst {
-                                    it.text == openCategory.value
-                                }
-                                coroutineScope.launch {
-                                    expandableListState.scrollToItem(index = indexOfItem, scrollOffset = 3)
-                                }
-                            }
+//                            if (e is PieEntry) {
+//                                pieChartActive.value = !pieChartActive.value
+//                                openCategory.value = (e.data as ExpenseItem).text
+//                                val indexOfItem = data.indexOfFirst {
+//                                    it.text == openCategory.value
+//                                }
+//                                coroutineScope.launch {
+//                                    expandableListState.scrollToItem(
+//                                        index = indexOfItem,
+//                                        scrollOffset = 3
+//                                    )
+//                                }
+//                            }
                         }
 
                         override fun onNothingSelected() {}
@@ -94,23 +97,26 @@ fun PieChart(
 
 fun updatePieChartWithData(
     chart: PieChart,
-    data: List<ExpenseItem>
+    data: List<SumByCategoryItem>
 ) {
     val entries = ArrayList<PieEntry>()
 
     val sum = data.sumOf { it.amount }
-    val overlapLimit = 5f
+    val overlapLimit = BigDecimal(5)
 
-    for (i in data.indices) {
-        val item = data[i]
-        entries.add(PieEntry(
-            (item.amount / sum * 100).toFloat(),
-            if (item.amount / sum * 100 >= overlapLimit)
-                item.text
-            else
-                "",
-            item
-        ))
+    data.forEach { item ->
+        entries.add(
+            PieEntry(
+                (item.amount.divide(sum).multiply(BigDecimal(100))).toFloat(),
+                if (item.amount.divide(sum).multiply(BigDecimal(100))
+                        .compareTo(overlapLimit) != -1
+                )
+                    item.category
+                else
+                    "",
+                item
+            )
+        )
     }
 
     val ds = PieDataSet(entries, "")
@@ -122,8 +128,9 @@ fun updatePieChartWithData(
         override fun getFormattedValue(value: Float): String {
             return format.format(value)
         }
+
         override fun getPieLabel(value: Float, pieEntry: PieEntry?): String {
-            return if (value < overlapLimit)
+            return if (value < overlapLimit.toFloat())
                 ""
             else
                 "${getFormattedValue(value)}%"
@@ -132,7 +139,10 @@ fun updatePieChartWithData(
     ds.sliceSpace = 2F
     ds.setValueTextColors(categoryColors.map { color ->
         fun isColorLight(color: Int): Boolean {
-            val darkness = 1 - (0.299 * Color.red(color) + 0.587 * Color.green(color) + 0.114 * Color.blue(color)) / 255
+            val darkness =
+                1 - (0.299 * Color.red(color) + 0.587 * Color.green(color) + 0.114 * Color.blue(
+                    color
+                )) / 255
             return darkness < 0.5
         }
 
@@ -155,7 +165,8 @@ fun updatePieChartWithData(
     ds.valueTypeface = Typeface.DEFAULT_BOLD
     val d = PieData(ds)
     chart.data = d
-    chart.centerText = String.format(if (sum >= 100000) "%,.0f" else "%,.2f", sum)
+    chart.centerText =
+        String.format(if (sum.compareTo(BigDecimal(100000)) != -1) "%,.0f" else "%,.2f", sum)
     chart.invalidate()
 }
 

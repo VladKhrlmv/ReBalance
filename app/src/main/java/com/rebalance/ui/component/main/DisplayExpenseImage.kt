@@ -2,7 +2,6 @@ package com.rebalance.ui.component.main
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -11,13 +10,13 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.unit.dp
-import com.rebalance.PreferencesData
 import com.rebalance.backend.service.BackendService
 import com.rebalance.util.alertUser
 import compose.icons.EvaIcons
@@ -26,29 +25,40 @@ import compose.icons.evaicons.fill.Image
 
 @Composable
 fun DisplayExpenseImage(
-    preferences: PreferencesData,
-    globalId: Long?,
-    showPicture: MutableState<Boolean>,
-    context: Context
+    expenseId: Long,
+    context: Context,
+    showPicture: Boolean,
+    onIconClick: (Boolean) -> Unit
 ) {
-    val iconBase64 = BackendService(preferences).getExpenseIcon(globalId)
-    if (iconBase64 != null) {
-        if (showPicture.value) {
-            val imageBase64 = BackendService(preferences).getExpensePicture(globalId)
+    val backendService = remember { BackendService.get() }
+
+    //TODO: save Image and show original name
+    var icon by remember { mutableStateOf<ImageBitmap?>(null) }
+    var image by remember { mutableStateOf<ImageBitmap?>(null) }
+
+    LaunchedEffect(showPicture) {
+        if (showPicture) {
+            image = backendService.getImageByExpenseId(expenseId)
+            if (image != null) {
+                icon = Bitmap.createScaledBitmap(
+                    image!!.asAndroidBitmap(), 100, 100, false
+                ).asImageBitmap()
+            }
+        }
+    }
+
+    if (icon != null) {
+        if (showPicture && image != null) {
             AlertDialog(
-                onDismissRequest = { showPicture.value = false },
+                onDismissRequest = { onIconClick(false) },
                 title = {
                     Box(
                         modifier = Modifier.clickable(onClick = {
-                            showPicture.value = false
+                            onIconClick(false)
                         })
                     ) {
                         Image(
-                            bitmap = BitmapFactory.decodeByteArray(
-                                imageBase64,
-                                0,
-                                imageBase64!!.size
-                            ).asImageBitmap(),
+                            bitmap = image!!,
                             contentDescription = "Image",
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -68,16 +78,10 @@ fun DisplayExpenseImage(
             )
         }
         IconButton(onClick = {
-            showPicture.value = true
+            onIconClick(true)
         }) {
             Image(
-                bitmap = Bitmap.createScaledBitmap(
-                    BitmapFactory.decodeByteArray(
-                        iconBase64,
-                        0,
-                        iconBase64.size
-                    ), 100, 100, false
-                ).asImageBitmap(),
+                bitmap = icon!!,
                 contentDescription = "Expanse image as an icon"
             )
         }

@@ -15,18 +15,17 @@ import android.os.Looper
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import com.rebalance.Preferences
-import com.rebalance.PreferencesData
 import com.rebalance.R
 import com.rebalance.activity.LoadingActivity
 import com.rebalance.backend.service.BackendService
+import com.rebalance.service.Preferences
 import com.rebalance.util.alertUser
 
 class NotificationService(
     val context: Context,
-    private val preferencesData: PreferencesData = Preferences(context).read()
 ) {
     private var notificationId = 0
+    val backendService = BackendService.get()
     fun start() {
         createNotificationChannel()
 
@@ -36,25 +35,25 @@ class NotificationService(
         Thread {
             try {
                 while (true) {
-                    val notifications = BackendService(preferencesData).getNotifications()
-
-                    if (notifications.isNotEmpty()) {
-                        for (notification in notifications) {
-                            if (notification.getUserId().toString() == preferences.userId &&
-                                notification.getAmount() < 0 &&
-                                notification.getUserFromId().toString() != preferences.userId
-                            ) {
-                                Handler(mainLooper).post {
-                                    if (notification.getExpenseId() != -1L) {
-                                        sendNotification("Added new expense")
-                                    }
-                                    if (notification.getGroupId() != -1L) {
-                                        sendNotification("Added to new group")
-                                    }
-                                }
-                            }
-                        }
-                    }
+//                    val notifications = backendService.getNotifications()
+//
+//                    if (notifications.isNotEmpty()) {
+//                        for (notification in notifications) {
+//                            if (notification.getUserId().toString() == preferences.userId &&
+//                                notification.getAmount() < 0 &&
+//                                notification.getUserFromId().toString() != preferences.userId
+//                            ) {
+//                                Handler(mainLooper).post {
+//                                    if (notification.getExpenseId() != -1L) {
+//                                        sendNotification("Added new expense")
+//                                    }
+//                                    if (notification.getGroupId() != -1L) {
+//                                        sendNotification("Added to new group")
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
 
                     Thread.sleep(5_000)
                 }
@@ -119,7 +118,7 @@ class NotificationService(
         val pendingIntent: PendingIntent =
             PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
-        val builder = NotificationCompat.Builder(context, preferencesData.currNotificationChannel)
+        val builder = NotificationCompat.Builder(context, "systemChannel")
             .setSmallIcon(androidx.core.R.drawable.notification_template_icon_bg)
             .setContentTitle("ReBalance")
             .setContentText(textContent)

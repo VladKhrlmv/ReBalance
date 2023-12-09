@@ -4,7 +4,9 @@ import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
@@ -14,13 +16,15 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavHostController
-import com.rebalance.Preferences
-import com.rebalance.PreferencesData
-import com.rebalance.backend.entities.Expense
+import com.rebalance.backend.dto.BarChartItem
+import com.rebalance.backend.dto.DeleteResult
+import com.rebalance.backend.localdb.entities.Group
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.main.*
 import com.rebalance.ui.navigation.Routes
 import com.rebalance.ui.navigation.navigateSingleTo
+import com.rebalance.util.alertUser
+import kotlinx.coroutines.launch
 
 
 @Composable
@@ -29,18 +33,33 @@ fun GroupScreen(
     navHostController: NavHostController,
     setOnPlusClick: (() -> Unit) -> Unit
 ) {
-    val preferences = rememberSaveable { Preferences(context).read() }
-    // initialize tabs
+    val backendService = remember { BackendService.get() }
+    val groupScope = rememberCoroutineScope()
+
     val tabItems = listOf("Visual", "List")
-    var selectedTabIndex by rememberSaveable { mutableStateOf(0) } // selected index of tab
-    var groupId = rememberSaveable { mutableStateOf(-1L) }
+    var selectedTabIndex by rememberSaveable { mutableStateOf(0) }
+
+    var groupId by rememberSaveable { mutableStateOf(-1L) }
+    var group by remember { mutableStateOf<Group?>(null) }
+
+    var barChartData by remember { mutableStateOf(listOf<BarChartItem>()) }
+
+    var deleteResult by remember { mutableStateOf(DeleteResult.Placeholder) }
 
     LaunchedEffect(Unit) {
         setOnPlusClick {
             navigateSingleTo(navHostController, Routes.AddSpending)
         }
     }
-    println("Set for group")
+
+    LaunchedEffect(groupId) {
+        if (groupId != -1L) { // if group is selected
+            group = backendService.getGroupById(groupId)
+            if (selectedTabIndex == 0) { // if tab is visual
+                barChartData = backendService.getBarChartData(groupId)
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -52,31 +71,60 @@ fun GroupScreen(
         }
 
         // selection of groups
-        DisplayGroupSelection(context, preferences, navHostController, groupId.value) { newGroupId ->
-            groupId.value = newGroupId
-        }
+        DisplayGroupSelection(
+            context,
+            backendService,
+            navHostController,
+            group,
+            onSwitch = { newGroupId ->
+                groupId = newGroupId
+            }
+        )
 
-        // content
         if (selectedTabIndex == 0) { // if visual tab
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
             ) {
-                // show bar chart
-                DisplayVisual(preferences, groupId.value)
+                BarChart(barChartData)
+                ExpenseDistribution(group, barChartData)
             }
         } else { // if list tab
-            // show list
-            DisplayGroupList(
-                BackendService(preferences).getGroupList(groupId.value),
-                preferences,
-                groupId.value,
-                context,
-                refreshAndOpenGroup = { newGroupId ->
-                    groupId.value = -1L
-                    groupId.value = newGroupId
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .testTag("groupList"),
+                contentAlignment = Center
+            ) {
+                if (groupId != -1L && group != null) {
+                    GroupSpendingList(
+                        group!!,
+                        context,
+                        onDelete = {
+                            groupScope.launch {
+                                deleteResult = backendService.deleteGroupExpenseById(groupId)
+                            }
+                        }
+                    )
                 }
-            )
+            }
+        }
+
+        when (deleteResult) {
+            DeleteResult.Placeholder -> {}
+            DeleteResult.Deleted -> {
+                alertUser("Deleted", context)
+                deleteResult = DeleteResult.Placeholder
+            }
+            DeleteResult.NotFound -> {
+                alertUser("Not found expense, please try again", context)
+                deleteResult = DeleteResult.Placeholder
+            }
+            else -> {
+                alertUser("unexpected error occurred", context)
+                deleteResult = DeleteResult.Placeholder
+            }
         }
     }
 }
@@ -106,12 +154,12 @@ private fun DisplayTabs(
 @Composable
 private fun DisplayGroupSelection(
     context: Context,
-    preferences: PreferencesData,
+    backendService: BackendService,
     navHostController: NavHostController,
-    groupId: Long,
+    group: Group?,
     onSwitch: (Long) -> Unit
 ) {
-    var showAddGroupDialog = remember { mutableStateOf(false) }
+    var showAddGroupDialog by remember { mutableStateOf(false) }
 
     Row(
         modifier = Modifier
@@ -121,8 +169,7 @@ private fun DisplayGroupSelection(
     ) {
         // show group selection to fill remaining space after button
         GroupSelection(
-            preferences,
-            if (groupId == -1L) "" else BackendService(preferences).getGroupById(groupId).getName(),
+            group,
             Modifier
                 .padding(start = 10.dp)
                 .weight(1f)
@@ -132,71 +179,29 @@ private fun DisplayGroupSelection(
             onSwitch
         )
 
-        GroupContextMenu(navHostController, showAddGroupDialog, groupId)
+        GroupContextMenu(navHostController, group?.id ?: -1L, onCreateGroupClick = {
+            showAddGroupDialog = true
+        })
     }
 
     // if button create group pressed, show dialog
-    if (showAddGroupDialog.value) {
+    if (showAddGroupDialog) {
         Dialog(
             onDismissRequest = {
-                showAddGroupDialog.value = false
+                showAddGroupDialog = false
             },
         ) {
             AddGroupScreen(
                 context,
-                onCancel = {
-                    showAddGroupDialog.value = false
+                backendService,
+                onClose = {
+                    showAddGroupDialog = false
                 },
                 onCreate = { groupId ->
+                    showAddGroupDialog = false
                     onSwitch(groupId)
                 }
             )
         }
-    }
-}
-
-@Composable
-private fun DisplayVisual(
-    preferences: PreferencesData,
-    groupId: Long,
-) {
-    val data = BackendService(preferences).getGroupVisualBarChart(groupId)
-    Column(
-        modifier = Modifier.verticalScroll(rememberScrollState())
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .wrapContentHeight(),
-            contentAlignment = Center
-        ) {
-            BarChart(data)
-        }
-        ExpenseDistribution(preferences, groupId)
-    }
-
-}
-
-@Composable
-private fun DisplayGroupList(
-    data: List<Expense>,
-    preferences: PreferencesData,
-    groupId: Long,
-    context: Context,
-    refreshAndOpenGroup: (Long) -> Unit
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .testTag("groupList"),
-        contentAlignment = Center
-    ) {
-        GroupSpendingList(
-            data,
-            preferences,
-            groupId,
-            context,
-            refreshAndOpenGroup
-        )
     }
 }

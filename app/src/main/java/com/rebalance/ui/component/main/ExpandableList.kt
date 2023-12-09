@@ -9,23 +9,18 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rebalance.PreferencesData
+import com.rebalance.backend.dto.ScaledDateItem
+import com.rebalance.backend.dto.SumByCategoryItem
+import com.rebalance.backend.localdb.entities.Expense
 import com.rebalance.backend.service.BackendService
-import com.rebalance.backend.service.ExpenseItem
 import com.rebalance.util.alertUser
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
@@ -33,16 +28,29 @@ import compose.icons.evaicons.fill.Trash
 
 @Composable
 fun ExpandableList(
-    items: List<ExpenseItem>,
-    preferences: PreferencesData,
+    items: List<SumByCategoryItem>,
     context: Context,
     openCategory: MutableState<String>,
-    updateData: () -> Unit,
-    scrollState: LazyListState
+    scaledDateItem: ScaledDateItem,
+    scrollState: LazyListState,
+    deleteItem: (Long) -> Unit
 ) {
+    val backendService = remember { BackendService.get() }
+
+    val expenses = rememberSaveable { mutableMapOf<String, List<Expense>>() }
+    val expensesState = rememberSaveable { mutableMapOf<String, Boolean>() }
+
+    LaunchedEffect(expensesState.values) {
+        for (state in expensesState) {
+            if (state.value && expenses[state.key] == null) { // if expanded category, load list of expenses
+                expenses[state.key] = backendService.getExpensesByCategory(state.key, scaledDateItem)
+            }
+        }
+    }
+
     LazyColumn(state = scrollState) {
         items(items = items, itemContent = { item ->
-            val expanded = rememberSaveable { mutableStateOf(item.text == openCategory.value) }
+            expensesState[item.category] = item.category == openCategory.value
             Card(
                 modifier = Modifier
                     .padding(10.dp)
@@ -53,7 +61,7 @@ fun ExpandableList(
                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
             ) {
                 ListItem(
-                    headlineContent = { Text(item.text) },
+                    headlineContent = { Text(item.category) },
                     leadingContent = {
                         //TODO: change to category icon
                     },
@@ -64,20 +72,20 @@ fun ExpandableList(
                                 fontSize = 14.sp,
                                 color = Color.hsl(358f, 0.63f, 0.49f)
                             )
-                            CardArrow(expanded.value)
+                            expensesState[item.category]?.let { CardArrow(it) }
                         }
                     },
                     modifier = Modifier
                         .clickable {
-                            expanded.value = !expanded.value
+                            expensesState[item.category] = !expensesState[item.category]!!
                         }
                 )
 
-                if (expanded.value) {
+                if (expenses[item.category] != null) {
                     Column {
-                        for ((index, expense) in item.expenses.withIndex()) {
+                        for (expense in expenses[item.category]!!) {
                             Divider()
-                            val showPicture = remember { mutableStateOf(false) }
+                            var showPicture by remember { mutableStateOf(false) }
                             ListItem(
                                 headlineContent = {
                                     Row(
@@ -86,26 +94,27 @@ fun ExpandableList(
                                         verticalAlignment = Alignment.Bottom
                                     ) {
 
-                                        val text = buildAnnotatedString {
-
-                                            append(
-                                                expense.getAmount().toInt().toString()
-                                            )
-
-                                            withStyle(
-                                                style = SpanStyle(
-                                                    fontSize = MaterialTheme.typography.bodySmall.fontSize,
-                                                    fontStyle = MaterialTheme.typography.bodySmall.fontStyle
-                                                )
-                                            ) {
-                                                append(
-                                                    "." + ((expense.getAmount() - expense.getAmount()
-                                                        .toInt()) * 100).toInt().toString() + " PLN"
-                                                )
-                                            }
-                                        }
-
-                                        Text(text)
+                                        //TODO: fix
+//                                        val text = buildAnnotatedString {
+//
+//                                            append(
+//                                                expense.amount.toInt().toString()
+//                                            )
+//
+//                                            withStyle(
+//                                                style = SpanStyle(
+//                                                    fontSize = MaterialTheme.typography.bodySmall.fontSize,
+//                                                    fontStyle = MaterialTheme.typography.bodySmall.fontStyle
+//                                                )
+//                                            ) {
+//                                                append(
+//                                                    "." + ((expense.getAmount() - expense.getAmount()
+//                                                        .toInt()) * 100).toInt().toString() + " PLN"
+//                                                )
+//                                            }
+//                                        }
+//
+//                                        Text(text)
                                     }
                                     Row(
                                         modifier = Modifier
@@ -113,20 +122,20 @@ fun ExpandableList(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            expense.getDateStamp(),
+                                            expense.date.toString(),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.outline,
                                             modifier = Modifier.padding(bottom = 5.dp, top = 2.dp)
                                         )
                                     }
                                 },
-                                supportingContent = { Text(expense.getDescription()) },
+                                supportingContent = { Text(expense.description) },
                                 leadingContent = {
                                     DisplayExpenseImage(
-                                        preferences,
-                                        expense.getGlobalId(),
+                                        expense.id,
+                                        context,
                                         showPicture,
-                                        context
+                                        onIconClick = { showPicture = it }
                                     )
                                 },
                                 trailingContent = {
@@ -145,13 +154,9 @@ fun ExpandableList(
                                             text = { Text("Are you sure you want to delete this expense?") },
                                             confirmButton = {
                                                 TextButton(onClick = {
-                                                    BackendService(preferences).deleteExpenseByGlobalId(
-                                                        expense.getGlobalId()
-                                                    )
+                                                    deleteItem(expense.id)
                                                     alertUser("Expense deleted!", context)
                                                     showDialog.value = false
-                                                    expanded.value = false
-                                                    updateData()
                                                 }) {
                                                     Text("Yes")
                                                 }

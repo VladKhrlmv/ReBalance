@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -15,13 +16,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
-import com.rebalance.Preferences
-import com.rebalance.PreferencesData
-import com.rebalance.backend.exceptions.ServerException
+import com.rebalance.backend.dto.AddUserToGroupResult
+import com.rebalance.backend.dto.SpendingDeptor
+import com.rebalance.backend.localdb.entities.Group
 import com.rebalance.backend.service.BackendService
 import com.rebalance.util.alertUser
 import com.rebalance.util.currencyRegex
@@ -37,14 +37,33 @@ fun GroupSettingsScreen(
     navHostController: NavHostController,
     groupId: Long,
 ) {
-    val preferences: PreferencesData = Preferences(context).read()
-    var group = BackendService(preferences).getGroupById(groupId)
-    var groupName by remember { mutableStateOf(group.getName()) }
-    var groupCurrency by remember { mutableStateOf(group.getCurrency()) }
-    var groupMembers by remember { mutableStateOf(group.getUsers().toList()) }
+    val backendService = remember { BackendService.get() }
+    val groupSettingsScreenScope = rememberCoroutineScope()
+
+    var group by remember { mutableStateOf<Group?>(null) }
+    var groupMembers by remember { mutableStateOf(listOf<SpendingDeptor>()) }
+
+    var groupName by remember { mutableStateOf("") }
+    var groupCurrency by remember { mutableStateOf("") }
+
     val scrollState = rememberScrollState()
-    val (showDialog, setShowDialog) = remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
+    var showDialog by remember { mutableStateOf(false) }
+
+    var addUserResult by remember { mutableStateOf(AddUserToGroupResult.Placeholder) }
+
+    fun updateGroupMembers() {
+        groupSettingsScreenScope.launch {
+            group = backendService.getGroupById(groupId)
+            groupMembers = backendService.getUsersOfGroup(groupId)
+            groupName = group?.name ?: ""
+            groupCurrency = group?.currency ?: ""
+        }
+    }
+
+    // fetch group and members
+    LaunchedEffect(Unit) {
+        updateGroupMembers()
+    }
 
     Column(
         modifier = Modifier
@@ -83,19 +102,38 @@ fun GroupSettingsScreen(
                 )
             }
             DisplayInviteFields(
-                preferences = preferences,
-                groupId = groupId,
-                onUserAdd = {
-                    group = BackendService(preferences).getGroupById(groupId)
-                    groupMembers = group.getUsers().toList()
+                onUserAdd = { email ->
+                    groupSettingsScreenScope.launch {
+                        addUserResult = backendService.addUserToGroup(groupId, email)
+                    }
                 }
             )
+            when (addUserResult) {
+                AddUserToGroupResult.Placeholder -> {}
+                AddUserToGroupResult.Added -> {
+                    alertUser("Added", context)
+                    addUserResult = AddUserToGroupResult.Placeholder
+                }
+                AddUserToGroupResult.UserNotFound -> {
+                    alertUser("User not found", context)
+                    addUserResult = AddUserToGroupResult.Placeholder
+                }
+                AddUserToGroupResult.UserInGroup -> {
+                    alertUser("User already in group", context)
+                    addUserResult = AddUserToGroupResult.Placeholder
+                }
+                else -> {
+                    alertUser("Please try again", context)
+                    addUserResult = AddUserToGroupResult.Placeholder
+                }
+            }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .padding(vertical = 10.dp)
             ) {
-                Text(text = "Members",
+                Text(
+                    text = "Members",
                     Modifier
                         .padding(horizontal = 10.dp),
                     fontSize = 30.sp
@@ -103,9 +141,10 @@ fun GroupSettingsScreen(
             }
             LazyColumn(
                 modifier = Modifier
-                    .height(350.dp)
+                    .height(350.dp),
+                state = rememberLazyListState()
             ) {
-                items(items = groupMembers) {
+                items(items = groupMembers, itemContent = { member ->
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -113,12 +152,15 @@ fun GroupSettingsScreen(
                             .fillMaxWidth()
                             .padding(vertical = 8.dp, horizontal = 10.dp)
                     ) {
-                        Text(text = it.getUsername())
+                        Text(text = member.nickname)
                         IconButton(onClick = { /* Handle member deletion */ }) {
-                            Icon(imageVector = EvaIcons.Fill.Trash, contentDescription = "Delete member")
+                            Icon(
+                                imageVector = EvaIcons.Fill.Trash,
+                                contentDescription = "Delete member"
+                            )
                         }
                     }
-                }
+                })
             }
         }
         Row(
@@ -127,22 +169,22 @@ fun GroupSettingsScreen(
                 .padding(horizontal = 10.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Button(onClick = { setShowDialog(true) }) {
+            Button(onClick = { showDialog = true }) {
                 Text("Delete Group")
             }
-            Button(onClick = { /* Handle group modification here */}) {
+            Button(onClick = { /* Handle group modification here */ }) {
                 Text("Save Changes")
             }
             if (showDialog) {
                 AlertDialog(
-                    onDismissRequest = { setShowDialog(false) },
+                    onDismissRequest = { showDialog = false },
                     title = { Text(text = "Are you sure you want to delete the group?") },
                     text = { Text("This action cannot be undone.") },
                     confirmButton = {
                         Button(
                             onClick = {
-                                setShowDialog(false)
-                                coroutineScope.launch {
+                                showDialog = false
+                                groupSettingsScreenScope.launch {
                                     // Handle the delete confirmation here
                                 }
                             }
@@ -151,7 +193,7 @@ fun GroupSettingsScreen(
                         }
                     },
                     dismissButton = {
-                        Button(onClick = { setShowDialog(false) }) {
+                        Button(onClick = { showDialog = false }) {
                             Text("No, return")
                         }
                     }
@@ -164,9 +206,7 @@ fun GroupSettingsScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DisplayInviteFields(
-    preferences: PreferencesData,
-    groupId: Long,
-    onUserAdd: () -> Unit
+    onUserAdd: (String) -> Unit
 ) {
     val context = LocalContext.current
     Row(
@@ -174,14 +214,14 @@ private fun DisplayInviteFields(
         modifier = Modifier
             .padding(vertical = 10.dp)
     ) {
-        var email by remember { mutableStateOf(TextFieldValue()) }
+        var email by remember { mutableStateOf("") }
 
         // show email input to fill remaining space after button
         TextField(
             value = email,
             onValueChange = { newEmail -> email = newEmail },
             label = { Text("Add Member") },
-            placeholder = { Text("user@example.com")},
+            placeholder = { Text("user@example.com") },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { /* Handle action */ }),
             modifier = Modifier.padding(end = 10.dp),
@@ -193,21 +233,11 @@ private fun DisplayInviteFields(
         // show button to add user to group
         Button(
             onClick = {
-                if (email.text == "") {
+                if (email.isEmpty()) { //TODO: add validation of email
                     alertUser("Please, provide the email", context)
                     return@Button
-                }
-                else {
-                    try {
-                        val user = BackendService(preferences).getUserByEmail(email.text)
-                        BackendService(preferences).addUserToGroup(user.getId(), groupId)
-                        alertUser("User in group!", context)
-                        email = TextFieldValue(text = "")
-                        onUserAdd()
-                    } catch (e: ServerException) {
-                        alertUser("User not found", context)
-                        return@Button
-                    }
+                } else {
+                    onUserAdd(email)
                 }
 
             }

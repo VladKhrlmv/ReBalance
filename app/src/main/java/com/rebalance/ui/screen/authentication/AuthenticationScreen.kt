@@ -13,7 +13,9 @@ import com.rebalance.ui.navigation.navigateSingleTo
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AuthenticationScreen(navHostController: NavHostController) {
+fun AuthenticationScreen(
+    navHostController: NavHostController
+) {
     var onPlusClick by remember {
         mutableStateOf({
             navigateSingleTo(navHostController, Routes.AddSpending)
@@ -31,8 +33,13 @@ fun AuthenticationScreen(navHostController: NavHostController) {
             Box(modifier = Modifier.padding(padding)) {
                 // initialize nav graph here so navigation will be inside scaffold
                 val navHost =
-                    initNavHost(LocalContext.current, navHostController, Routes.Authentication, pieChartActive) {
-                        newOnPlusClick -> onPlusClick = newOnPlusClick
+                    initNavHost(
+                        LocalContext.current,
+                        navHostController,
+                        Routes.Authentication,
+                        pieChartActive
+                    ) { newOnPlusClick ->
+                        onPlusClick = newOnPlusClick
                     }
             }
         }
