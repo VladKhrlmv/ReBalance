@@ -41,9 +41,9 @@ fun GroupScreen(
     val groupScope = rememberCoroutineScope()
 
     val tabItems = listOf("Visual", "List")
-    var selectedTabIndex by rememberSaveable { mutableStateOf(0) }
+    var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
 
-    var groupId by rememberSaveable { mutableStateOf(-1L) }
+    var groupId by rememberSaveable { mutableLongStateOf(-1L) }
     var group by remember { mutableStateOf<Group?>(null) }
 
     var barChartData by remember { mutableStateOf(listOf<BarChartItem>()) }
@@ -115,7 +115,7 @@ fun GroupScreen(
                         context,
                         onDelete = {
                             groupScope.launch {
-                                deleteResult = backendService.deleteGroupExpenseById(groupId)
+                                deleteResult = backendService.deleteGroupExpenseById(it)
                             }
                         }
                     )

@@ -67,7 +67,7 @@ fun GroupSettingsScreen(
     }
 
     // fetch group and members
-    LaunchedEffect(Unit) {
+    LaunchedEffect(Unit, addUserResult) {
         updateGroupMembers()
     }
 
@@ -171,7 +171,7 @@ fun GroupSettingsScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(10.dp)
+                            .padding(5.dp)
                     ) {
                         Text(text = member.nickname)
                         IconButton(onClick = { /* Handle member deletion */ }) {
