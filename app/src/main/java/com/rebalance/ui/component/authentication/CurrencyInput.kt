@@ -36,6 +36,7 @@ fun CurrencyInput(
         label = {
             Text(text = "Your currency")
         },
+        placeholder = { Text("ABC") },
         modifier = Modifier
             .padding(8.dp)
             .focusRequester(focusRequester),
