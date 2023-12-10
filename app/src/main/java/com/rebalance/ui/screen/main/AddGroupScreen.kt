@@ -14,7 +14,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rebalance.backend.api.dto.request.ApiGroupCreateRequest
@@ -32,11 +31,11 @@ fun AddGroupScreen(
     onCreate: (Long) -> Unit
 ) {
     val focusManager: FocusManager = LocalFocusManager.current
-    var groupName by remember { mutableStateOf(TextFieldValue()) }
-    var groupCurrency by remember { mutableStateOf(TextFieldValue()) }
+    var groupName by remember { mutableStateOf("") }
+    var groupCurrency by remember { mutableStateOf("") }
 
     val addGroupScope = rememberCoroutineScope()
-    var newGroupId by remember { mutableStateOf(-1L) }
+    var newGroupId by remember { mutableLongStateOf(-1L) }
 
     Surface(
         modifier = Modifier
@@ -75,8 +74,8 @@ fun AddGroupScreen(
             TextField(
                 value = groupCurrency,
                 onValueChange = {
-                    if (currencyRegex().matches(it.text))
-                        groupCurrency = it
+                    if (currencyRegex().matches(it))
+                        groupCurrency = it.uppercase()
                 },
                 label = { Text("Currency") },
                 placeholder = { Text("ABC") }, //TODO: choose from list of existing codes
@@ -100,7 +99,7 @@ fun AddGroupScreen(
                 Spacer(modifier = Modifier.width(8.dp))
                 Button(
                     onClick = {
-                        if (groupCurrency.text.length != 3 || groupName.text.isBlank()) {
+                        if (groupCurrency.length != 3 || groupName.isBlank()) {
                             alertUser("Fill in all fields!", context)
                             return@Button
                         }
@@ -108,7 +107,7 @@ fun AddGroupScreen(
                         addGroupScope.launch {
                             newGroupId = backendService.createGroup(
                                 ApiGroupCreateRequest(
-                                    groupName.text, groupCurrency.text
+                                    groupName, groupCurrency
                                 )
                             )
                         }
