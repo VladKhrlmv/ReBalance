@@ -1,7 +1,6 @@
 package com.rebalance.ui.component.main
 
 import android.content.Context
-import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -24,6 +23,7 @@ import com.rebalance.backend.service.BackendService
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
 import compose.icons.evaicons.fill.Trash
+import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.time.format.DateTimeFormatter
 
@@ -37,16 +37,10 @@ fun ExpandableList(
     deleteItem: (Long) -> Unit
 ) {
     val backendService = remember { BackendService.get() }
+    val personalSpendingListScope = rememberCoroutineScope()
 
     val expenses = remember { mutableStateMapOf<String, List<Expense>>() }
     val expensesState = remember { mutableStateMapOf<String, Boolean>() }
-
-    // TODO: make launch effect trigger when the item is clicked
-    LaunchedEffect(Unit, items) {
-        for (state in expensesState) {
-            expenses[state.key] = backendService.getExpensesByCategory(state.key, scaledDateItem)
-        }
-    }
 
     LazyColumn(state = scrollState) {
         items(items = items, itemContent = { item ->
@@ -84,6 +78,12 @@ fun ExpandableList(
                     modifier = Modifier
                         .clickable {
                             expensesState[item.category] = !expensesState[item.category]!!
+                            if (expensesState[item.category]!!) { // if expanded load
+                                personalSpendingListScope.launch {
+                                    expenses[item.category] =
+                                        backendService.getExpensesByCategory(item.category, scaledDateItem)
+                                }
+                            }
                         }
                 )
 
@@ -101,7 +101,7 @@ fun ExpandableList(
                                     ) {
                                         Text(
                                         "${expense.amount.setScale(2).toDouble()} " +
-                                            "${backendService.getPersonalCurrency()}"
+                                                backendService.getPersonalCurrency()
                                         )
                                     }
                                     Row(
