@@ -7,11 +7,12 @@ import androidx.compose.material.icons.filled.List
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -39,8 +40,9 @@ fun MainScreen(
         })
     }
     val context = LocalContext.current
-    var pieChartActive = rememberSaveable { mutableStateOf(true) } //TODO: move to settings
+    val pieChartActive = rememberSaveable { mutableStateOf(true) } //TODO: move to settings
     val navBackStackEntry by navHostController.currentBackStackEntryAsState()
+    val imePadding = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
 
     Scaffold(
         topBar = {
@@ -58,17 +60,17 @@ fun MainScreen(
             )
         },
         bottomBar = { BottomNavigationBar(navHostController) },
-        floatingActionButton = {
-            DisplayAddSpendingButton(navBackStackEntry, navHostController, onPlusClick)
-        },
-        floatingActionButtonPosition = FabPosition.End,
+        floatingActionButton = { },
         content = { padding -> // We have to pass the scaffold inner padding to our content. That's why we use Box.
             Box(
                 modifier = Modifier.padding(
                     start = padding.calculateStartPadding(layoutDirection = LayoutDirection.Ltr),
                     end = padding.calculateEndPadding(layoutDirection = LayoutDirection.Ltr),
                     top = padding.calculateTopPadding(),
-                    bottom = padding.calculateBottomPadding() - 10.dp
+                    bottom = max(
+                        padding.calculateBottomPadding(),
+                        imePadding
+                    )
                 )
             ) {
                 // initialize nav graph here so navigation will be inside scaffold
@@ -78,6 +80,13 @@ fun MainScreen(
 
                 // start guided tour
                 ToolTipOverlay(navHostController)
+
+                // plus button
+                DisplayAddSpendingButton(
+                    navBackStackEntry,
+                    onPlusClick,
+                    Modifier.align(Alignment.BottomEnd)
+                )
             }
         }
     )
@@ -127,22 +136,20 @@ private fun DisplayPieChartButton(
 @Composable
 private fun DisplayAddSpendingButton(
     navBackStackEntry: NavBackStackEntry?,
-    navHostController: NavHostController,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier
 ) {
     if (
         navBackStackEntry?.destination?.route != Routes.GroupSettings.paramRoute &&
         navBackStackEntry?.destination?.route != Routes.Settings.route
     ) {
         AddSpendingButton(
-            navBackStackEntry,
-            navHostController,
             onClick,
             if (navBackStackEntry?.destination?.route == Routes.AddSpending.route)
                 EvaIcons.Fill.Save
             else
-                EvaIcons.Fill.Plus
+                EvaIcons.Fill.Plus,
+            modifier
         )
     }
-
 }
