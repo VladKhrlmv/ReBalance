@@ -25,8 +25,6 @@ import java.math.BigDecimal
 data class UserGroup(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
-    @ColumnInfo(name = "favorite")
-    val favorite: Boolean,
     @ColumnInfo(name = "balance")
     val balance: BigDecimal = BigDecimal.ZERO,
     @ColumnInfo(name = "user_id")

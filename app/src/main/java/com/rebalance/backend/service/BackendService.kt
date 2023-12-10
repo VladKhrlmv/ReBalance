@@ -95,9 +95,14 @@ class BackendService {
     }
 
     //region updating settings in db
-    private suspend fun updateUserInSettings(userId: Long, personalGroupId: Long, token: String, currency: String) {
+    private suspend fun updateUserInSettings(
+        userId: Long,
+        personalGroupId: Long,
+        token: String,
+        currency: String
+    ) {
         this.settings.user_id = userId
-        this.settings.group_ip = personalGroupId
+        this.settings.group_id = personalGroupId
         this.settings.token = token
         this.settings.currency = currency
         mainScope.async {
@@ -125,7 +130,7 @@ class BackendService {
     }
 
     fun getGroupId(): Long {
-        return settings.group_ip
+        return settings.group_id
     }
 
     fun getPersonalCurrency(): String {
@@ -170,7 +175,7 @@ class BackendService {
                 db.groupDao().saveGroup(personalGroup)
             }
             // save/update UserGroup relation
-            val userGroup = UserGroup(0, false, BigDecimal.ZERO, userId, personalGroupId)
+            val userGroup = UserGroup(0, BigDecimal.ZERO, userId, personalGroupId)
             withContext(Dispatchers.IO) {
                 db.userGroupDao().saveUserGroup(userGroup)
             }
@@ -272,7 +277,7 @@ class BackendService {
                 val dates = mainScope.async {
                     var dates: List<String>
                     withContext(Dispatchers.IO) {
-                        dates = db.expenseDao().getUniqueExpenseDays(settings.group_ip)
+                        dates = db.expenseDao().getUniqueExpenseDays(settings.group_id)
                     }
                     return@async dates
                 }.await()
@@ -312,7 +317,7 @@ class BackendService {
                 val dates = mainScope.async {
                     var dates: List<String>
                     withContext(Dispatchers.IO) {
-                        dates = db.expenseDao().getUniqueExpenseWeeks(settings.group_ip)
+                        dates = db.expenseDao().getUniqueExpenseWeeks(settings.group_id)
                     }
                     return@async dates
                 }.await()
@@ -321,7 +326,8 @@ class BackendService {
                     val (year, weekOfYear) = d.split("-").map { it.toInt() }
                     val startDateStr = getStartOfWeek(year, weekOfYear)
                     val startDate =
-                        LocalDate.parse(startDateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")).atStartOfDay()
+                        LocalDate.parse(startDateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                            .atStartOfDay()
                     val endDate = startDate.plusWeeks(1).minusSeconds(1)
                     list.add(
                         ScaledDateItem(
@@ -337,7 +343,7 @@ class BackendService {
                 val dates = mainScope.async {
                     var dates: List<String>
                     withContext(Dispatchers.IO) {
-                        dates = db.expenseDao().getUniqueExpenseMonths(settings.group_ip)
+                        dates = db.expenseDao().getUniqueExpenseMonths(settings.group_id)
                     }
                     return@async dates
                 }.await()
@@ -360,7 +366,7 @@ class BackendService {
                 val dates = mainScope.async {
                     var dates: List<Int>
                     withContext(Dispatchers.IO) {
-                        dates = db.expenseDao().getUniqueExpenseYears(settings.group_ip)
+                        dates = db.expenseDao().getUniqueExpenseYears(settings.group_id)
                     }
                     return@async dates
                 }.await()
@@ -420,7 +426,7 @@ class BackendService {
             var sums: List<SumByCategoryItem>
             withContext(Dispatchers.IO) {
                 sums = db.expenseDao().getSumsByCategories(
-                    settings.group_ip,
+                    settings.group_id,
                     scaledDateItem.dateFrom,
                     scaledDateItem.dateTo
                 )
@@ -438,7 +444,7 @@ class BackendService {
             var sums: List<Expense>
             withContext(Dispatchers.IO) {
                 sums = db.expenseDao().getExpensesByCategory(
-                    settings.group_ip,
+                    settings.group_id,
                     category,
                     scaledDateItem.dateFrom,
                     scaledDateItem.dateTo
@@ -519,7 +525,6 @@ class BackendService {
                 // save UserGroup with current user in db
                 val userGroup = UserGroup(
                     0L,
-                    groupResponse.favorite,
                     BigDecimal.ZERO,
                     settings.user_id,
                     groupResponse.id
@@ -612,7 +617,6 @@ class BackendService {
                             db.userGroupDao().saveUserGroup(
                                 UserGroup(
                                     0L,
-                                    response.favorite,
                                     BigDecimal.ZERO,
                                     response.userId,
                                     response.groupId
@@ -671,7 +675,7 @@ class BackendService {
                 expense.category,
                 settings.user_id,
                 settings.user_id,
-                settings.group_ip
+                settings.group_id
             )
             var expenseId: Long
             withContext(Dispatchers.IO) {
@@ -730,7 +734,7 @@ class BackendService {
             return@async
         }.await()
     }
-//endregion
+    //endregion
 
     //region images
     suspend fun getImageByExpenseId(expenseId: Long): ImageBitmap? {
