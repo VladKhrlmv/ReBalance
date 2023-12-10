@@ -1,6 +1,7 @@
 package com.rebalance.ui.screen.main
 
 import android.content.Context
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,6 +33,7 @@ import com.rebalance.util.alertUser
 import com.rebalance.util.currencyRegex
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
+import compose.icons.evaicons.fill.Plus
 import compose.icons.evaicons.fill.Trash
 import kotlinx.coroutines.launch
 
@@ -39,7 +41,6 @@ import kotlinx.coroutines.launch
 @Composable
 fun GroupSettingsScreen(
     context: Context,
-    navHostController: NavHostController,
     groupId: Long,
 ) {
     val backendService = remember { BackendService.get() }
@@ -94,7 +95,7 @@ fun GroupSettingsScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 10.dp),
+                    .padding(vertical = 5.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 TextField(
@@ -151,13 +152,11 @@ fun GroupSettingsScreen(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .padding(vertical = 10.dp)
+                    .padding(5.dp)
             ) {
                 Text(
                     text = "Members",
-                    Modifier
-                        .padding(horizontal = 10.dp),
-                    fontSize = 30.sp
+                    fontSize = 24.sp
                 )
             }
             LazyColumn(
@@ -234,7 +233,8 @@ private fun DisplayInviteFields(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
-            .padding(vertical = 10.dp)
+            .fillMaxWidth()
+            .padding(vertical = 5.dp)
     ) {
         var email by remember { mutableStateOf("") }
 
@@ -246,28 +246,26 @@ private fun DisplayInviteFields(
             placeholder = { Text("user@example.com")},
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { /* Handle action */ }),
-            modifier = Modifier
-                .padding(end = 10.dp)
-                .width(270.dp),
             singleLine = true,
             colors = TextFieldDefaults.textFieldColors(
                 containerColor = Color.Transparent
-            )
+            ),
+            modifier = Modifier.weight(1f)
         )
 
         // show button to add user to group
-        Button(
-            onClick = {
+        Icon(
+            imageVector = EvaIcons.Fill.Plus,
+            contentDescription = "Add",
+            modifier = Modifier
+                .size(30.dp)
+                .clickable {
                 if (email.isEmpty()) { //TODO: add validation of email
                     alertUser("Please, provide the email", context)
-                    return@Button
                 } else {
                     onUserAdd(email)
                 }
-
             }
-        ) {
-            Text(text = "Add")
-        }
+        )
     }
 }

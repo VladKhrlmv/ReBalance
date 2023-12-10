@@ -56,7 +56,7 @@ fun initNavHost(
                     type = NavType.LongType
                 })
             ) { backStackEntry ->
-                GroupSettingsScreen(context, navHostController, backStackEntry.arguments?.getLong("groupId")!!)
+                GroupSettingsScreen(context, backStackEntry.arguments?.getLong("groupId")!!)
             }
             composable(Routes.AddSpending.route) {
                 AddSpendingScreen(context, navHostController, setOnPlusClick = newOnPlusClick)
