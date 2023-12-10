@@ -8,6 +8,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -20,6 +21,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.input.ImeAction
@@ -37,6 +39,7 @@ import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.main.DatePickerField
 import com.rebalance.ui.component.main.GroupMemberSelection
 import com.rebalance.ui.component.main.GroupSelection
+import com.rebalance.ui.navigation.navigateUp
 import com.rebalance.util.*
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
@@ -122,6 +125,10 @@ fun AddSpendingScreen(
                 alertUser("Choose at least one member", context)
                 return@setOnPlusClick
             }
+            if (isGroupExpense && payer == null) {
+                alertUser("Set the payer", context)
+                return@setOnPlusClick
+            }
 
             if (isGroupExpense) {
                 val newGroupSpending = NewGroupSpending(
@@ -151,7 +158,7 @@ fun AddSpendingScreen(
                     )
                 }
             }
-            //TODO: close add spending screen after adding
+            navigateUp(navHostController)
         }
     }
 
@@ -180,6 +187,14 @@ fun AddSpendingScreen(
     // outer column
     Column(
         modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = { /* Do nothing on press to avoid ripple effect */
+                    },
+                    onTap = { focusManager.clearFocus() }
+                )
+            }
     ) {
         // scrollable column with other content
         Column(
@@ -202,7 +217,6 @@ fun AddSpendingScreen(
                     },
                     modifier = Modifier
                         .padding(horizontal = 10.dp, vertical = 5.dp)
-//                        .focusRequester(focusRequesters[0])
                         .align(Alignment.CenterStart)
                         .width(275.dp),
                     colors = TextFieldDefaults.textFieldColors(
@@ -217,7 +231,7 @@ fun AddSpendingScreen(
                             focusManager.moveFocus(FocusDirection.Down)
                         }
                     ),
-                    maxLines = 1
+                    singleLine = true
                 )
                 IconButton(
                     onClick = { galleryLauncher.launch("image/*") },
@@ -288,7 +302,6 @@ fun AddSpendingScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 10.dp, vertical = 5.dp),
-//                    .focusRequester(focusRequesters[1]),
                 colors = TextFieldDefaults.textFieldColors(
                     containerColor = Color.Transparent,
                 ),
@@ -301,14 +314,14 @@ fun AddSpendingScreen(
                         focusManager.moveFocus(FocusDirection.Down)
                     }
                 ),
-                maxLines = 1
+                singleLine = true
             )
             // Cost field
             TextField(
                 value = costValue,
                 onValueChange = { newCostValue ->
                     if (costValueRegex().matches(newCostValue)) {
-                        costValue = newCostValue
+                        costValue = newCostValue.replace(",", ".")
                     }
                 },
                 keyboardOptions = KeyboardOptions(
@@ -321,7 +334,6 @@ fun AddSpendingScreen(
                 modifier = Modifier
                     .padding(horizontal = 10.dp, vertical = 5.dp)
                     .fillMaxWidth()
-//                    .focusRequester(focusRequesters[2])
                     .onFocusChanged {
                         if (!it.isFocused) {
                             costValue = costValue
@@ -334,7 +346,7 @@ fun AddSpendingScreen(
                 colors = TextFieldDefaults.textFieldColors(
                     containerColor = Color.Transparent,
                 ),
-                maxLines = 1,
+                singleLine = true,
                 trailingIcon = {
                     Text(
                         // if group expense and list of groups is loaded (or not empty), get currency from there

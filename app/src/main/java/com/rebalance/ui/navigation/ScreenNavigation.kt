@@ -95,6 +95,9 @@ fun navigateToGroup(navHostController: NavHostController, groupId: Long) {
 }
 
 fun navigateTabs(navHostController: NavHostController, route: Routes, forgetRoute: Routes) {
+    if (navHostController.currentBackStackEntry?.destination?.route == route.route) {
+        return
+    }
     // remove add spending and settings screens from stack
     navHostController.popBackStack(Routes.AddSpending.route, inclusive = true)
     navHostController.popBackStack(Routes.Settings.route, inclusive = true)

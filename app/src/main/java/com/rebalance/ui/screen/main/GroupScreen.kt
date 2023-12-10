@@ -1,6 +1,7 @@
 package com.rebalance.ui.screen.main
 
 import android.content.Context
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -12,6 +13,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -37,15 +41,16 @@ fun GroupScreen(
     val groupScope = rememberCoroutineScope()
 
     val tabItems = listOf("Visual", "List")
-    var selectedTabIndex by rememberSaveable { mutableStateOf(0) }
+    var selectedTabIndex by rememberSaveable { mutableIntStateOf(0) }
 
-    var groupId by rememberSaveable { mutableStateOf(-1L) }
+    var groupId by rememberSaveable { mutableLongStateOf(-1L) }
     var group by remember { mutableStateOf<Group?>(null) }
 
     var barChartData by remember { mutableStateOf(listOf<BarChartItem>()) }
 
     var deleteResult by remember { mutableStateOf(DeleteResult.Placeholder) }
 
+    val focusManager: FocusManager = LocalFocusManager.current
     LaunchedEffect(Unit) {
         setOnPlusClick {
             navigateSingleTo(navHostController, Routes.AddSpending)
@@ -64,6 +69,13 @@ fun GroupScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = { /* Do nothing on press to avoid ripple effect */
+                    },
+                    onTap = { focusManager.clearFocus() }
+                )
+            }
     ) {
         // top tabs
         DisplayTabs(tabItems, selectedTabIndex) { tabIndex ->
@@ -103,7 +115,7 @@ fun GroupScreen(
                         context,
                         onDelete = {
                             groupScope.launch {
-                                deleteResult = backendService.deleteGroupExpenseById(groupId)
+                                deleteResult = backendService.deleteGroupExpenseById(it)
                             }
                         }
                     )

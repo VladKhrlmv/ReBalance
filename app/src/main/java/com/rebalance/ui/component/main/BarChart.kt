@@ -51,7 +51,7 @@ fun BarChart(
         Crossfade(
             targetState = data,
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxWidth(), label = ""
         ) { barChartData ->
             AndroidView(factory = { context ->
                 HorizontalBarChart(context).apply {
@@ -79,7 +79,6 @@ fun BarChart(
                     this.setTouchEnabled(false)
                     this.setPinchZoom(false)
                     this.isDoubleTapToZoomEnabled = false
-                    this.setNoDataText("No data")
                     this.setNoDataTextTypeface(Typeface.DEFAULT_BOLD)
                     this.renderer = CustomBarChartRenderer(
                         this,
@@ -93,43 +92,43 @@ fun BarChart(
                     .padding(5.dp)
                     .testTag("groupBarChart"),
                 update = {
-//                    updateBarChartWithData(it, barChartData, onBackground)
+                    updateBarChartWithData(it, barChartData, onBackground)
                 }
             )
         }
     }
 }
 
-//fun updateBarChartWithData(
-//    chart: HorizontalBarChart,
-//    data: List<BarChartData>,
-//    textColor: Int
-//) {
-//    val entries = ArrayList<BarEntry>()
-//    for (i in data.indices) {
-//        val item = data[i]
-//        entries.add(BarEntry(i.toFloat(), item.data.second.toFloat()))
-//    }
-//    val ds = BarDataSet(entries, "")
-//    ds.colors = data.map { if (it.data.second >= 0) forestGreenColor.toArgb() else crimsonColor.toArgb() }
-//    ds.valueTextColor = textColor
-//    ds.valueFormatter = object : ValueFormatter() {
-//        val format = DecimalFormat("###,###,###.##")
-//        override fun getFormattedValue(value: Float): String {
-//            return format.format(value)
-//        }
-//    }
-//    ds.valueTextSize = 16f
-//    ds.valueTypeface = Typeface.DEFAULT_BOLD
-//    val d = BarData(ds)
-//    chart.data = d
-//    chart.xAxis.valueFormatter = object : ValueFormatter() {
-//        override fun getFormattedValue(value: Float): String {
-//            return data[value.toInt()].data.first
-//        }
-//    }
-//    chart.invalidate()
-//}
+fun updateBarChartWithData(
+    chart: HorizontalBarChart,
+    data: List<BarChartItem>,
+    textColor: Int
+) {
+    val entries = ArrayList<BarEntry>()
+    for (i in data.indices) {
+        val item = data[i]
+        entries.add(BarEntry(i.toFloat(), item.balance.setScale(2).toFloat()))
+    }
+    val ds = BarDataSet(entries, "")
+    ds.colors = data.map { if (it.balance.setScale(2).toFloat() >= 0) forestGreenColor.toArgb() else crimsonColor.toArgb() }
+    ds.valueTextColor = textColor
+    ds.valueFormatter = object : ValueFormatter() {
+        val format = DecimalFormat("###,###,###.##")
+        override fun getFormattedValue(value: Float): String {
+            return format.format(value)
+        }
+    }
+    ds.valueTextSize = 16f
+    ds.valueTypeface = Typeface.DEFAULT_BOLD
+    val d = BarData(ds)
+    chart.data = d
+    chart.xAxis.valueFormatter = object : ValueFormatter() {
+        override fun getFormattedValue(value: Float): String {
+            return data[value.toInt()].username
+        }
+    }
+    chart.invalidate()
+}
 
 class CustomBarChartRenderer(
     chart: BarDataProvider,

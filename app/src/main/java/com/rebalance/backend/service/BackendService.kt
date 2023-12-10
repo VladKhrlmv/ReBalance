@@ -13,17 +13,42 @@ import com.rebalance.backend.api.dto.request.ApiGroupAddUserRequest
 import com.rebalance.backend.api.dto.request.ApiGroupCreateRequest
 import com.rebalance.backend.api.dto.request.ApiLoginRequest
 import com.rebalance.backend.api.dto.request.ApiRegisterRequest
-import com.rebalance.backend.dto.*
+import com.rebalance.backend.dto.AddUserToGroupResult
+import com.rebalance.backend.dto.BarChartItem
+import com.rebalance.backend.dto.DeleteResult
+import com.rebalance.backend.dto.GroupExpenseItem
+import com.rebalance.backend.dto.GroupExpenseItemUser
+import com.rebalance.backend.dto.LoginResult
+import com.rebalance.backend.dto.NewGroupSpending
+import com.rebalance.backend.dto.NewPersonalSpending
+import com.rebalance.backend.dto.RegisterResult
+import com.rebalance.backend.dto.ScaleItem
+import com.rebalance.backend.dto.ScaledDateItem
+import com.rebalance.backend.dto.SpendingDeptor
+import com.rebalance.backend.dto.SumByCategoryItem
 import com.rebalance.backend.localdb.db.AppDatabase
-import com.rebalance.backend.localdb.entities.*
-import kotlinx.coroutines.*
+import com.rebalance.backend.localdb.entities.Expense
+import com.rebalance.backend.localdb.entities.ExpenseUser
+import com.rebalance.backend.localdb.entities.Group
+import com.rebalance.backend.localdb.entities.Image
+import com.rebalance.backend.localdb.entities.Settings
+import com.rebalance.backend.localdb.entities.User
+import com.rebalance.backend.localdb.entities.UserGroup
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import java.math.BigDecimal
+import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Calendar
+import java.util.Locale
 
 class BackendService {
     private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
@@ -70,10 +95,11 @@ class BackendService {
     }
 
     //region updating settings in db
-    private suspend fun updateUserInSettings(userId: Long, personalGroupId: Long, token: String) {
+    private suspend fun updateUserInSettings(userId: Long, personalGroupId: Long, token: String, currency: String) {
         this.settings.user_id = userId
         this.settings.group_ip = personalGroupId
         this.settings.token = token
+        this.settings.currency = currency
         mainScope.async {
             withContext(Dispatchers.IO) {
                 db.settingsDao().saveSettings(settings)
@@ -100,6 +126,10 @@ class BackendService {
 
     fun getGroupId(): Long {
         return settings.group_ip
+    }
+
+    fun getPersonalCurrency(): String {
+        return settings.currency
     }
 
     fun isFirstLaunch(): Boolean {
@@ -169,7 +199,7 @@ class BackendService {
 
                 // update settings in db
                 val user = RequestParser.responseToUser(responseBodyInfo)
-                updateUserInSettings(user.id, user.personalGroupId, token)
+                updateUserInSettings(user.id, user.personalGroupId, token, user.currency)
 
                 // update current user in db
                 updateCurrentUser(
@@ -199,7 +229,8 @@ class BackendService {
                 updateUserInSettings(
                     user.id,
                     user.personalGroupId,
-                    user.token
+                    user.token,
+                    user.currency
                 )
 
                 // update user in db
@@ -239,7 +270,7 @@ class BackendService {
             "Day" -> {
                 // get unique dates from db
                 val dates = mainScope.async {
-                    var dates: List<LocalDateTime>
+                    var dates: List<String>
                     withContext(Dispatchers.IO) {
                         dates = db.expenseDao().getUniqueExpenseDays(settings.group_ip)
                     }
@@ -247,16 +278,36 @@ class BackendService {
                 }.await()
                 // add dates to return list
                 dates.forEach { d ->
+                    val startDate =
+                        LocalDate.parse(d, DateTimeFormatter.ofPattern("yyyy-MM-dd")).atStartOfDay()
+                    val endDate = startDate.plusDays(1).minusSeconds(1)
                     list.add(
                         ScaledDateItem(
                             d.format(formatter),
-                            d,
-                            d
+                            startDate,
+                            endDate
                         )
                     )
                 }
             }
             "Week" -> {
+                fun getStartOfWeek(year: Int, weekOfYear: Int): String {
+                    val calendar: Calendar = Calendar.getInstance(Locale.getDefault())
+                    calendar.clear()
+                    calendar.set(Calendar.YEAR, year)
+                    calendar.set(Calendar.WEEK_OF_YEAR, weekOfYear)
+                    calendar.firstDayOfWeek = Calendar.MONDAY
+                    calendar.minimalDaysInFirstWeek = 4
+
+                    // Set the calendar to the first day of the week (Monday)
+                    calendar.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+
+                    val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                    val startDate = calendar.time
+                    return formatter.format(startDate)
+                }
+
+
                 // get unique years from db
                 val dates = mainScope.async {
                     var dates: List<String>
@@ -267,12 +318,14 @@ class BackendService {
                 }.await()
                 // add dates to return list
                 dates.forEach { d ->
+                    val (year, weekOfYear) = d.split("-").map { it.toInt() }
+                    val startDateStr = getStartOfWeek(year, weekOfYear)
                     val startDate =
-                        LocalDate.parse(d, DateTimeFormatter.ofPattern("yyyy-WW")).atStartOfDay()
+                        LocalDate.parse(startDateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd")).atStartOfDay()
                     val endDate = startDate.plusWeeks(1).minusSeconds(1)
                     list.add(
                         ScaledDateItem(
-                            startDate.format(formatter),
+                            startDateStr + "\n" + endDate.format(formatter),
                             startDate,
                             endDate
                         )
@@ -291,7 +344,7 @@ class BackendService {
                 // add dates to return list
                 dates.forEach { d ->
                     val startDate =
-                        LocalDate.parse(d, DateTimeFormatter.ofPattern("yyyy-MM")).atStartOfDay()
+                        LocalDate.parse(d, DateTimeFormatter.ofPattern("yyyy-MM-dd")).atStartOfDay()
                     val endDate = startDate.plusMonths(1).minusSeconds(1)
                     list.add(
                         ScaledDateItem(
@@ -677,28 +730,6 @@ class BackendService {
             return@async
         }.await()
     }
-
-//    //region Group screen
-//    fun addUserToGroup(userId: Long, groupId: Long) {
-//        setPolicy()
-//        RequestSender.sendPost(
-//            "http://${settings.server_ip}/users/${userId}/groups",
-//            "{\"id\": ${groupId}}"
-//        )
-//    }
-//    //endregion
-//
-//    //region Notifications
-//    fun getNotifications(): List<Notification> {
-//        setPolicy()
-//        val responseJson = RequestSender.sendGet(
-//            "http://${settings.server_ip}/users/${
-//                settings.user_id
-//            }/notifications"
-//        )
-//        return jsonArrayToNotification(responseJson)
-//    }
-//    //endregion
 //endregion
 
     //region images

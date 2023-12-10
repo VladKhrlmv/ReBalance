@@ -31,6 +31,7 @@ fun GroupMemberSelection(
             value = payer?.nickname ?: "",
             onValueChange = { },
             readOnly = true,
+            singleLine = true,
             label = {
                 Text(text = "Payer")
             },

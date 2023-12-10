@@ -1,6 +1,8 @@
 package com.rebalance.ui.screen.authentication
 
 import android.content.Context
+import android.os.StrictMode
+import androidx.compose.foundation.gestures.detectTapGestures
 import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Scaffold
@@ -8,7 +10,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,6 +40,7 @@ fun SignInScreen(context: Context, navHostController: NavHostController) {
 
     val loginFocusRequester = remember { FocusRequester() }
     val passwordFocusRequester = remember { FocusRequester() }
+    val focusManager: FocusManager = LocalFocusManager.current
 
     val loginScope = rememberCoroutineScope()
     var loginResult by remember { mutableStateOf(LoginResult.Placeholder) }
@@ -42,7 +48,16 @@ fun SignInScreen(context: Context, navHostController: NavHostController) {
 
     Scaffold(
         content = { padding ->
-            Box(modifier = Modifier.padding(padding)) {
+            Box(modifier = Modifier
+                .padding(padding)
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onPress = { /* Do nothing on press to avoid ripple effect */
+                        },
+                        onTap = { focusManager.clearFocus() }
+                    )
+                }
+            ) {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()

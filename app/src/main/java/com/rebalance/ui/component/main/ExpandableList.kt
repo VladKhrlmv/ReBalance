@@ -10,7 +10,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -21,10 +20,12 @@ import com.rebalance.backend.dto.ScaledDateItem
 import com.rebalance.backend.dto.SumByCategoryItem
 import com.rebalance.backend.localdb.entities.Expense
 import com.rebalance.backend.service.BackendService
-import com.rebalance.util.alertUser
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
 import compose.icons.evaicons.fill.Trash
+import kotlinx.coroutines.launch
+import java.math.BigDecimal
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun ExpandableList(
@@ -36,17 +37,10 @@ fun ExpandableList(
     deleteItem: (Long) -> Unit
 ) {
     val backendService = remember { BackendService.get() }
+    val personalSpendingListScope = rememberCoroutineScope()
 
-    val expenses = rememberSaveable { mutableMapOf<String, List<Expense>>() }
-    val expensesState = rememberSaveable { mutableMapOf<String, Boolean>() }
-
-    LaunchedEffect(expensesState.values) {
-        for (state in expensesState) {
-            if (state.value && expenses[state.key] == null) { // if expanded category, load list of expenses
-                expenses[state.key] = backendService.getExpensesByCategory(state.key, scaledDateItem)
-            }
-        }
-    }
+    val expenses = remember { mutableStateMapOf<String, List<Expense>>() }
+    val expensesState = remember { mutableStateMapOf<String, Boolean>() }
 
     LazyColumn(state = scrollState) {
         items(items = items, itemContent = { item ->
@@ -68,7 +62,13 @@ fun ExpandableList(
                     trailingContent = {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
-                                text = item.amount.toString() + " PLN",
+                                text = String.format(
+                                    if (item.amount.compareTo(BigDecimal.valueOf(100000)) != -1)
+                                        "%,.0f"
+                                    else
+                                        "%,.2f",
+                                    item.amount
+                                ) + " ${backendService.getPersonalCurrency()}",
                                 fontSize = 14.sp,
                                 color = Color.hsl(358f, 0.63f, 0.49f)
                             )
@@ -78,10 +78,16 @@ fun ExpandableList(
                     modifier = Modifier
                         .clickable {
                             expensesState[item.category] = !expensesState[item.category]!!
+                            if (expensesState[item.category]!!) { // if expanded load
+                                personalSpendingListScope.launch {
+                                    expenses[item.category] =
+                                        backendService.getExpensesByCategory(item.category, scaledDateItem)
+                                }
+                            }
                         }
                 )
 
-                if (expenses[item.category] != null) {
+                if (expensesState[item.category] == true && expenses[item.category]?.isNotEmpty() == true) {
                     Column {
                         for (expense in expenses[item.category]!!) {
                             Divider()
@@ -93,28 +99,10 @@ fun ExpandableList(
                                             .fillMaxSize(),
                                         verticalAlignment = Alignment.Bottom
                                     ) {
-
-                                        //TODO: fix
-//                                        val text = buildAnnotatedString {
-//
-//                                            append(
-//                                                expense.amount.toInt().toString()
-//                                            )
-//
-//                                            withStyle(
-//                                                style = SpanStyle(
-//                                                    fontSize = MaterialTheme.typography.bodySmall.fontSize,
-//                                                    fontStyle = MaterialTheme.typography.bodySmall.fontStyle
-//                                                )
-//                                            ) {
-//                                                append(
-//                                                    "." + ((expense.getAmount() - expense.getAmount()
-//                                                        .toInt()) * 100).toInt().toString() + " PLN"
-//                                                )
-//                                            }
-//                                        }
-//
-//                                        Text(text)
+                                        Text(
+                                        "${expense.amount.setScale(2).toDouble()} " +
+                                                backendService.getPersonalCurrency()
+                                        )
                                     }
                                     Row(
                                         modifier = Modifier
@@ -122,7 +110,7 @@ fun ExpandableList(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            expense.date.toString(),
+                                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(expense.date),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.outline,
                                             modifier = Modifier.padding(bottom = 5.dp, top = 2.dp)
@@ -155,7 +143,6 @@ fun ExpandableList(
                                             confirmButton = {
                                                 TextButton(onClick = {
                                                     deleteItem(expense.id)
-                                                    alertUser("Expense deleted!", context)
                                                     showDialog.value = false
                                                 }) {
                                                     Text("Yes")

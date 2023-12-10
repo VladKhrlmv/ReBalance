@@ -1,6 +1,7 @@
 package com.rebalance.ui.screen.main
 
 import android.content.Context
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -13,9 +14,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusManager
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavHostController
@@ -47,6 +52,7 @@ fun GroupSettingsScreen(
     var groupCurrency by remember { mutableStateOf("") }
 
     val scrollState = rememberScrollState()
+    val focusManager: FocusManager = LocalFocusManager.current
     var showDialog by remember { mutableStateOf(false) }
 
     var addUserResult by remember { mutableStateOf(AddUserToGroupResult.Placeholder) }
@@ -61,7 +67,7 @@ fun GroupSettingsScreen(
     }
 
     // fetch group and members
-    LaunchedEffect(Unit) {
+    LaunchedEffect(Unit, addUserResult) {
         updateGroupMembers()
     }
 
@@ -69,10 +75,21 @@ fun GroupSettingsScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(10.dp)
-            .verticalScroll(scrollState),
+            .verticalScroll(scrollState)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onPress = { /* Do nothing on press to avoid ripple effect */
+                    },
+                    onTap = { focusManager.clearFocus() }
+                )
+            },
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        Column {
+        Column (
+            modifier = Modifier
+                .weight(1f)
+                .padding(bottom = 10.dp)
+        ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
@@ -83,8 +100,11 @@ fun GroupSettingsScreen(
                 TextField(
                     value = groupName,
                     onValueChange = { newGroupName -> groupName = newGroupName },
-                    label = { Text("Group Name") },
-                    modifier = Modifier.padding(end = 10.dp),
+                    label = { Text("Group Name", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    modifier = Modifier
+                        .padding(end = 10.dp)
+                        .width(270.dp),
+                    singleLine = true,
                     colors = TextFieldDefaults.textFieldColors(
                         containerColor = Color.Transparent
                     )
@@ -95,7 +115,8 @@ fun GroupSettingsScreen(
                         if (currencyRegex().matches(newCurrency))
                             groupCurrency = newCurrency
                     },
-                    label = { Text("Currency") },
+                    singleLine = true,
+                    label = { Text("Currency", maxLines = 1, overflow = TextOverflow.Ellipsis) },
                     colors = TextFieldDefaults.textFieldColors(
                         containerColor = Color.Transparent
                     )
@@ -150,7 +171,7 @@ fun GroupSettingsScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp, horizontal = 10.dp)
+                            .padding(5.dp)
                     ) {
                         Text(text = member.nickname)
                         IconButton(onClick = { /* Handle member deletion */ }) {
@@ -166,7 +187,8 @@ fun GroupSettingsScreen(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp),
+                .padding(horizontal = 10.dp)
+                .height(50.dp),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Button(onClick = { showDialog = true }) {
@@ -220,11 +242,14 @@ private fun DisplayInviteFields(
         TextField(
             value = email,
             onValueChange = { newEmail -> email = newEmail },
-            label = { Text("Add Member") },
-            placeholder = { Text("user@example.com") },
+            label = { Text("Add Member", maxLines = 1, overflow = TextOverflow.Ellipsis) },
+            placeholder = { Text("user@example.com")},
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { /* Handle action */ }),
-            modifier = Modifier.padding(end = 10.dp),
+            modifier = Modifier
+                .padding(end = 10.dp)
+                .width(270.dp),
+            singleLine = true,
             colors = TextFieldDefaults.textFieldColors(
                 containerColor = Color.Transparent
             )
