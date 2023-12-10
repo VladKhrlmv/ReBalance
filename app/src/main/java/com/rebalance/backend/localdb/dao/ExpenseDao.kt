@@ -11,13 +11,13 @@ import java.time.LocalDateTime
 @Dao
 interface ExpenseDao {
 
-    @Query("SELECT DISTINCT date FROM expenses WHERE group_id = :groupId")
-    suspend fun getUniqueExpenseDays(groupId: Long): List<LocalDateTime>
+    @Query("SELECT DISTINCT strftime('%Y-%m-%d', date) FROM expenses WHERE group_id = :groupId")
+    suspend fun getUniqueExpenseDays(groupId: Long): List<String>
 
     @Query("SELECT DISTINCT strftime('%Y-%W', date) FROM expenses WHERE group_id = :groupId")
     suspend fun getUniqueExpenseWeeks(groupId: Long): List<String>
 
-    @Query("SELECT DISTINCT strftime('%Y-%m', date) FROM expenses WHERE group_id = :groupId")
+    @Query("SELECT DISTINCT strftime('%Y-%m-01', date) FROM expenses WHERE group_id = :groupId")
     suspend fun getUniqueExpenseMonths(groupId: Long): List<String>
 
     @Query("SELECT DISTINCT strftime('%Y', date) FROM expenses WHERE group_id = :groupId")

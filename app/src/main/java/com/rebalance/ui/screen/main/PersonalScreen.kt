@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Alignment.Companion.TopCenter
 import androidx.compose.ui.Modifier
@@ -37,13 +36,13 @@ fun PersonalScreen(
     val backendService = remember { BackendService.get() }
     val personalScope = rememberCoroutineScope()
 
-    val scaleItems = rememberSaveable { backendService.getScaleItems() }
-    var selectedScaleIndex by rememberSaveable { mutableStateOf(0) }
+    val scaleItems = remember { backendService.getScaleItems() }
+    var selectedScaleIndex by remember { mutableStateOf(0) }
 
     var tabItems by remember { mutableStateOf(listOf<ScaledDateItem>()) }
-    var selectedTabIndex by rememberSaveable { mutableStateOf(-1) }
+    var selectedTabIndex by remember { mutableStateOf(-1) }
 
-    var openCategory = rememberSaveable { mutableStateOf("") }
+    var openCategory = remember { mutableStateOf("") }
     val expandableListState = rememberLazyListState()
 
     var sumByCategories by remember { mutableStateOf(listOf<SumByCategoryItem>()) }
@@ -59,6 +58,9 @@ fun PersonalScreen(
     LaunchedEffect(selectedScaleIndex) { // get tabs on scale change
         tabItems = backendService.getTabItems(scaleItems[selectedScaleIndex].type)
         selectedTabIndex = (tabItems.size - 1)
+        if (selectedTabIndex != -1) {
+            sumByCategories = backendService.getPieChartData(tabItems[selectedTabIndex])
+        }
     }
 
     LaunchedEffect(selectedTabIndex) {// get new values on tab change
@@ -113,18 +115,20 @@ fun PersonalScreen(
                         .testTag("personalList"),
                     contentAlignment = TopCenter
                 ) {
-                    ExpandableList(
-                        items = sumByCategories,
-                        context,
-                        openCategory,
-                        tabItems[selectedTabIndex],
-                        expandableListState,
-                        deleteItem = {
-                            personalScope.launch {
-                                deleteResult = backendService.deletePersonalExpenseById(it)
+                    if (selectedTabIndex != -1) {
+                        ExpandableList(
+                            items = sumByCategories,
+                            context,
+                            openCategory,
+                            tabItems[selectedTabIndex],
+                            expandableListState,
+                            deleteItem = {
+                                personalScope.launch {
+                                    deleteResult = backendService.deletePersonalExpenseById(it)
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
 

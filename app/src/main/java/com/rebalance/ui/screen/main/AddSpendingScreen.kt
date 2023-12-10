@@ -39,6 +39,7 @@ import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.component.main.DatePickerField
 import com.rebalance.ui.component.main.GroupMemberSelection
 import com.rebalance.ui.component.main.GroupSelection
+import com.rebalance.ui.navigation.navigateUp
 import com.rebalance.util.*
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
@@ -157,7 +158,7 @@ fun AddSpendingScreen(
                     )
                 }
             }
-            //TODO: close add spending screen after adding
+            navigateUp(navHostController)
         }
     }
 

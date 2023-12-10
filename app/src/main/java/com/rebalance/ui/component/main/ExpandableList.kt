@@ -1,6 +1,7 @@
 package com.rebalance.ui.component.main
 
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -10,7 +11,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
@@ -21,10 +21,11 @@ import com.rebalance.backend.dto.ScaledDateItem
 import com.rebalance.backend.dto.SumByCategoryItem
 import com.rebalance.backend.localdb.entities.Expense
 import com.rebalance.backend.service.BackendService
-import com.rebalance.util.alertUser
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
 import compose.icons.evaicons.fill.Trash
+import java.math.BigDecimal
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun ExpandableList(
@@ -37,14 +38,13 @@ fun ExpandableList(
 ) {
     val backendService = remember { BackendService.get() }
 
-    val expenses = rememberSaveable { mutableMapOf<String, List<Expense>>() }
-    val expensesState = rememberSaveable { mutableMapOf<String, Boolean>() }
+    val expenses = remember { mutableStateMapOf<String, List<Expense>>() }
+    val expensesState = remember { mutableStateMapOf<String, Boolean>() }
 
-    LaunchedEffect(expensesState.values) {
+    // TODO: make launch effect trigger when the item is clicked
+    LaunchedEffect(Unit, items) {
         for (state in expensesState) {
-            if (state.value && expenses[state.key] == null) { // if expanded category, load list of expenses
-                expenses[state.key] = backendService.getExpensesByCategory(state.key, scaledDateItem)
-            }
+            expenses[state.key] = backendService.getExpensesByCategory(state.key, scaledDateItem)
         }
     }
 
@@ -69,12 +69,12 @@ fun ExpandableList(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(
                                 text = String.format(
-                                    if (item.amount >= 100000)
+                                    if (item.amount.compareTo(BigDecimal.valueOf(100000)) != -1)
                                         "%,.0f"
                                     else
                                         "%,.2f",
                                     item.amount
-                                ) + " PLN",
+                                ) + " ${backendService.getPersonalCurrency()}",
                                 fontSize = 14.sp,
                                 color = Color.hsl(358f, 0.63f, 0.49f)
                             )
@@ -87,7 +87,7 @@ fun ExpandableList(
                         }
                 )
 
-                if (expenses[item.category] != null) {
+                if (expensesState[item.category] == true && expenses[item.category]?.isNotEmpty() == true) {
                     Column {
                         for (expense in expenses[item.category]!!) {
                             Divider()
@@ -99,28 +99,10 @@ fun ExpandableList(
                                             .fillMaxSize(),
                                         verticalAlignment = Alignment.Bottom
                                     ) {
-
-                                        //TODO: fix
-//                                        val text = buildAnnotatedString {
-//
-//                                            append(
-//                                                expense.amount.toInt().toString()
-//                                            )
-//
-//                                            withStyle(
-//                                                style = SpanStyle(
-//                                                    fontSize = MaterialTheme.typography.bodySmall.fontSize,
-//                                                    fontStyle = MaterialTheme.typography.bodySmall.fontStyle
-//                                                )
-//                                            ) {
-//                                                append(
-//                                                    "." + ((expense.getAmount() - expense.getAmount()
-//                                                        .toInt()) * 100).toInt().toString() + " PLN"
-//                                                )
-//                                            }
-//                                        }
-//
-//                                        Text(text)
+                                        Text(
+                                        "${expense.amount.setScale(2).toDouble()} " +
+                                            "${backendService.getPersonalCurrency()}"
+                                        )
                                     }
                                     Row(
                                         modifier = Modifier
@@ -128,7 +110,7 @@ fun ExpandableList(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Text(
-                                            expense.date.toString(),
+                                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(expense.date),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.outline,
                                             modifier = Modifier.padding(bottom = 5.dp, top = 2.dp)
@@ -161,7 +143,6 @@ fun ExpandableList(
                                             confirmButton = {
                                                 TextButton(onClick = {
                                                     deleteItem(expense.id)
-                                                    alertUser("Expense deleted!", context)
                                                     showDialog.value = false
                                                 }) {
                                                     Text("Yes")

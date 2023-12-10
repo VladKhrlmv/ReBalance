@@ -1,6 +1,5 @@
 package com.rebalance.ui.component
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -48,7 +47,6 @@ data class TourStep(
 
 @Composable
 fun ToolTipOverlay(navHostController: NavHostController) {
-    Log.d("tooltip", "init")
     val backendService = remember { BackendService.get() }
     val tourScope = rememberCoroutineScope()
     var isActive by rememberSaveable { mutableStateOf(backendService.isFirstLaunch()) }
@@ -148,22 +146,19 @@ fun ToolTipOverlay(navHostController: NavHostController) {
     if (isActive) {
         tourSteps.getOrNull(currentStepIndex)?.let { step ->
             if (step.screen.route != navHostController.currentBackStackEntry?.destination?.route) {
-                Log.d("tooltip", "next screen")
                 navigateSingleTo(navHostController, step.screen)
             }
             ToolTipStep(
                 anchor = step.anchor,
                 text = step.text,
-                icon = currentStep.icon,
-                iconContentDescription = currentStep.iconContent,
+                icon = step.icon,
+                iconContentDescription = step.iconContent,
                 isEnd = step.isEnd,
                 nextStep = {
                     currentStepIndex += 1
-                    Log.d("tooltip", "next tip $currentStepIndex")
                 },
                 skipTour = {
                     tourScope.launch {
-                        Log.d("tooltip", "update first launch")
                         isActive = backendService.updateFirstLaunch(false)
                     }
                 }

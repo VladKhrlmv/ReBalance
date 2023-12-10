@@ -14,9 +14,7 @@ import androidx.compose.ui.Alignment.Companion.End
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rebalance.PreferencesData
-import com.rebalance.backend.service.BackendService
-import com.rebalance.backend.service.BarChartData
+
 
 @Composable
 fun ExpenseDistribution(

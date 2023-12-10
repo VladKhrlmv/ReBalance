@@ -28,6 +28,7 @@ import com.rebalance.backend.dto.SumByCategoryItem
 import com.rebalance.ui.theme.categoryColors
 import com.rebalance.ui.theme.darkBlueColor
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.text.DecimalFormat
 
 @Composable
@@ -46,7 +47,7 @@ fun PieChart(
         verticalArrangement = Arrangement.Center
     ) {
         val onBackground = MaterialTheme.colorScheme.onBackground.toArgb()
-        Crossfade(targetState = data) { pieChartData ->
+        Crossfade(targetState = data, label = "") { pieChartData ->
             AndroidView(factory = { context ->
                 PieChart(context).apply {
                     this.layoutParams = LinearLayout.LayoutParams(
@@ -107,8 +108,8 @@ fun updatePieChartWithData(
     data.forEach { item ->
         entries.add(
             PieEntry(
-                (item.amount.divide(sum).multiply(BigDecimal(100))).toFloat(),
-                if (item.amount.divide(sum).multiply(BigDecimal(100))
+                (item.amount.divide(sum, 4, RoundingMode.HALF_UP).multiply(BigDecimal(100))).toFloat(),
+                if (item.amount.divide(sum, 4, RoundingMode.HALF_UP).multiply(BigDecimal(100))
                         .compareTo(overlapLimit) != -1
                 )
                     item.category

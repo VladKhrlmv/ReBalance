@@ -31,7 +31,12 @@ fun GroupContextMenu(
                     EvaIcons.Fill.MoreVertical,
             contentDescription = "More actions",
             modifier = Modifier
-                .clickable { expanded = true }
+                .clickable {
+                    if (groupId == -1L)
+                        onCreateGroupClick()
+                    else
+                        expanded = true
+                }
                 .padding(12.dp),
             tint = MaterialTheme.colorScheme.onBackground
         )
