@@ -12,12 +12,14 @@ data class Settings(
     val server_ip: String,
     @ColumnInfo(name = "user_id")
     var user_id: Long,
-    @ColumnInfo(name = "group_ip")
-    var group_ip: Long,
+    @ColumnInfo(name = "group_id")
+    var group_id: Long,
     @ColumnInfo(name = "first_launch")
     var first_launch: Boolean,
     @ColumnInfo(name = "token")
-    var token: String
+    var token: String,
+    @ColumnInfo(name = "currency")
+    var currency: String
 ) {
     companion object {
         fun getDefaultInstance(): Settings {
@@ -25,12 +27,11 @@ data class Settings(
                 id = 1,
                 server_ip = "http://26.129.34.140:8080/v1",
                 user_id = -1,
-                group_ip = -1,
+                group_id = -1,
                 first_launch = true,
-                token = ""
+                token = "",
+                currency = ""
             )
         }
     }
 }
-
-
