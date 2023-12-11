@@ -354,6 +354,25 @@ class BackendService {
             else -> RegisterResult.ServerError
         }
     }
+
+    suspend fun logout(): Boolean {
+        val (_, _) = requestSender.sendPost("/user/logout", "")
+        // update settings in db
+        val defaultSettings = Settings.getDefaultInstance()
+        updateUserInSettings(
+            defaultSettings.user_id,
+            defaultSettings.group_id,
+            defaultSettings.token,
+            defaultSettings.currency
+        )
+
+        // delete all records from localdb
+        withContext(Dispatchers.IO) {
+            db.groupDao().dropAllGroups()
+            db.userDao().dropAllUsers()
+        }
+        return true
+    }
     //endregion
 
     //region Personal screen

@@ -22,4 +22,7 @@ interface UserDao {
                 "WHERE ug.group_id = :groupId"
     )
     suspend fun getGroupUsers(groupId: Long): List<SpendingDeptor>
+
+    @Query("DELETE FROM users")
+    suspend fun dropAllUsers()
 }
