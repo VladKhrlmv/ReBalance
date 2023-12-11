@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rebalance.backend.dto.ScaledDateItem
@@ -113,11 +114,17 @@ fun ExpandableList(
                                             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(expense.date),
                                             style = MaterialTheme.typography.bodySmall,
                                             color = MaterialTheme.colorScheme.outline,
-                                            modifier = Modifier.padding(bottom = 5.dp, top = 2.dp)
                                         )
                                     }
                                 },
-                                supportingContent = { Text(expense.description) },
+                                supportingContent = { Text(
+                                    expense.description,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 16.sp,
+                                    modifier = Modifier.padding(vertical = 5.dp)
+                                ) },
                                 leadingContent = {
                                     DisplayExpenseImage(
                                         expense.id,
