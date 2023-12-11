@@ -25,6 +25,7 @@ import compose.icons.evaicons.Fill
 import compose.icons.evaicons.fill.Trash
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.format.DateTimeFormatter
 
 @Composable
@@ -100,7 +101,7 @@ fun ExpandableList(
                                         verticalAlignment = Alignment.Bottom
                                     ) {
                                         Text(
-                                        "${expense.amount.setScale(2).toDouble()} " +
+                                        "${expense.amount.setScale(2, RoundingMode.HALF_EVEN).toDouble()} " +
                                                 backendService.getPersonalCurrency()
                                         )
                                     }
