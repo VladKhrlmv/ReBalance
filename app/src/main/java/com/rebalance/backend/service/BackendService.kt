@@ -833,10 +833,12 @@ class BackendService {
                 expenseId = db.expenseDao().saveExpense(groupExpense)
             }
             // save all participants
+            var totalMultipliers = 0
+            expense.users.forEach { u -> totalMultipliers += u.multiplier }
             val users = expense.users.map { user ->
                 ExpenseUser(
                     0L,
-                    expense.amount.divide(BigDecimal.valueOf(user.multiplier.toDouble())),
+                    expense.amount.multiply(BigDecimal.valueOf(user.multiplier.toDouble() / totalMultipliers)),
                     user.multiplier,
                     user.userId,
                     expenseId
