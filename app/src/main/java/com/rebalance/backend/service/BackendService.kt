@@ -111,6 +111,7 @@ class BackendService {
             }
             return@async
         }.await()
+        requestSender = RequestSender(settings.server_ip, settings.token)
     }
 
     suspend fun updateFirstLaunch(firstLaunch: Boolean): Boolean {
