@@ -1,5 +1,8 @@
 package com.rebalance.ui.screen.main
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -43,6 +46,14 @@ fun MainScreen(
     val pieChartActive = rememberSaveable { mutableStateOf(true) } //TODO: move to settings
     val navBackStackEntry by navHostController.currentBackStackEntryAsState()
     val imePadding = WindowInsets.ime.asPaddingValues().calculateBottomPadding()
+    val animatedImePadding by animateDpAsState(
+        targetValue = imePadding,
+        animationSpec = spring(
+            stiffness = Spring.StiffnessMediumLow,
+            dampingRatio = Spring.DampingRatioLowBouncy
+        ),
+        label = ""
+    )
 
     Scaffold(
         topBar = {
@@ -69,7 +80,7 @@ fun MainScreen(
                     top = padding.calculateTopPadding(),
                     bottom = max(
                         padding.calculateBottomPadding(),
-                        imePadding
+                        animatedImePadding
                     )
                 )
             ) {
