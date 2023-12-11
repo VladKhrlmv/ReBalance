@@ -43,6 +43,10 @@ fun ExpandableList(
     val expenses = remember { mutableStateMapOf<String, List<Expense>>() }
     val expensesState = remember { mutableStateMapOf<String, Boolean>() }
 
+    LaunchedEffect(openCategory.value) {
+        expenses[openCategory.value] = backendService.getExpensesByCategory(openCategory.value, scaledDateItem)
+    }
+
     LazyColumn(state = scrollState) {
         items(items = items, itemContent = { item ->
             expensesState[item.category] = item.category == openCategory.value
