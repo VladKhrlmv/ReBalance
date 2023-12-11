@@ -3,7 +3,6 @@ package com.rebalance.ui.screen.main
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.provider.MediaStore
-import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -67,43 +66,34 @@ fun AddSpendingScreen(
 
     var personalGroup: Group? by remember { mutableStateOf(null) }
     var groupList by remember { mutableStateOf(listOf<Group>()) }
-    var groupIndex by remember { mutableStateOf(0) }
+    var groupIndex by remember { mutableIntStateOf(0) }
 
     var payer: User? by remember { mutableStateOf(null) }
-    var payerId by remember { mutableStateOf(0L) }
+    var payerId by remember { mutableLongStateOf(0L) }
     var membersSelection by remember { mutableStateOf(listOf<SpendingDeptor>()) }
 
     var selectedPhoto by remember { mutableStateOf(callerPhoto) }
     var photoName by remember { mutableStateOf("") }
 
-    //TODO: add focusers to each field
-//    val focusRequesters = remember { List(3) { FocusRequester() } }
     val focusManager = LocalFocusManager.current
 
     // selecting image
     val galleryLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri ->
             if (uri != null) {
-                Log.d("add", "start getting image")
                 val bitmap = context.contentResolver.openInputStream(uri)?.use {
                     BitmapFactory.decodeStream(it)
                 }
-                Log.d("add", "image ${bitmap?.height}x${bitmap?.width}")
-
                 val fileNameColumn = arrayOf(MediaStore.Images.Media.DISPLAY_NAME)
-                Log.d("add", "image name $fileNameColumn")
                 val cursor = context.contentResolver.query(uri, fileNameColumn, null, null, null)
-                Log.d("add", "open cursor")
                 if (cursor != null && cursor.moveToFirst()) {
                     val columnIndex = cursor.getColumnIndex(fileNameColumn[0])
                     photoName = cursor.getString(columnIndex)
                     cursor.close()
-                    Log.d("add", "photo name $photoName")
                 }
 
                 if (bitmap != null) {
                     selectedPhoto = bitmap.asImageBitmap()
-                    Log.d("add", "select photo")
                 }
             }
         }
@@ -121,7 +111,7 @@ fun AddSpendingScreen(
                 alertUser("Fill in all data", context)
                 return@setOnPlusClick
             }
-            if (isGroupExpense && membersSelection.all { deptor -> !deptor.selected }) {
+            if (isGroupExpense && membersSelection.all { debtor -> !debtor.selected }) {
                 alertUser("Choose at least one member", context)
                 return@setOnPlusClick
             }
@@ -436,7 +426,7 @@ fun AddSpendingScreen(
                             payerId = it
                         }
                     )
-                    // deptors choosing
+                    // debtors choosing
                     Column(
                         modifier = Modifier
                             .heightIn(100.dp, 175.dp)
@@ -491,13 +481,8 @@ fun AddSpendingScreen(
                                                         member.userId,
                                                         newValue.toInt()
                                                     )
-                                                    Log.d(
-                                                        "add",
-                                                        "mult1 $newValue ${member.multiplier}"
-                                                    )
                                                 } else if (newValue == "") {
                                                     updateMultiplier(member.userId, 0)
-                                                    Log.d("add", "mult0 ${member.multiplier}")
                                                 }
                                             },
                                             keyboardOptions = KeyboardOptions(
