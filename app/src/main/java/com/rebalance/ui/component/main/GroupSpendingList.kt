@@ -1,5 +1,6 @@
 package com.rebalance.ui.component.main
 
+import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -8,9 +9,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.MutableLiveData
@@ -24,6 +28,7 @@ import compose.icons.evaicons.fill.Trash
 import kotlinx.coroutines.launch
 import java.time.format.DateTimeFormatter
 
+@SuppressLint("CoroutineCreationDuringComposition")
 @Composable
 fun GroupSpendingList(
     group: Group,
@@ -62,12 +67,13 @@ fun GroupSpendingList(
         modifier = Modifier
             .fillMaxSize()
             .padding(10.dp),
-        verticalArrangement = Arrangement.Top
+        verticalArrangement = Arrangement.Top,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         items(
             items = expenses,
             itemContent = { expense ->
-                val expanded = rememberSaveable { mutableStateOf(false) }
+                val expanded = remember { mutableStateOf(false) }
                 var showPicture by remember { mutableStateOf(false) }
                 Card(
                     modifier = Modifier
@@ -80,27 +86,23 @@ fun GroupSpendingList(
                 ) {
                     ListItem(
                         headlineContent = {
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxSize(),
-                                verticalAlignment = Alignment.Bottom
-                            ) {
-                                Text("${expense.amount.setScale(2)} ${group.currency}")
-                            }
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxSize(),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(expense.date),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.outline,
-                                    modifier = Modifier.padding(bottom = 5.dp, top = 2.dp)
-                                )
-                            }
+                            Text("${expense.amount.setScale(2)} ${group.currency}")
+                            Text(
+                                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(expense.date),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.outline,
+                            )
                         },
-                        supportingContent = { Text(expense.description) },
+                        supportingContent = {
+                            Text(
+                                expense.description,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onBackground,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp,
+                                modifier = Modifier.padding(vertical = 5.dp)
+                            )
+                        },
                         leadingContent = {
                             DisplayExpenseImage(
                                 expense.id,
@@ -153,33 +155,56 @@ fun GroupSpendingList(
                     if (expanded.value) {
                         Column(
                             modifier = Modifier
-                                .padding(horizontal = 10.dp, vertical = 5.dp)
+                                .padding(horizontal = 20.dp, vertical = 5.dp)
                         ) {
                             Text(
-                                text = "Category: " + expense.category,
-                                fontSize = 14.sp,
-                                modifier = Modifier
-                                    .padding(horizontal = 10.dp)
-                                    .fillMaxWidth()
+                                text = buildAnnotatedString {
+                                    withStyle(
+                                        style = SpanStyle(
+                                            fontSize = MaterialTheme.typography.bodySmall.fontSize
+                                        )
+                                    ) {
+                                        append("Category: ")
+                                    }
+
+                                    withStyle(
+                                        style = SpanStyle(
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                                            color = MaterialTheme.colorScheme.onBackground
+                                        )
+                                    ) {
+                                        append(expense.category)
+                                    }
+                                }
                             )
-                            Text(
-                                text =
-                                    if (expense.initiator.isEmpty())
-                                        ""
-                                    else
-                                        "Payed by: ${expense.initiator}",
-                                fontSize = 14.sp,
-                                modifier = Modifier
-                                    .padding(horizontal = 10.dp)
-                                    .fillMaxWidth()
-                            )
-                            Text(
-                                text = "To:",
-                                fontSize = 14.sp,
-                                modifier = Modifier
-                                    .padding(horizontal = 10.dp)
-                                    .fillMaxWidth()
-                            )
+                            Spacer(modifier = Modifier.padding(vertical = 4.dp))
+                            if (expense.initiator.isNotEmpty()) {
+                                Text(
+                                    text = buildAnnotatedString {
+                                        withStyle(
+                                            style = SpanStyle(
+                                                fontSize = MaterialTheme.typography.bodySmall.fontSize
+                                            )
+                                        ) {
+                                            append("Payed by: ")
+                                        }
+                                        withStyle(
+                                            style = SpanStyle(
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = MaterialTheme.typography.bodyMedium.fontSize,
+                                                color = MaterialTheme.colorScheme.onBackground
+                                            )
+                                        ) {
+                                            append(expense.initiator)
+                                        }
+                                    }
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.padding(vertical = 4.dp))
+                            Divider(color = MaterialTheme.colorScheme.onPrimaryContainer, thickness = 1.dp)
+                            Spacer(modifier = Modifier.padding(vertical = 4.dp))
 
                             if (expenseDebtors[expense.id] != null) {
                                 for (user in expenseDebtors[expense.id]!!) {
@@ -188,18 +213,21 @@ fun GroupSpendingList(
                                         horizontalArrangement = Arrangement.SpaceBetween
                                     ) {
                                         Text(
-                                            text = user.user,
-                                            fontSize = 14.sp,
-                                            modifier = Modifier
-                                                .padding(horizontal = 10.dp)
+                                            text = buildAnnotatedString {
+                                                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold)) {
+                                                    append(user.user)
+                                                }
+                                            },
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onBackground
                                         )
                                         Text(
                                             text = "${user.amount.setScale(2)} ${group.currency}",
-                                            fontSize = 14.sp,
-                                            modifier = Modifier
-                                                .padding(horizontal = 10.dp)
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onBackground
                                         )
                                     }
+                                    Spacer(modifier = Modifier.padding(vertical = 4.dp))
                                 }
                             }
                         }

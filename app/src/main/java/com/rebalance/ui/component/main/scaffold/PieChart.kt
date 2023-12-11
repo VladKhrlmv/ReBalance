@@ -27,6 +27,7 @@ import com.github.mikephil.charting.listener.OnChartValueSelectedListener
 import com.rebalance.backend.dto.SumByCategoryItem
 import com.rebalance.ui.theme.categoryColors
 import com.rebalance.ui.theme.darkBlueColor
+import kotlinx.coroutines.launch
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.DecimalFormat
@@ -67,19 +68,19 @@ fun PieChart(
                     this.setCenterTextTypeface(Typeface.DEFAULT_BOLD)
                     this.setOnChartValueSelectedListener(object : OnChartValueSelectedListener {
                         override fun onValueSelected(e: Entry, h: Highlight) {
-//                            if (e is PieEntry) {
-//                                pieChartActive.value = !pieChartActive.value
-//                                openCategory.value = (e.data as ExpenseItem).text
-//                                val indexOfItem = data.indexOfFirst {
-//                                    it.text == openCategory.value
-//                                }
-//                                coroutineScope.launch {
-//                                    expandableListState.scrollToItem(
-//                                        index = indexOfItem,
-//                                        scrollOffset = 3
-//                                    )
-//                                }
-//                            }
+                            if (e is PieEntry) {
+                                pieChartActive.value = !pieChartActive.value
+                                openCategory.value = (e.data as SumByCategoryItem).category
+                                val indexOfItem = data.indexOfFirst {
+                                    it.category == openCategory.value
+                                }
+                                coroutineScope.launch {
+                                    expandableListState.scrollToItem(
+                                        index = indexOfItem,
+                                        scrollOffset = 3
+                                    )
+                                }
+                            }
                         }
 
                         override fun onNothingSelected() {}

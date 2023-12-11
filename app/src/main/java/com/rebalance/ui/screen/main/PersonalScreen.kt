@@ -37,12 +37,12 @@ fun PersonalScreen(
     val personalScope = rememberCoroutineScope()
 
     val scaleItems = remember { backendService.getScaleItems() }
-    var selectedScaleIndex by remember { mutableStateOf(0) }
+    var selectedScaleIndex by remember { mutableIntStateOf(0) }
 
     var tabItems by remember { mutableStateOf(listOf<ScaledDateItem>()) }
-    var selectedTabIndex by remember { mutableStateOf(-1) }
+    var selectedTabIndex by remember { mutableIntStateOf(-1) }
 
-    var openCategory = remember { mutableStateOf("") }
+    val openCategory = remember { mutableStateOf("") }
     val expandableListState = rememberLazyListState()
 
     var sumByCategories by remember { mutableStateOf(listOf<SumByCategoryItem>()) }
@@ -159,7 +159,7 @@ private fun DisplayTabs(
 ) {
     ScrollableTabRow(
         selectedTabIndex = selectedTabIndex,
-        edgePadding = 110.dp
+        edgePadding = 200.dp
     ) {
         tabs.forEachIndexed { tabIndex, tab ->
             Tab(

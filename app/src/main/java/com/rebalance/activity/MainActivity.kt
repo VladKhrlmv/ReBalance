@@ -10,6 +10,7 @@ import androidx.activity.compose.setContent
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.core.view.WindowCompat
 import androidx.navigation.compose.rememberNavController
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
@@ -24,6 +25,7 @@ class MainActivity : ComponentActivity() {
     private val workManager = WorkManager.getInstance(application)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        WindowCompat.setDecorFitsSystemWindows(window, false)
         setContent {
             ReBalanceTheme {
                 // initialize nav controller
