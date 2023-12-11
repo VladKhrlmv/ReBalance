@@ -13,32 +13,10 @@ import com.rebalance.backend.api.dto.request.ApiGroupAddUserRequest
 import com.rebalance.backend.api.dto.request.ApiGroupCreateRequest
 import com.rebalance.backend.api.dto.request.ApiLoginRequest
 import com.rebalance.backend.api.dto.request.ApiRegisterRequest
-import com.rebalance.backend.dto.AddUserToGroupResult
-import com.rebalance.backend.dto.BarChartItem
-import com.rebalance.backend.dto.DeleteResult
-import com.rebalance.backend.dto.GroupExpenseItem
-import com.rebalance.backend.dto.GroupExpenseItemUser
-import com.rebalance.backend.dto.LoginResult
-import com.rebalance.backend.dto.NewGroupSpending
-import com.rebalance.backend.dto.NewPersonalSpending
-import com.rebalance.backend.dto.RegisterResult
-import com.rebalance.backend.dto.ScaleItem
-import com.rebalance.backend.dto.ScaledDateItem
-import com.rebalance.backend.dto.SpendingDeptor
-import com.rebalance.backend.dto.SumByCategoryItem
+import com.rebalance.backend.dto.*
 import com.rebalance.backend.localdb.db.AppDatabase
-import com.rebalance.backend.localdb.entities.Expense
-import com.rebalance.backend.localdb.entities.ExpenseUser
-import com.rebalance.backend.localdb.entities.Group
-import com.rebalance.backend.localdb.entities.Image
-import com.rebalance.backend.localdb.entities.Settings
-import com.rebalance.backend.localdb.entities.User
-import com.rebalance.backend.localdb.entities.UserGroup
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.rebalance.backend.localdb.entities.*
+import kotlinx.coroutines.*
 import java.io.ByteArrayOutputStream
 import java.math.BigDecimal
 import java.text.SimpleDateFormat
@@ -47,8 +25,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
-import java.util.Calendar
-import java.util.Locale
+import java.util.*
 
 class BackendService {
     private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
@@ -184,6 +161,127 @@ class BackendService {
         }.await()
     }
 
+    private suspend fun fetchUserData(): Boolean {
+        var result = true
+        mainScope.async {
+            // fetch and save all groups (where user is in)
+            val (responseCodeUserGroups, responseBodyUserGroups) = requestSender.sendGet("/user/groups")
+            if (responseCodeUserGroups != 200) {
+                result = false
+                return@async
+            }
+            val userGroups = RequestParser.responseToGroupList(responseBodyUserGroups)
+            withContext(Dispatchers.IO) {
+                userGroups.forEach { g ->
+                    db.groupDao().saveGroup(Group(g.id, false, g.name, g.currency, false))
+                }
+            }
+            // fetch and save all users for each group and their relations with group
+            for (group in userGroups) {
+                val (responseCodeUsers, responseBodyUsers) = requestSender.sendGet("/group/${group.id}/users")
+                if (responseCodeUsers != 200) {
+                    result = false
+                    return@async
+                }
+                val users = RequestParser.responseToUserList(responseBodyUsers)
+                withContext(Dispatchers.IO) {
+                    users.forEach { u ->
+                        db.userDao().save(User(u.id, u.nickname, u.email))
+                        db.userGroupDao().saveUserGroup(UserGroup(0L, u.balance, u.id, group.id))
+                    }
+                }
+                // fetch and save all group expenses for a group
+                var currentPage = 0
+                while (true) {
+                    // iterate over pages with size 20 of expenses
+                    val (responseCodeGroupExpenses, responseBodyGroupExpenses) = requestSender.sendGet(
+                        "/group/${group.id}/expenses?size=20&page=$currentPage"
+                    )
+                    if (responseCodeGroupExpenses != 200) {
+                        result = false
+                        return@async
+                    }
+                    val groupExpenses =
+                        RequestParser.responseToGroupExpenseList(responseBodyGroupExpenses)
+                    withContext(Dispatchers.IO) {
+                        // save each group expense in page to localdb
+                        for (ge in groupExpenses.content) {
+                            val expenseId = db.expenseDao().saveExpense(
+                                Expense(
+                                    0L,
+                                    ge.id,
+                                    false,
+                                    ge.amount,
+                                    ge.description,
+                                    LocalDateTime.ofInstant(ge.date.toInstant(), ZoneId.of("UTC")),
+                                    ge.category,
+                                    ge.initiatorUserId,
+                                    ge.addedByUserId,
+                                    group.id
+                                )
+                            )
+                            // save participants of group expense to localdb
+                            for (eu in ge.users) {
+                                db.expenseUserDao().saveExpenseUser(
+                                    ExpenseUser(
+                                        0L,
+                                        eu.amount,
+                                        eu.multiplier,
+                                        eu.userId,
+                                        expenseId
+                                    )
+                                )
+                            }
+                        }
+                    }
+                    currentPage++
+                    if (currentPage == groupExpenses.totalPages || groupExpenses.totalPages == 0) {
+                        break
+                    }
+                }
+            }
+            // fetch and save all personal expenses
+            var currentPage = 0
+            while (true) {
+                // iterate over pages with size 20 of expenses
+                val (responseCodePersonalExpenses, responseBodyPersonalExpenses) = requestSender.sendGet(
+                    "/personal/expenses?size=20&page=$currentPage"
+                )
+                if (responseCodePersonalExpenses != 200) {
+                    result = false
+                    return@async
+                }
+                val personalExpenses =
+                    RequestParser.responseToPersonalExpenseList(responseBodyPersonalExpenses)
+                withContext(Dispatchers.IO) {
+                    // save each personal expense in page to localdb
+                    for (pe in personalExpenses.content) {
+                        val expenseId = db.expenseDao().saveExpense(
+                            Expense(
+                                0L,
+                                pe.id,
+                                false,
+                                pe.amount,
+                                pe.description,
+                                LocalDateTime.ofInstant(pe.date.toInstant(), ZoneId.of("UTC")),
+                                pe.category,
+                                settings.user_id,
+                                settings.user_id,
+                                settings.group_id
+                            )
+                        )
+                    }
+                }
+                currentPage++
+                if (currentPage == personalExpenses.totalPages || personalExpenses.totalPages == 0) {
+                    break
+                }
+            }
+            return@async
+        }.await()
+        return result
+    }
+
     suspend fun login(request: ApiLoginRequest): LoginResult {
         val (responseCodeLogin, responseBodyLogin) = requestSender.sendPost(
             "/user/login",
@@ -215,6 +313,7 @@ class BackendService {
                     user.personalGroupId,
                     user.currency
                 )
+                fetchUserData()
 
                 LoginResult.LoggedIn
             }
