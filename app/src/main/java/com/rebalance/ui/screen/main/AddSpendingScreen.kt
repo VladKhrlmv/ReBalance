@@ -9,6 +9,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -19,12 +20,18 @@ import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -76,6 +83,7 @@ fun AddSpendingScreen(
     var photoName by remember { mutableStateOf("") }
 
     val focusManager = LocalFocusManager.current
+    val scrollState = rememberScrollState()
 
     // selecting image
     val galleryLauncher =
@@ -178,6 +186,8 @@ fun AddSpendingScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(scrollState)
+            .padding(start = 10.dp, end = 10.dp, bottom = 100.dp)
             .pointerInput(Unit) {
                 detectTapGestures(
                     onPress = { /* Do nothing on press to avoid ripple effect */
@@ -186,112 +196,21 @@ fun AddSpendingScreen(
                 )
             }
     ) {
-        // scrollable column with other content
-        Column(
+        // Title and image
+        Row(
             modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(start = 10.dp, end = 10.dp)
+                .fillMaxWidth()
         ) {
-            // Title and image
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-            ) {
-                // Title field
-                TextField(
-                    value = spendingName,
-                    onValueChange = { newSpendingName -> spendingName = newSpendingName },
-                    label = {
-                        Text(text = "Title")
-                    },
-                    modifier = Modifier
-                        .padding(horizontal = 10.dp, vertical = 5.dp)
-                        .align(Alignment.CenterStart)
-                        .width(275.dp),
-                    colors = TextFieldDefaults.textFieldColors(
-                        containerColor = Color.Transparent,
-                    ),
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.Text,
-                        imeAction = ImeAction.Next
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onNext = {
-                            focusManager.moveFocus(FocusDirection.Down)
-                        }
-                    ),
-                    singleLine = true
-                )
-                IconButton(
-                    onClick = { galleryLauncher.launch("image/*") },
-                    modifier = Modifier
-                        .padding(10.dp)
-                        .align(Alignment.CenterEnd)
-                        .size(64.dp)
-                ) {
-                    if (selectedPhoto == null) {
-                        Icon(
-                            EvaIcons.Fill.Image,
-                            "Image",
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
-                    } else {
-                        Icon(
-//                            Bitmap.createScaledBitmap(
-//                                selectedPhoto!!,
-//                                175,
-//                                175,
-//                                false
-//                            ).asImageBitmap(),
-                            selectedPhoto!!, //TODO: scale image to fit icon
-                            "Image",
-                            tint = Color.Unspecified
-                        )
-                    }
-                }
-            }
-            // If picture is chosen
-            if (selectedPhoto != null) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(24.dp)
-                ) {
-                    Text(
-                        photoName,
-                        fontSize = 12.sp,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier
-                            .widthIn(max = 270.dp)
-                            .padding(horizontal = 12.dp)
-                            .align(Alignment.CenterVertically)
-                    )
-                    IconButton(onClick = {
-                        photoName = ""
-                        selectedPhoto = null
-                    }) {
-                        Icon(
-                            EvaIcons.Fill.Trash,
-                            "Delete attachment",
-                            modifier = Modifier
-                                .size(16.dp)
-                                .align(Alignment.CenterVertically)
-                        )
-                    }
-                }
-            }
-            // Category field
+            // Title field
             TextField(
-                value = selectedCategory,
-                onValueChange = { selectedCategory = it },
+                value = spendingName,
+                onValueChange = { newSpendingName -> spendingName = newSpendingName },
                 label = {
-                    Text(text = "Category")
+                    Text(text = "Title")
                 },
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 10.dp, vertical = 5.dp),
+                    .padding(horizontal = 10.dp, vertical = 5.dp)
+                    .weight(1f),
                 colors = TextFieldDefaults.textFieldColors(
                     containerColor = Color.Transparent,
                 ),
@@ -306,200 +225,285 @@ fun AddSpendingScreen(
                 ),
                 singleLine = true
             )
-            // Cost field
-            TextField(
-                value = costValue,
-                onValueChange = { newCostValue ->
-                    if (costValueRegex().matches(newCostValue)) {
-                        costValue = newCostValue.replace(",", ".")
-                    }
-                },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Number,
-                    imeAction = ImeAction.Done
-                ),
-                label = {
-                    Text(text = "Cost")
-                },
+            IconButton(
+                onClick = { galleryLauncher.launch("image/*") },
                 modifier = Modifier
-                    .padding(horizontal = 10.dp, vertical = 5.dp)
-                    .fillMaxWidth()
-                    .onFocusChanged {
-                        if (!it.isFocused) {
-                            costValue = costValue
-                                .replace(",", ".")
-                                .replace("""^\.""".toRegex(), "0.")
-                                .replace("""\.$""".toRegex(), ".00")
-                        }
-                    }
-                    .testTag("addCost"),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = Color.Transparent,
-                ),
-                singleLine = true,
-                trailingIcon = {
-                    Text(
-                        // if group expense and list of groups is loaded (or not empty), get currency from there
-                        text = if (isGroupExpense && groupList.size > groupIndex) {
-                            groupList[groupIndex].currency
-                        } else { //otherwise get personal currency (if loaded, or empty)
-                            personalGroup?.currency ?: ""
-                        }
+                    .size(70.dp)
+            ) {
+                if (selectedPhoto == null) {
+                    Icon(
+                        EvaIcons.Fill.Image,
+                        "Image",
+                        tint = MaterialTheme.colorScheme.onBackground
+                    )
+                } else {
+                    Icon(
+//                            Bitmap.createScaledBitmap(
+//                                selectedPhoto!!,
+//                                175,
+//                                175,
+//                                false
+//                            ).asImageBitmap(),
+                        selectedPhoto!!, //TODO: scale image to fit icon
+                        "Image",
+                        tint = Color.Unspecified
                     )
                 }
-            )
-            // Date picker and Group checkbox fields
+            }
+        }
+        // If picture is chosen
+        if (selectedPhoto != null) {
             Row(
                 modifier = Modifier
-                    .padding(horizontal = 10.dp, vertical = 5.dp)
                     .fillMaxWidth()
+                    .height(24.dp)
             ) {
-                DatePickerField(
-                    date,
+                Text(
+                    photoName,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                     modifier = Modifier
-                        .width(180.dp),
-                    onChange = {
-                        date = it
+                        .widthIn(max = 270.dp)
+                        .padding(horizontal = 12.dp)
+                        .align(Alignment.CenterVertically)
+                )
+                IconButton(onClick = {
+                    photoName = ""
+                    selectedPhoto = null
+                }) {
+                    Icon(
+                        EvaIcons.Fill.Trash,
+                        "Delete attachment",
+                        modifier = Modifier
+                            .size(16.dp)
+                            .align(Alignment.CenterVertically)
+                    )
+                }
+            }
+        }
+        // Category field
+        TextField(
+            value = selectedCategory,
+            onValueChange = { selectedCategory = it },
+            label = {
+                Text(text = "Category")
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp, vertical = 5.dp),
+            colors = TextFieldDefaults.textFieldColors(
+                containerColor = Color.Transparent,
+            ),
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Next
+            ),
+            keyboardActions = KeyboardActions(
+                onNext = {
+                    focusManager.moveFocus(FocusDirection.Down)
+                }
+            ),
+            singleLine = true
+        )
+        // Cost field
+        TextField(
+            value = costValue,
+            onValueChange = { newCostValue ->
+                if (costValueRegex().matches(newCostValue)) {
+                    costValue = newCostValue.replace(",", ".")
+                }
+            },
+            keyboardOptions = KeyboardOptions(
+                keyboardType = KeyboardType.Number,
+                imeAction = ImeAction.Done
+            ),
+            label = {
+                Text(text = "Cost")
+            },
+            modifier = Modifier
+                .padding(horizontal = 10.dp, vertical = 5.dp)
+                .fillMaxWidth()
+                .onFocusChanged {
+                    if (!it.isFocused) {
+                        costValue = costValue
+                            .replace(",", ".")
+                            .replace("""^\.""".toRegex(), "0.")
+                            .replace("""\.$""".toRegex(), ".00")
+                    }
+                }
+                .testTag("addCost"),
+            colors = TextFieldDefaults.textFieldColors(
+                containerColor = Color.Transparent,
+            ),
+            singleLine = true,
+            trailingIcon = {
+                Text(
+                    // if group expense and list of groups is loaded (or not empty), get currency from there
+                    text = if (isGroupExpense && groupList.size > groupIndex) {
+                        groupList[groupIndex].currency
+                    } else { //otherwise get personal currency (if loaded, or empty)
+                        personalGroup?.currency ?: ""
                     }
                 )
-                //TODO: wrap checkbox and text into row and make it clickable to select
-                Checkbox(
-                    checked = isGroupExpense,
-                    onCheckedChange = {
-                        isGroupExpense = it
-                    },
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .testTag("groupExpenseCheckBox")
-                )
-                Text(
-                    text = "Group expense",
-                    modifier = Modifier
-                        .align(Alignment.CenterVertically)
-                        .fillMaxWidth()
-                        .clickable {
-                            isGroupExpense = !isGroupExpense
-                        }
-                )
             }
-            // animated Group selector
-            AnimatedVisibility(
-                visible = isGroupExpense,
+        )
+        // Date picker and Group checkbox fields
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 10.dp, vertical = 5.dp)
+                .fillMaxWidth()
+        ) {
+            DatePickerField(
+                date,
+                modifier = Modifier
+                    .width(180.dp),
+                onChange = {
+                    date = it
+                }
+            )
+            //TODO: wrap checkbox and text into row and make it clickable to select
+            Checkbox(
+                checked = isGroupExpense,
+                onCheckedChange = {
+                    isGroupExpense = it
+                },
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .testTag("groupExpenseCheckBox")
+            )
+            Text(
+                text = "Group expense",
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .fillMaxWidth()
+                    .clickable {
+                        isGroupExpense = !isGroupExpense
+                    }
+            )
+        }
+        // animated Group selector
+        AnimatedVisibility(
+            visible = isGroupExpense,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp)
+        ) {
+            // checkboxes for all selected group's members
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 10.dp)
+                    .pointerInput(Unit) {
+                        detectTapGestures(
+                            onPress = { /* Do nothing on press to avoid ripple effect */
+                            },
+                            onTap = { focusManager.clearFocus() }
+                        )
+                    }
+                    .testTag("groupSelectExpenseDropdown")
             ) {
-                // checkboxes for all selected group's members
-                Column(
+                // Group selection
+                GroupSelection(
+                    if (groupList.size > groupIndex) groupList[groupIndex] else null,
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 10.dp),
+                    Modifier
+                        .fillMaxWidth(),
+                    onSwitch = { newGroupId ->
+                        // find group with selected id
+                        for ((index, group) in groupList.withIndex()) {
+                            if (group.id == newGroupId) {
+                                groupIndex = index
+                                break
+                            }
+                        }
+                    }
+                )
+                // Payer field
+                GroupMemberSelection(
+                    members = membersSelection,
+                    payer = payer,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .testTag("groupSelectExpenseDropdown")
-                ) {
-                    // Group selection
-                    GroupSelection(
-                        if (groupList.size > groupIndex) groupList[groupIndex] else null,
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 10.dp),
-                        Modifier
-                            .fillMaxWidth(),
-                        onSwitch = { newGroupId ->
-                            // find group with selected id
-                            for ((index, group) in groupList.withIndex()) {
-                                if (group.id == newGroupId) {
-                                    groupIndex = index
-                                    break
-                                }
-                            }
-                        }
-                    )
-                    // Payer field
-                    GroupMemberSelection(
-                        members = membersSelection,
-                        payer = payer,
+                        .padding(vertical = 10.dp),
+                    innerModifier = Modifier
+                        .fillMaxWidth(),
+                    onSwitch = {
+                        payerId = it
+                    }
+                )
+                // debtors choosing
+                for (member in membersSelection) {
+                    Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 10.dp),
-                        innerModifier = Modifier
-                            .fillMaxWidth(),
-                        onSwitch = {
-                            payerId = it
-                        }
-                    )
-                    // debtors choosing
-                    Column(
-                        modifier = Modifier
-                            .heightIn(100.dp, 175.dp)
-                            .verticalScroll(rememberScrollState())
-                            .padding(bottom = 65.dp)
-                    )
-                    {
-                        for (member in membersSelection) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(50.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .align(Alignment.CenterStart)
-                                        .width(275.dp)
-                                ) {
-                                    Checkbox(
-                                        checked = member.selected,
-                                        onCheckedChange = { newValue ->
-                                            updateSelection(member.userId, newValue)
-                                        },
-                                        modifier = Modifier
-                                            .align(Alignment.CenterVertically)
-                                    )
-                                    Text(
-                                        text = member.nickname,
-                                        modifier = Modifier
-                                            .width(200.dp)
-                                            .clickable {
-                                                updateSelection(member.userId, !member.selected)
-                                            }
-                                            .align(Alignment.CenterVertically),
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
+                    ) {
+                        Checkbox(
+                            checked = member.selected,
+                            onCheckedChange = { newValue ->
+                                updateSelection(member.userId, newValue)
+                            },
+                            modifier = Modifier
+                                .align(Alignment.CenterVertically)
+                        )
+                        Text(
+                            text = member.nickname,
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable {
+                                    updateSelection(member.userId, !member.selected)
                                 }
-                                Row(
-                                    modifier = Modifier
-                                        .align(Alignment.CenterEnd)
-                                ) {
-                                    if (member.selected) {
-                                        TextField(
-                                            value = if (member.multiplier != 0)
-                                                member.multiplier.toString()
-                                            else
-                                                "",
-                                            onValueChange = { newValue: String ->
-                                                if (positiveIntegerRegex().matches(newValue)) {
-                                                    updateMultiplier(
-                                                        member.userId,
-                                                        newValue.toInt()
-                                                    )
-                                                } else if (newValue == "") {
-                                                    updateMultiplier(member.userId, 0)
-                                                }
-                                            },
-                                            keyboardOptions = KeyboardOptions(
-                                                keyboardType = KeyboardType.Number,
-                                                imeAction = ImeAction.Done
-                                            ),
-                                            modifier = Modifier
-                                                .width(50.dp)
-                                                .align(Alignment.CenterVertically),
-                                            colors = TextFieldDefaults.textFieldColors(
-                                                containerColor = Color.Transparent,
-                                            ),
-                                            maxLines = 1
-                                        )
+                                .align(Alignment.CenterVertically)
+                                .padding(end = 10.dp),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                        if (member.selected) {
+                            BasicTextField(
+                                value = if (member.multiplier != 0) member.multiplier.toString() else "",
+                                onValueChange = { newValue: String ->
+                                    if (positiveIntegerRegex().matches(newValue)) {
+                                        updateMultiplier(member.userId, newValue.toInt())
+                                    } else if (newValue == "") {
+                                        updateMultiplier(member.userId, 0)
                                     }
-                                }
-                            }
+                                },
+                                keyboardOptions = KeyboardOptions(
+                                    keyboardType = KeyboardType.Number,
+                                    imeAction = ImeAction.Done
+                                ),
+                                decorationBox = { innerTextField ->
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(end = 10.dp)
+                                            .height(40.dp)
+                                            .width(40.dp)
+                                            .border(
+                                                BorderStroke(
+                                                    1.dp,
+                                                    MaterialTheme.colorScheme.onPrimaryContainer
+                                                ),
+                                                shape = RectangleShape
+                                            )
+                                            .background(color = Color.Transparent),
+                                        contentAlignment = Alignment.CenterEnd
+                                    ) {
+                                        innerTextField()
+                                    }
+                                },
+                                textStyle = androidx.compose.ui.text.TextStyle(
+                                    color = MaterialTheme.colorScheme.onBackground,
+                                    fontSize = 20.sp,
+                                    fontFamily = FontFamily.Default,
+                                    fontWeight = FontWeight.Normal,
+                                    fontStyle = FontStyle.Normal,
+                                    textAlign = TextAlign.Center
+                                ),
+                                cursorBrush = SolidColor(MaterialTheme.colorScheme.onBackground),
+                                singleLine = true,
+                                maxLines = 1
+                            )
                         }
                     }
                 }
