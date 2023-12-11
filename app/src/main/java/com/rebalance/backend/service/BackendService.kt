@@ -256,7 +256,7 @@ class BackendService {
                 withContext(Dispatchers.IO) {
                     // save each personal expense in page to localdb
                     for (pe in personalExpenses.content) {
-                        val expenseId = db.expenseDao().saveExpense(
+                        db.expenseDao().saveExpense(
                             Expense(
                                 0L,
                                 pe.id,
@@ -569,9 +569,13 @@ class BackendService {
                     scaledDateItem.dateTo
                 )
             }
+            sums.map {
+                it.date =
+                    it.date.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.systemDefault())
+                        .toLocalDateTime()
+            }
             return@async sums
         }.await()
-        //TODO: convert dates to current timezone
     }
 
     /** Deletes personal expense from localdb and server, returns result of an operation **/
@@ -677,9 +681,13 @@ class BackendService {
             withContext(Dispatchers.IO) {
                 expenses = db.expenseDao().getGroupExpenses(groupId, offset)
             }
+            expenses.map {
+                it.date =
+                    it.date.atZone(ZoneId.of("UTC")).withZoneSameInstant(ZoneId.systemDefault())
+                        .toLocalDateTime()
+            }
             return@async expenses
         }.await()
-        //TODO: convert dates to current timezone
     }
 
     suspend fun getGroupExpenseDeptors(expenseId: Long): List<GroupExpenseItemUser> {
