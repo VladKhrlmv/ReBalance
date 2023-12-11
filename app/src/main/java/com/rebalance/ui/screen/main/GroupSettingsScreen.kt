@@ -24,7 +24,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavHostController
 import com.rebalance.backend.dto.AddUserToGroupResult
 import com.rebalance.backend.dto.SpendingDeptor
 import com.rebalance.backend.localdb.entities.Group
@@ -76,7 +75,6 @@ fun GroupSettingsScreen(
         modifier = Modifier
             .fillMaxSize()
             .padding(10.dp)
-            .verticalScroll(scrollState)
             .pointerInput(Unit) {
                 detectTapGestures(
                     onPress = { /* Do nothing on press to avoid ripple effect */
@@ -90,6 +88,7 @@ fun GroupSettingsScreen(
             modifier = Modifier
                 .weight(1f)
                 .padding(bottom = 10.dp)
+                .verticalScroll(scrollState)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -152,7 +151,7 @@ fun GroupSettingsScreen(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .padding(5.dp)
+                    .padding(top = 5.dp)
             ) {
                 Text(
                     text = "Members",
@@ -161,7 +160,7 @@ fun GroupSettingsScreen(
             }
             LazyColumn(
                 modifier = Modifier
-                    .height(350.dp),
+                    .heightIn(max = 350.dp),
                 state = rememberLazyListState()
             ) {
                 items(items = groupMembers, itemContent = { member ->
