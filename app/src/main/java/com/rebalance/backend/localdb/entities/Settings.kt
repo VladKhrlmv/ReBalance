@@ -3,6 +3,7 @@ package com.rebalance.backend.localdb.entities
 import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import java.time.LocalDateTime
 
 @Entity(tableName = "settings")
 data class Settings(
@@ -19,7 +20,9 @@ data class Settings(
     @ColumnInfo(name = "token")
     var token: String,
     @ColumnInfo(name = "currency")
-    var currency: String
+    var currency: String,
+    @ColumnInfo(name = "last_update_date")
+    var lastUpdateDate: LocalDateTime
 ) {
     companion object {
         fun getDefaultInstance(): Settings {
@@ -30,7 +33,8 @@ data class Settings(
                 group_id = -1,
                 first_launch = true,
                 token = "",
-                currency = ""
+                currency = "",
+                lastUpdateDate = LocalDateTime.now()
             )
         }
     }

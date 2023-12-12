@@ -100,6 +100,16 @@ class BackendService {
             return@async settings.first_launch
         }.await()
     }
+
+    private suspend fun updateLastUpdateDate(newDate: LocalDateTime) {
+        this.settings.lastUpdateDate = newDate
+        return mainScope.async {
+            withContext(Dispatchers.IO) {
+                db.settingsDao().saveSettings(settings)
+            }
+            return@async
+        }.await()
+    }
     //endregion
 
     //region settings
@@ -279,6 +289,8 @@ class BackendService {
             }
             return@async
         }.await()
+        // update last update time in db
+        updateLastUpdateDate(LocalDateTime.now())
         return result
     }
 
@@ -347,6 +359,9 @@ class BackendService {
                     user.personalGroupId,
                     user.currency
                 )
+
+                // update last update time in db
+                updateLastUpdateDate(LocalDateTime.now())
 
                 RegisterResult.Registered
             }
