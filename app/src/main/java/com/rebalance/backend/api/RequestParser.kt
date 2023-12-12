@@ -1,6 +1,7 @@
 package com.rebalance.backend.api
 
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import com.rebalance.backend.api.dto.response.*
 
 class RequestParser {
@@ -23,6 +24,24 @@ class RequestParser {
 
         fun responseToUserGroup(jsonBody: String): ApiUserGroupResponse {
             return Gson().fromJson(jsonBody, ApiUserGroupResponse::class.java)
+        }
+
+        fun responseToGroupList(jsonBody: String): List<ApiGroupResponse> {
+            val itemType = object : TypeToken<List<ApiGroupResponse>>() {}.type
+            return Gson().fromJson(jsonBody, itemType)
+        }
+
+        fun responseToUserList(jsonBody: String): List<ApiUserInGroupResponse> {
+            val itemType = object : TypeToken<List<ApiUserInGroupResponse>>() {}.type
+            return Gson().fromJson(jsonBody, itemType)
+        }
+
+        fun responseToGroupExpenseList(jsonBody: String): ApiGroupExpensesListResponse {
+            return Gson().fromJson(jsonBody, ApiGroupExpensesListResponse::class.java)
+        }
+
+        fun responseToPersonalExpenseList(jsonBody: String): ApiPersonalExpensesListResponse {
+            return Gson().fromJson(jsonBody, ApiPersonalExpensesListResponse::class.java)
         }
     }
 }

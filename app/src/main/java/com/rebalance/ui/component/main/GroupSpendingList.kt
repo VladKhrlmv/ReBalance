@@ -26,6 +26,7 @@ import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
 import compose.icons.evaicons.fill.Trash
 import kotlinx.coroutines.launch
+import java.math.RoundingMode
 import java.time.format.DateTimeFormatter
 
 @SuppressLint("CoroutineCreationDuringComposition")
@@ -86,7 +87,7 @@ fun GroupSpendingList(
                 ) {
                     ListItem(
                         headlineContent = {
-                            Text("${expense.amount.setScale(2)} ${group.currency}")
+                            Text("${expense.amount.setScale(2, RoundingMode.HALF_EVEN)} ${group.currency}")
                             Text(
                                 DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(expense.date),
                                 style = MaterialTheme.typography.bodySmall,
@@ -222,7 +223,7 @@ fun GroupSpendingList(
                                             color = MaterialTheme.colorScheme.onBackground
                                         )
                                         Text(
-                                            text = "${user.amount.setScale(2)} ${group.currency}",
+                                            text = "${user.amount.setScale(2, RoundingMode.HALF_EVEN)} ${group.currency}",
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onBackground
                                         )

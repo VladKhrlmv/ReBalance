@@ -14,6 +14,7 @@ import androidx.compose.ui.Alignment.Companion.End
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import java.math.RoundingMode
 
 @Composable
 fun ExpenseDistribution(
@@ -138,7 +139,7 @@ class DebtSettlement(data: List<BarChartItem>) {
 
     private fun createPersonList(data: List<BarChartItem>) {
         for (item in data) {
-            this.listPerson.add(Person(item.username, item.balance.setScale(2).toDouble()))
+            this.listPerson.add(Person(item.username, item.balance.setScale(2, RoundingMode.HALF_EVEN).toDouble()))
         }
     }
 

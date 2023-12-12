@@ -40,7 +40,7 @@ data class Expense(
     @ColumnInfo(name = "description")
     val description: String,
     @ColumnInfo(name = "date")
-    val date: LocalDateTime,
+    var date: LocalDateTime,
     @ColumnInfo(name = "category")
     val category: String?,
     @ColumnInfo(name = "initiator_id")

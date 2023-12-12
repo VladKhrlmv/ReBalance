@@ -21,4 +21,7 @@ interface GroupDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveGroup(group: Group)
+
+    @Query("DELETE FROM groups")
+    suspend fun dropAllGroups()
 }

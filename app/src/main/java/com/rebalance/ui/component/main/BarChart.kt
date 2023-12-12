@@ -34,6 +34,7 @@ import com.github.mikephil.charting.utils.ViewPortHandler
 import com.rebalance.backend.dto.BarChartItem
 import com.rebalance.ui.theme.crimsonColor
 import com.rebalance.ui.theme.forestGreenColor
+import java.math.RoundingMode
 import java.text.DecimalFormat
 
 
@@ -107,10 +108,10 @@ fun updateBarChartWithData(
     val entries = ArrayList<BarEntry>()
     for (i in data.indices) {
         val item = data[i]
-        entries.add(BarEntry(i.toFloat(), item.balance.setScale(2).toFloat()))
+        entries.add(BarEntry(i.toFloat(), item.balance.setScale(2, RoundingMode.HALF_EVEN).toFloat()))
     }
     val ds = BarDataSet(entries, "")
-    ds.colors = data.map { if (it.balance.setScale(2).toFloat() >= 0) forestGreenColor.toArgb() else crimsonColor.toArgb() }
+    ds.colors = data.map { if (it.balance.setScale(2, RoundingMode.HALF_EVEN).toFloat() >= 0) forestGreenColor.toArgb() else crimsonColor.toArgb() }
     ds.valueTextColor = textColor
     ds.valueFormatter = object : ValueFormatter() {
         val format = DecimalFormat("###,###,###.##")
