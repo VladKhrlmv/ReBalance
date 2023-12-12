@@ -7,7 +7,7 @@ data class GroupExpenseItem(
     val id: Long,
     val amount: BigDecimal,
     val description: String,
-    val date: LocalDateTime,
+    var date: LocalDateTime,
     val category: String?,
     val initiator: String
 )
