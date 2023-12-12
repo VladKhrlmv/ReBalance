@@ -313,8 +313,9 @@ class BackendService {
                     user.personalGroupId,
                     user.currency
                 )
-                fetchUserData()
-
+                if (!fetchUserData()) {
+                    LoginResult.ErrorOnDataFetch
+                }
                 LoginResult.LoggedIn
             }
             400 -> LoginResult.BadCredentials

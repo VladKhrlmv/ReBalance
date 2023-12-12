@@ -5,5 +5,6 @@ enum class LoginResult {
     ServerUnreachable,
     LoggedIn,
     TokenInspired,
+    ErrorOnDataFetch,
     BadCredentials
 }

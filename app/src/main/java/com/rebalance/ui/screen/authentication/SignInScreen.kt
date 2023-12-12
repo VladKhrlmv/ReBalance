@@ -1,9 +1,7 @@
 package com.rebalance.ui.screen.authentication
 
 import android.content.Context
-import android.os.StrictMode
 import androidx.compose.foundation.gestures.detectTapGestures
-import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -102,7 +100,6 @@ fun SignInScreen(context: Context, navHostController: NavHostController) {
                                     password.value
                                 )
                             )
-                            Log.d("login", "result ${loginResult.name}")
                             isLoginLoading = false
                         }
                     })
@@ -116,8 +113,21 @@ fun SignInScreen(context: Context, navHostController: NavHostController) {
                             context,
                             MainActivity::class
                         )
-                        LoginResult.BadCredentials -> alertUser("Bad credentials", context)
-                        else -> alertUser("Please try again later", context)
+                        LoginResult.ErrorOnDataFetch -> {
+                            alertUser(
+                                "An error encountered while loading user data. Please clean app data and try again",
+                                context
+                            )
+                            loginResult = LoginResult.Placeholder
+                        }
+                        LoginResult.BadCredentials -> {
+                            alertUser("Bad credentials", context)
+                            loginResult = LoginResult.Placeholder
+                        }
+                        else -> {
+                            alertUser("Please try again later", context)
+                            loginResult = LoginResult.Placeholder
+                        }
                     }
                 }
             }
