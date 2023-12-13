@@ -1091,31 +1091,48 @@ class BackendService {
         image: ImageBitmap?,
         imageName: String?
     ) {
-        // save expense to db
-        mainScope.async {
-            val personalExpense = Expense(
-                0,
-                null,
-                true,
+        val (responseCode, _) = requestSender.sendPost(
+            "/personal/expenses",
+            ApiPersonalExpenseAddRequest(
                 expense.amount,
                 expense.description,
-                LocalDateTime.ofInstant(expense.date.toInstant(), ZoneId.of("UTC")),
                 expense.category,
-                settings.user_id,
-                settings.user_id,
-                settings.group_id
-            )
-            var expenseId: Long
-            withContext(Dispatchers.IO) {
-                expenseId = db.expenseDao().saveExpense(personalExpense)
+                LocalDateTime.ofInstant(expense.date.toInstant(), ZoneId.of("UTC"))
+            ).toJson()
+        )
+        //TODO: remove adding to localdb, instead make request and add from notification
+        when (responseCode) {
+            200 -> {
+                // if backend successfully added personal expense, it will be added shortly from notification
             }
-            // save image to db if exists
-            if (image != null) {
-                val img = Image(expenseId, true, imageName ?: "", compressImage(image))
-                db.imageDao().save(img)
+            else -> {
+                // if backend not responded, save it to localdb to try to sync later
+                mainScope.async {
+                    val personalExpense = Expense(
+                        0,
+                        null,
+                        true,
+                        expense.amount,
+                        expense.description,
+                        LocalDateTime.ofInstant(expense.date.toInstant(), ZoneId.of("UTC")),
+                        expense.category,
+                        settings.user_id,
+                        settings.user_id,
+                        settings.group_id
+                    )
+                    var expenseId: Long
+                    withContext(Dispatchers.IO) {
+                        expenseId = db.expenseDao().saveExpense(personalExpense)
+                    }
+                    // save image to db if exists
+                    if (image != null) {
+                        val img = Image(expenseId, true, imageName ?: "", compressImage(image))
+                        db.imageDao().save(img)
+                    }
+                    return@async
+                }.await()
             }
-            return@async
-        }.await()
+        }
     }
 
     suspend fun addNewGroupExpense(
@@ -1123,46 +1140,69 @@ class BackendService {
         image: ImageBitmap?,
         imageName: String?
     ) {
-        mainScope.async {
-            // save expense to db
-            val groupExpense = Expense(
-                0,
-                null,
-                true,
+        val (responseCode, _) = requestSender.sendPost(
+            "/group/expenses",
+            ApiGroupExpenseAddRequest(
+                expense.initiatorUserId,
+                expense.groupId,
                 expense.amount,
                 expense.description,
-                LocalDateTime.ofInstant(expense.date.toInstant(), ZoneId.of("UTC")),
                 expense.category,
-                expense.initiatorUserId,
-                settings.user_id,
-                expense.groupId
-            )
-            var expenseId: Long
-            withContext(Dispatchers.IO) {
-                expenseId = db.expenseDao().saveExpense(groupExpense)
+                LocalDateTime.ofInstant(expense.date.toInstant(), ZoneId.of("UTC")),
+                expense.users.map { u ->
+                    ApiGroupExpenseUserRequest(
+                        u.userId, u.multiplier
+                    )
+                }
+            ).toJson()
+        )
+        when (responseCode) {
+            200 -> {
+                // if backend successfully added group expense, it will be added shortly from notification
             }
-            // save all participants
-            var totalMultipliers = 0
-            expense.users.forEach { u -> totalMultipliers += u.multiplier }
-            val users = expense.users.map { user ->
-                ExpenseUser(
-                    0L,
-                    expense.amount.multiply(BigDecimal.valueOf(user.multiplier.toDouble() / totalMultipliers)),
-                    user.multiplier,
-                    user.userId,
-                    expenseId
-                )
+            else -> {
+                mainScope.async {
+                    // if backend not responded, save it to localdb to try to sync later
+                    val groupExpense = Expense(
+                        0,
+                        null,
+                        true,
+                        expense.amount,
+                        expense.description,
+                        LocalDateTime.ofInstant(expense.date.toInstant(), ZoneId.of("UTC")),
+                        expense.category,
+                        expense.initiatorUserId,
+                        settings.user_id,
+                        expense.groupId
+                    )
+                    var expenseId: Long
+                    withContext(Dispatchers.IO) {
+                        expenseId = db.expenseDao().saveExpense(groupExpense)
+                    }
+                    // save all participants
+                    var totalMultipliers = 0
+                    expense.users.forEach { u -> totalMultipliers += u.multiplier }
+                    val users = expense.users.map { user ->
+                        ExpenseUser(
+                            0L,
+                            expense.amount.multiply(BigDecimal.valueOf(user.multiplier.toDouble() / totalMultipliers)),
+                            user.multiplier,
+                            user.userId,
+                            expenseId
+                        )
+                    }
+                    withContext(Dispatchers.IO) {
+                        users.forEach { user -> db.expenseUserDao().saveExpenseUser(user) }
+                    }
+                    // save image to db if exists
+                    if (image != null) {
+                        val img = Image(expenseId, true, imageName ?: "", compressImage(image))
+                        db.imageDao().save(img)
+                    }
+                    return@async
+                }.await()
             }
-            withContext(Dispatchers.IO) {
-                users.forEach { user -> db.expenseUserDao().saveExpenseUser(user) }
-            }
-            // save image to db if exists
-            if (image != null) {
-                val img = Image(expenseId, true, imageName ?: "", compressImage(image))
-                db.imageDao().save(img)
-            }
-            return@async
-        }.await()
+        }
     }
     //endregion
 
