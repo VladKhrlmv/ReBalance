@@ -1,8 +1,12 @@
 package com.rebalance.backend.api
 
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
+import com.rebalance.backend.api.dto.adapters.ApiNotificationTypeAdapter
+import com.rebalance.backend.api.dto.adapters.LocalDateTimeAdapter
 import com.rebalance.backend.api.dto.response.*
+import java.time.LocalDateTime
 
 class RequestParser {
     companion object {
@@ -36,12 +40,30 @@ class RequestParser {
             return Gson().fromJson(jsonBody, itemType)
         }
 
-        fun responseToGroupExpenseList(jsonBody: String): ApiGroupExpensesListResponse {
-            return Gson().fromJson(jsonBody, ApiGroupExpensesListResponse::class.java)
+        fun responseToGroupExpensePage(jsonBody: String): ApiGroupExpensesPageResponse {
+            return Gson().fromJson(jsonBody, ApiGroupExpensesPageResponse::class.java)
         }
 
-        fun responseToPersonalExpenseList(jsonBody: String): ApiPersonalExpensesListResponse {
-            return Gson().fromJson(jsonBody, ApiPersonalExpensesListResponse::class.java)
+        fun responseToPersonalExpensePage(jsonBody: String): ApiPersonalExpensesPageResponse {
+            return Gson().fromJson(jsonBody, ApiPersonalExpensesPageResponse::class.java)
+        }
+
+        fun responseToNotificationAll(jsonBody: String): List<ApiNotificationResponse> {
+            val itemType = object : TypeToken<List<ApiNotificationResponse>>() {}.type
+            return GsonBuilder()
+                .registerTypeAdapter(LocalDateTime::class.java, LocalDateTimeAdapter())
+                .registerTypeAdapter(ApiNotificationType::class.java, ApiNotificationTypeAdapter())
+                .create().fromJson(jsonBody, itemType)
+        }
+
+        fun responseToGroupExpenseList(jsonBody: String): List<ApiGroupExpenseResponse> {
+            val itemType = object : TypeToken<List<ApiGroupExpenseResponse>>() {}.type
+            return Gson().fromJson(jsonBody, itemType)
+        }
+
+        fun responseToPersonalExpenseList(jsonBody: String): List<ApiPersonalExpenseResponse> {
+            val itemType = object : TypeToken<List<ApiPersonalExpenseResponse>>() {}.type
+            return Gson().fromJson(jsonBody, itemType)
         }
     }
 }
