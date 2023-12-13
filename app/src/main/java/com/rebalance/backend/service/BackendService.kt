@@ -16,6 +16,7 @@ import com.rebalance.backend.api.dto.request.ApiRegisterRequest
 import com.rebalance.backend.dto.*
 import com.rebalance.backend.localdb.db.AppDatabase
 import com.rebalance.backend.localdb.entities.*
+import com.rebalance.service.notification.NotificationService
 import kotlinx.coroutines.*
 import java.io.ByteArrayOutputStream
 import java.math.BigDecimal
@@ -35,6 +36,7 @@ class BackendService {
     private lateinit var db: AppDatabase
     private lateinit var settings: Settings
     private lateinit var requestSender: RequestSender
+    private lateinit var notificationService: NotificationService
 
     companion object {
         @Volatile
@@ -67,6 +69,7 @@ class BackendService {
             // initialize settings from db and requests sender
             settings = settingsFromDB as Settings
             requestSender = RequestSender(settings.server_ip, settings.token)
+            notificationService = NotificationService(context)
             onInit()
         }
     }
