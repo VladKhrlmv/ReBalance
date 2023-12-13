@@ -19,14 +19,19 @@ import com.rebalance.backend.dto.LoginResult
 import com.rebalance.backend.service.BackendService
 import com.rebalance.ui.navigation.switchActivityTo
 import com.rebalance.util.alertUser
+import kotlinx.coroutines.launch
 
 
 @Composable
 fun LoadingScreen() {
     val context = LocalContext.current
     val backendService = remember { BackendService.get() }
-    var connected by remember { mutableStateOf(LoginResult.Placeholder) }
+    val loadingScope = rememberCoroutineScope()
+
     var backendServiceInitialized by remember { mutableStateOf(false) }
+    var connected by remember { mutableStateOf(LoginResult.Placeholder) }
+    var updatedData by remember { mutableStateOf(false) }
+    var logoutFinished by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
         // initialize BackendService (will be done only once per application launch)
@@ -51,16 +56,29 @@ fun LoadingScreen() {
             ) {
                 Text(text = "ReBalance", fontSize = 30.sp, modifier = Modifier.padding(90.dp))
                 when (connected) {
-                    LoginResult.LoggedIn -> switchActivityTo(context, MainActivity::class)
-                    LoginResult.TokenInspired -> switchActivityTo(
-                        context,
-                        AuthenticationActivity::class
-                    )
+                    LoginResult.LoggedIn -> { // if token valid, fetch new data
+                        loadingScope.launch {
+                            updatedData = backendService.fetchDataForMissingNotifications()
+                        }
+                    }
+                    LoginResult.TokenInspired -> { // if token inspired, logout
+                        loadingScope.launch {
+                            logoutFinished = backendService.logout()
+                        }
+                    }
                     LoginResult.ServerUnreachable -> alertUser( //TODO: go to main screen with offline mode
                         "Server unavailable. Please try again later",
                         context
                     )
                     else -> CircularProgressIndicator()
+                }
+
+                if (updatedData) {
+                    switchActivityTo(context, MainActivity::class)
+                }
+
+                if (logoutFinished) {
+                    switchActivityTo(context, AuthenticationActivity::class)
                 }
             }
         }
