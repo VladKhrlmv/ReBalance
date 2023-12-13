@@ -14,6 +14,7 @@ import com.rebalance.backend.localdb.entities.User
 fun GroupMemberSelection(
     members: List<SpendingDeptor>,
     payer: User?,
+    check: Boolean,
     modifier: Modifier = Modifier,
     innerModifier: Modifier = Modifier,
     onSwitch: (Long) -> Unit
@@ -33,7 +34,14 @@ fun GroupMemberSelection(
             readOnly = true,
             singleLine = true,
             label = {
-                Text(text = "Payer")
+                Text(
+                    text = "Payer",
+                    color =
+                        if (!check)
+                            MaterialTheme.colorScheme.outline
+                        else
+                            Color.Red
+                )
             },
             trailingIcon = {
                 ExposedDropdownMenuDefaults.TrailingIcon(
