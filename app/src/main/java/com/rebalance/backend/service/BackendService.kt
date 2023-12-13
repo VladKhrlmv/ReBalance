@@ -176,14 +176,14 @@ class BackendService {
                     val newUser = fetchUserById(notification.userAddedId, notification.groupId)
                     if (newUser == null) {
                         notificationService.sendErrorNotification("") //TODO
-                    } else {
+                    } else if (show) {
                         notificationService.sendNotification("") //TODO
                     }
                 }
                 ApiNotificationType.CurrentUserAddedToGroup -> {
                     if (!fetchGroupAndUsersAndExpenses(notification.groupId)) {
                         notificationService.sendErrorNotification("") //TODO
-                    } else {
+                    } else if (show) {
                         notificationService.sendNotification("") //TODO
                     }
                 }
@@ -191,7 +191,7 @@ class BackendService {
                     val newGroup = fetchGroupById(notification.groupId)
                     if (newGroup == null) {
                         notificationService.sendErrorNotification("") //TODO
-                    } else {
+                    } else if (show) {
                         notificationService.sendNotification("") //TODO
                     }
                 }
@@ -200,7 +200,7 @@ class BackendService {
                         fetchGroupExpenseById(notification.groupId, notification.expenseId, null)
                     if (groupExpense == null) {
                         notificationService.sendErrorNotification("") //TODO
-                    } else {
+                    } else if (show) {
                         notificationService.sendNotification("") //TODO
                     }
                 }
@@ -213,7 +213,7 @@ class BackendService {
                         )
                     if (groupExpense == null) {
                         notificationService.sendErrorNotification("") //TODO
-                    } else {
+                    } else if (show) {
                         notificationService.sendNotification("") //TODO
                     }
                 }
@@ -225,7 +225,7 @@ class BackendService {
                         fetchPersonalExpenseById(notification.expenseId, null)
                     if (personalExpense == null) {
                         notificationService.sendErrorNotification("") //TODO
-                    } else {
+                    } else if (show) {
                         notificationService.sendNotification("") //TODO
                     }
                 }
@@ -237,7 +237,7 @@ class BackendService {
                         )
                     if (personalExpense == null) {
                         notificationService.sendErrorNotification("") //TODO
-                    } else {
+                    } else if (show) {
                         notificationService.sendNotification("") //TODO
                     }
                 }
