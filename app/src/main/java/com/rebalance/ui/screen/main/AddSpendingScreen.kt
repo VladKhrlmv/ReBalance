@@ -502,6 +502,7 @@ fun AddSpendingScreen(
                                 .weight(1f)
                                 .clickable {
                                     updateSelection(member.userId, !member.selected)
+                                    memberSelectionCheck = false
                                 }
                                 .align(Alignment.CenterVertically)
                                 .padding(end = 10.dp),
