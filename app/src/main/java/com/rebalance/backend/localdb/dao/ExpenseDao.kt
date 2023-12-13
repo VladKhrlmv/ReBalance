@@ -2,6 +2,7 @@ package com.rebalance.backend.localdb.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.rebalance.backend.dto.GroupExpenseItem
 import com.rebalance.backend.dto.SumByCategoryItem
@@ -54,6 +55,9 @@ interface ExpenseDao {
     @Query("DELETE FROM expenses WHERE id = :expenseId")
     suspend fun deleteById(expenseId: Long)
 
+    @Query("DELETE FROM expenses WHERE db_id = :expenseId")
+    suspend fun deleteByDbId(expenseId: Long)
+
     @Query(
         "SELECT e.id, e.amount, e.description, e.date, e.category, u.nickname AS initiator " +
                 "FROM expenses e " +
@@ -64,6 +68,11 @@ interface ExpenseDao {
     )
     suspend fun getGroupExpenses(groupId: Long, offset: Int): List<GroupExpenseItem>
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun saveExpense(expense: Expense): Long
+
+    @Query("SELECT * FROM expenses WHERE db_id = :expenseId")
+    suspend fun getExpenseByDbId(
+        expenseId: Long
+    ): Expense?
 }
