@@ -9,10 +9,9 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import com.rebalance.backend.api.RequestParser
 import com.rebalance.backend.api.RequestSender
-import com.rebalance.backend.api.dto.request.ApiGroupAddUserRequest
-import com.rebalance.backend.api.dto.request.ApiGroupCreateRequest
-import com.rebalance.backend.api.dto.request.ApiLoginRequest
-import com.rebalance.backend.api.dto.request.ApiRegisterRequest
+import com.rebalance.backend.api.dto.request.*
+import com.rebalance.backend.api.dto.response.ApiNotificationResponse
+import com.rebalance.backend.api.dto.response.ApiNotificationType
 import com.rebalance.backend.dto.*
 import com.rebalance.backend.localdb.db.AppDatabase
 import com.rebalance.backend.localdb.entities.*
@@ -20,6 +19,7 @@ import com.rebalance.service.notification.NotificationService
 import kotlinx.coroutines.*
 import java.io.ByteArrayOutputStream
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -144,6 +144,359 @@ class BackendService {
             else -> LoginResult.ServerUnreachable
         }
     }
+
+    suspend fun fetchDataForMissingNotifications(): Boolean {
+        val (responseCode, responseBody) = requestSender.sendPost(
+            "/notifications/after-date",
+            ApiNotificationRequest(settings.lastUpdateDate).toJson()
+        )
+        return when (responseCode) {
+            200 -> {
+                updateDbFromNotifications(
+                    RequestParser.responseToNotificationAll(responseBody),
+                    false
+                )
+                true
+            }
+            else -> false
+        }
+    }
+
+    suspend fun updateDbFromNotifications(
+        notifications: List<ApiNotificationResponse>,
+        show: Boolean
+    ): Boolean {
+        if (notifications.isEmpty()) {
+            return true
+        }
+        var newLastUpdateDate = settings.lastUpdateDate
+        for (notification in notifications) {
+            when (notification.type) {
+                ApiNotificationType.UserAddedToGroup -> {
+                    val newUser = fetchUserById(notification.userAddedId, notification.groupId)
+                    if (newUser == null) {
+                        notificationService.sendErrorNotification("") //TODO
+                    } else {
+                        notificationService.sendNotification("") //TODO
+                    }
+                }
+                ApiNotificationType.CurrentUserAddedToGroup -> {
+                    if (!fetchGroupAndUsersAndExpenses(notification.groupId)) {
+                        notificationService.sendErrorNotification("") //TODO
+                    } else {
+                        notificationService.sendNotification("") //TODO
+                    }
+                }
+                ApiNotificationType.GroupCreated -> {
+                    val newGroup = fetchGroupById(notification.groupId)
+                    if (newGroup == null) {
+                        notificationService.sendErrorNotification("") //TODO
+                    } else {
+                        notificationService.sendNotification("") //TODO
+                    }
+                }
+                ApiNotificationType.GroupExpenseAdded -> {
+                    val groupExpense =
+                        fetchGroupExpenseById(notification.groupId, notification.expenseId, null)
+                    if (groupExpense == null) {
+                        notificationService.sendErrorNotification("") //TODO
+                    } else {
+                        notificationService.sendNotification("") //TODO
+                    }
+                }
+                ApiNotificationType.GroupExpenseEdited -> {
+                    val groupExpense =
+                        fetchGroupExpenseById(
+                            notification.groupId,
+                            notification.expenseId,
+                            getExpenseByDbId(notification.expenseId)?.id
+                        )
+                    if (groupExpense == null) {
+                        notificationService.sendErrorNotification("") //TODO
+                    } else {
+                        notificationService.sendNotification("") //TODO
+                    }
+                }
+                ApiNotificationType.GroupExpenseDeleted -> {
+                    deleteExpenseFromDbByDbId(notification.expenseId)
+                }
+                ApiNotificationType.PersonalExpenseAdded -> {
+                    val personalExpense =
+                        fetchPersonalExpenseById(notification.expenseId, null)
+                    if (personalExpense == null) {
+                        notificationService.sendErrorNotification("") //TODO
+                    } else {
+                        notificationService.sendNotification("") //TODO
+                    }
+                }
+                ApiNotificationType.PersonalExpenseEdited -> {
+                    val personalExpense =
+                        fetchPersonalExpenseById(
+                            notification.expenseId,
+                            getExpenseByDbId(notification.expenseId)?.id
+                        )
+                    if (personalExpense == null) {
+                        notificationService.sendErrorNotification("") //TODO
+                    } else {
+                        notificationService.sendNotification("") //TODO
+                    }
+                }
+                ApiNotificationType.PersonalExpenseDeleted -> {
+                    deleteExpenseFromDbByDbId(notification.expenseId)
+                }
+            }
+            newLastUpdateDate = notification.date
+        }
+        updateLastUpdateDate(newLastUpdateDate)
+        return true
+    }
+    //endregion
+
+    //region fetching data
+
+    /** Get user info from group users, save him and relation to group to db **/
+    private suspend fun fetchGroupById(groupId: Long): Group? {
+        val (responseCode, responseBody) = requestSender.sendGet("/group/$groupId")
+        if (responseCode != 200) {
+            return null
+        }
+        return mainScope.async {
+            val groupResponse = RequestParser.responseToGroup(responseBody)
+            val group = Group(
+                groupResponse.id,
+                false,
+                groupResponse.name,
+                groupResponse.currency,
+                false
+            )
+            withContext(Dispatchers.IO) {
+                db.groupDao().saveGroup(group)
+                db.userGroupDao()
+                    .saveUserGroup(UserGroup(0L, BigDecimal.ZERO, settings.user_id, groupId))
+            }
+            return@async group
+        }.await()
+    }
+
+
+    /** Get user info from group users, save him and relation to group to db **/
+    private suspend fun fetchUserById(userId: Long, groupId: Long): User? {
+        val (responseCodeUsers, responseBodyUsers) = requestSender.sendGet("/group/$groupId/users")
+        if (responseCodeUsers != 200) {
+            return null
+        }
+        return mainScope.async {
+            val users = RequestParser.responseToUserList(responseBodyUsers)
+            var user: User? = null
+            withContext(Dispatchers.IO) {
+                users.forEach { u ->
+                    if (u.id == userId) {
+                        user = User(u.id, u.nickname, u.email)
+                        db.userDao().save(user!!)
+                        db.userGroupDao().saveUserGroup(UserGroup(0L, u.balance, u.id, groupId))
+                    }
+                }
+            }
+            return@async user
+        }.await()
+    }
+
+    private suspend fun fetchGroupAndUsersAndExpenses(groupId: Long): Boolean {
+        return mainScope.async {
+            // fetch and save group
+            val (responseCode, responseBody) = requestSender.sendGet("/group/$groupId")
+            if (responseCode != 200) {
+                return@async false
+            }
+            val groupResponse = RequestParser.responseToGroup(responseBody)
+            // save/update group
+            val group = Group(
+                groupResponse.id,
+                false,
+                groupResponse.name,
+                groupResponse.currency,
+                false
+            )
+            withContext(Dispatchers.IO) {
+                db.groupDao().saveGroup(group)
+            }
+            // fetch and save all users of group, as well as relations to this group
+            val (responseCodeUsers, responseBodyUsers) = requestSender.sendGet("/group/${group.id}/users")
+            if (responseCodeUsers != 200) {
+                return@async false
+            }
+            val users = RequestParser.responseToUserList(responseBodyUsers)
+            withContext(Dispatchers.IO) {
+                users.forEach { u ->
+                    db.userDao().save(User(u.id, u.nickname, u.email))
+                    db.userGroupDao().saveUserGroup(UserGroup(0L, u.balance, u.id, group.id))
+                }
+            }
+            // fetch and save all group expenses for this group
+            var currentPage = 0
+            while (true) {
+                // iterate over pages with size 20 of expenses
+                val (responseCodeGroupExpenses, responseBodyGroupExpenses) = requestSender.sendGet(
+                    "/group/${group.id}/expenses?size=20&page=$currentPage"
+                )
+                if (responseCodeGroupExpenses != 200) {
+                    return@async false
+                }
+                val groupExpenses =
+                    RequestParser.responseToGroupExpensePage(responseBodyGroupExpenses)
+                withContext(Dispatchers.IO) {
+                    // save each group expense in page to localdb
+                    for (ge in groupExpenses.content) {
+                        val expenseId = db.expenseDao().saveExpense(
+                            Expense(
+                                0L,
+                                ge.id,
+                                false,
+                                ge.amount,
+                                ge.description,
+                                LocalDateTime.ofInstant(ge.date.toInstant(), ZoneId.of("UTC")),
+                                ge.category,
+                                ge.initiatorUserId,
+                                ge.addedByUserId,
+                                group.id
+                            )
+                        )
+                        // save participants of group expense to localdb
+                        for (eu in ge.users) {
+                            db.expenseUserDao().saveExpenseUser(
+                                ExpenseUser(
+                                    0L,
+                                    eu.amount,
+                                    eu.multiplier,
+                                    eu.userId,
+                                    expenseId
+                                )
+                            )
+                        }
+                    }
+                }
+                currentPage++
+                if (currentPage == groupExpenses.totalPages || groupExpenses.totalPages == 0) {
+                    break
+                }
+            }
+
+            return@async true
+        }.await()
+    }
+
+    private suspend fun fetchGroupExpenseById(
+        groupId: Long,
+        expenseId: Long,
+        expenseIdFromLocalDb: Long?
+    ): Expense? {
+        val (responseCode, responseBody) = requestSender.sendPost(
+            "/group/expenses/get-by-ids",
+            ApiGroupExpensesGetRequest(groupId, listOf(expenseId)).toJson()
+        )
+        if (responseCode != 200) {
+            return null
+        }
+        return mainScope.async {
+            val expenses = RequestParser.responseToGroupExpenseList(responseBody)
+            val expense = Expense(
+                expenseIdFromLocalDb ?: 0L, // edit existing or create new one
+                expenses[0].id,
+                false,
+                expenses[0].amount,
+                expenses[0].description,
+                LocalDateTime.ofInstant(expenses[0].date.toInstant(), ZoneId.of("UTC")),
+                expenses[0].category,
+                expenses[0].initiatorUserId,
+                expenses[0].addedByUserId,
+                groupId
+            )
+            var newExpenseId: Long
+            // calculate sum of multipliers
+            var totalMultipliers = BigDecimal.ZERO
+            expenses[0].users.forEach { u ->
+                totalMultipliers = totalMultipliers.add(BigDecimal.valueOf(u.multiplier.toLong()))
+            }
+            withContext(Dispatchers.IO) {
+                newExpenseId = db.expenseDao().saveExpense(expense)
+                expenses[0].users.forEach { eu ->
+                    db.expenseUserDao().saveExpenseUser(
+                        ExpenseUser(
+                            0L,
+                            expense.amount.multiply( // calculate amount per user depending of multiplier
+                                BigDecimal.valueOf(eu.multiplier.toLong())
+                                    .divide(totalMultipliers, 100, RoundingMode.HALF_EVEN)
+                            ),
+                            eu.multiplier,
+                            eu.userId,
+                            newExpenseId
+                        )
+                    )
+                }
+            }
+            return@async expense
+        }.await()
+    }
+
+    private suspend fun fetchPersonalExpenseById(
+        expenseId: Long,
+        expenseIdFromLocalDb: Long?
+    ): Expense? {
+        val (responseCode, responseBody) = requestSender.sendPost(
+            "/personal/expenses/get-by-ids",
+            ApiPersonalExpensesGetRequest(listOf(expenseId)).toJson()
+        )
+        if (responseCode != 200) {
+            return null
+        }
+        return mainScope.async {
+            val expenses = RequestParser.responseToPersonalExpenseList(responseBody)
+            val expense = Expense(
+                expenseIdFromLocalDb ?: 0L, // edit existing or create new one
+                expenses[0].id,
+                false,
+                expenses[0].amount,
+                expenses[0].description,
+                LocalDateTime.ofInstant(expenses[0].date.toInstant(), ZoneId.of("UTC")),
+                expenses[0].category,
+                settings.user_id,
+                settings.user_id,
+                settings.group_id
+            )
+            withContext(Dispatchers.IO) {
+                db.expenseDao().saveExpense(expense)
+            }
+            return@async expense
+        }.await()
+    }
+
+    private suspend fun getExpenseByDbId(expenseId: Long): Expense? {
+        return mainScope.async {
+            var groupExpense: Expense?
+            withContext(Dispatchers.IO) {
+                groupExpense = db.expenseDao().getExpenseByDbId(expenseId)
+            }
+            return@async groupExpense
+        }.await()
+    }
+
+    private suspend fun deleteExpenseFromDbById(expenseId: Long) {
+        mainScope.async {
+            withContext(Dispatchers.IO) {
+                db.expenseDao().deleteById(expenseId)
+            }
+            return@async
+        }.await()
+    }
+
+    private suspend fun deleteExpenseFromDbByDbId(expenseId: Long) {
+        mainScope.async {
+            withContext(Dispatchers.IO) {
+                db.expenseDao().deleteByDbId(expenseId)
+            }
+            return@async
+        }.await()
+    }
     //endregion
 
     //region user
@@ -184,74 +537,8 @@ class BackendService {
                 return@async
             }
             val userGroups = RequestParser.responseToGroupList(responseBodyUserGroups)
-            withContext(Dispatchers.IO) {
-                userGroups.forEach { g ->
-                    db.groupDao().saveGroup(Group(g.id, false, g.name, g.currency, false))
-                }
-            }
-            // fetch and save all users for each group and their relations with group
-            for (group in userGroups) {
-                val (responseCodeUsers, responseBodyUsers) = requestSender.sendGet("/group/${group.id}/users")
-                if (responseCodeUsers != 200) {
-                    result = false
-                    return@async
-                }
-                val users = RequestParser.responseToUserList(responseBodyUsers)
-                withContext(Dispatchers.IO) {
-                    users.forEach { u ->
-                        db.userDao().save(User(u.id, u.nickname, u.email))
-                        db.userGroupDao().saveUserGroup(UserGroup(0L, u.balance, u.id, group.id))
-                    }
-                }
-                // fetch and save all group expenses for a group
-                var currentPage = 0
-                while (true) {
-                    // iterate over pages with size 20 of expenses
-                    val (responseCodeGroupExpenses, responseBodyGroupExpenses) = requestSender.sendGet(
-                        "/group/${group.id}/expenses?size=20&page=$currentPage"
-                    )
-                    if (responseCodeGroupExpenses != 200) {
-                        result = false
-                        return@async
-                    }
-                    val groupExpenses =
-                        RequestParser.responseToGroupExpenseList(responseBodyGroupExpenses)
-                    withContext(Dispatchers.IO) {
-                        // save each group expense in page to localdb
-                        for (ge in groupExpenses.content) {
-                            val expenseId = db.expenseDao().saveExpense(
-                                Expense(
-                                    0L,
-                                    ge.id,
-                                    false,
-                                    ge.amount,
-                                    ge.description,
-                                    LocalDateTime.ofInstant(ge.date.toInstant(), ZoneId.of("UTC")),
-                                    ge.category,
-                                    ge.initiatorUserId,
-                                    ge.addedByUserId,
-                                    group.id
-                                )
-                            )
-                            // save participants of group expense to localdb
-                            for (eu in ge.users) {
-                                db.expenseUserDao().saveExpenseUser(
-                                    ExpenseUser(
-                                        0L,
-                                        eu.amount,
-                                        eu.multiplier,
-                                        eu.userId,
-                                        expenseId
-                                    )
-                                )
-                            }
-                        }
-                    }
-                    currentPage++
-                    if (currentPage == groupExpenses.totalPages || groupExpenses.totalPages == 0) {
-                        break
-                    }
-                }
+            userGroups.forEach { g ->
+                fetchGroupAndUsersAndExpenses(g.id)
             }
             // fetch and save all personal expenses
             var currentPage = 0
@@ -265,7 +552,7 @@ class BackendService {
                     return@async
                 }
                 val personalExpenses =
-                    RequestParser.responseToPersonalExpenseList(responseBodyPersonalExpenses)
+                    RequestParser.responseToPersonalExpensePage(responseBodyPersonalExpenses)
                 withContext(Dispatchers.IO) {
                     // save each personal expense in page to localdb
                     for (pe in personalExpenses.content) {
@@ -293,7 +580,7 @@ class BackendService {
             return@async
         }.await()
         // update last update time in db
-        updateLastUpdateDate(LocalDateTime.now())
+        updateLastUpdateDate(LocalDateTime.ofInstant(Date().toInstant(), ZoneId.of("UTC")))
         return result
     }
 
@@ -724,12 +1011,7 @@ class BackendService {
         return when (responseCode) {
             204 -> {
                 // if successful, delete from localdb
-                mainScope.async {
-                    withContext(Dispatchers.IO) {
-                        db.expenseDao().deleteById(expenseId)
-                    }
-                    return@async
-                }.await()
+                deleteExpenseFromDbById(expenseId)
                 DeleteResult.Deleted
             }
             //TODO: correctly handle other cases
