@@ -93,85 +93,92 @@ fun ExpandableList(
                         }
                 )
 
-                if (expensesState[item.category] == true && expenses[item.category]?.isNotEmpty() == true) {
-                    Column {
-                        for (expense in expenses[item.category]!!) {
-                            Divider()
-                            var showPicture by remember { mutableStateOf(false) }
-                            ListItem(
-                                headlineContent = {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxSize(),
-                                        verticalAlignment = Alignment.Bottom
-                                    ) {
-                                        Text(
-                                        "${expense.amount.setScale(2, RoundingMode.HALF_EVEN).toDouble()} " +
-                                                backendService.getPersonalCurrency()
+                if (expensesState[item.category] == true) {
+                    if(expenses[item.category]?.isNotEmpty() == true) {
+                        Column {
+                            for (expense in expenses[item.category]!!) {
+                                Divider()
+                                var showPicture by remember { mutableStateOf(false) }
+                                ListItem(
+                                    headlineContent = {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxSize(),
+                                            verticalAlignment = Alignment.Bottom
+                                        ) {
+                                            Text(
+                                                "${expense.amount.setScale(2, RoundingMode.HALF_EVEN).toDouble()} " +
+                                                        backendService.getPersonalCurrency()
+                                            )
+                                        }
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxSize(),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Text(
+                                                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(expense.date),
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.outline,
+                                            )
+                                        }
+                                    },
+                                    supportingContent = { Text(
+                                        expense.description,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onBackground,
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 16.sp,
+                                        modifier = Modifier.padding(vertical = 5.dp)
+                                    ) },
+                                    leadingContent = {
+                                        DisplayExpenseImage(
+                                            expense.id,
+                                            context,
+                                            showPicture,
+                                            onIconClick = { showPicture = it }
                                         )
-                                    }
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxSize(),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(expense.date),
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.outline,
-                                        )
-                                    }
-                                },
-                                supportingContent = { Text(
-                                    expense.description,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onBackground,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 16.sp,
-                                    modifier = Modifier.padding(vertical = 5.dp)
-                                ) },
-                                leadingContent = {
-                                    DisplayExpenseImage(
-                                        expense.id,
-                                        context,
-                                        showPicture,
-                                        onIconClick = { showPicture = it }
-                                    )
-                                },
-                                trailingContent = {
-                                    val showDialog = remember { mutableStateOf(false) }
+                                    },
+                                    trailingContent = {
+                                        val showDialog = remember { mutableStateOf(false) }
 
-                                    IconButton(onClick = {
-                                        showDialog.value = true
-                                    }) {
-                                        Icon(EvaIcons.Fill.Trash, "Delete expense")
-                                    }
+                                        IconButton(onClick = {
+                                            showDialog.value = true
+                                        }) {
+                                            Icon(EvaIcons.Fill.Trash, "Delete expense")
+                                        }
 
-                                    if (showDialog.value) {
-                                        AlertDialog(
-                                            onDismissRequest = { showDialog.value = false },
-                                            title = { Text("Confirmation") },
-                                            text = { Text("Are you sure you want to delete this expense?") },
-                                            confirmButton = {
-                                                TextButton(onClick = {
-                                                    deleteItem(expense.id)
-                                                    showDialog.value = false
-                                                }) {
-                                                    Text("Yes")
+                                        if (showDialog.value) {
+                                            AlertDialog(
+                                                onDismissRequest = { showDialog.value = false },
+                                                title = { Text("Confirmation") },
+                                                text = { Text("Are you sure you want to delete this expense?") },
+                                                confirmButton = {
+                                                    TextButton(onClick = {
+                                                        deleteItem(expense.id)
+                                                        showDialog.value = false
+                                                    }) {
+                                                        Text("Yes")
+                                                    }
+                                                },
+                                                dismissButton = {
+                                                    TextButton(onClick = {
+                                                        showDialog.value = false
+                                                    }) {
+                                                        Text("No")
+                                                    }
                                                 }
-                                            },
-                                            dismissButton = {
-                                                TextButton(onClick = {
-                                                    showDialog.value = false
-                                                }) {
-                                                    Text("No")
-                                                }
-                                            }
-                                        )
-                                    }
-                                },
-                            )
+                                            )
+                                        }
+                                    },
+                                )
+                            }
                         }
+                    }
+                    else {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.CenterHorizontally)
+                        )
                     }
                 }
             }

@@ -207,7 +207,13 @@ fun GroupSpendingList(
                             Divider(color = MaterialTheme.colorScheme.onPrimaryContainer, thickness = 1.dp)
                             Spacer(modifier = Modifier.padding(vertical = 4.dp))
 
-                            if (expenseDebtors[expense.id] != null) {
+                            if (expenseDebtors[expense.id] == null) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                                )
+                            }
+
+                            else {
                                 for (user in expenseDebtors[expense.id]!!) {
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
