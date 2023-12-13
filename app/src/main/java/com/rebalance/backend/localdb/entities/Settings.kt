@@ -4,6 +4,8 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import java.time.LocalDateTime
+import java.time.ZoneId
+import java.util.*
 
 @Entity(tableName = "settings")
 data class Settings(
@@ -34,7 +36,7 @@ data class Settings(
                 first_launch = true,
                 token = "",
                 currency = "",
-                lastUpdateDate = LocalDateTime.now()
+                lastUpdateDate = LocalDateTime.ofInstant(Date().toInstant(), ZoneId.of("UTC"))
             )
         }
     }
