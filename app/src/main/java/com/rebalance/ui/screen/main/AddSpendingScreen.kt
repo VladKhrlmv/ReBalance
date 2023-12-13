@@ -404,6 +404,7 @@ fun AddSpendingScreen(
                 checked = isGroupExpense,
                 onCheckedChange = {
                     isGroupExpense = it
+                    if (it) focusManager.clearFocus()
                 },
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
