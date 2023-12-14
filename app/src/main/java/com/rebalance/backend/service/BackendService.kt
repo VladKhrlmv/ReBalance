@@ -161,33 +161,42 @@ class BackendService {
                 ApiNotificationType.UserAddedToGroup -> {
                     val newUser = fetchUserById(notification.userAddedId, notification.groupId)
                     if (newUser == null) {
-                        notificationService.sendErrorNotification("") //TODO
+                        notificationService.sendErrorNotification("An error occurred while getting user")
                     } else if (show) {
-                        notificationService.sendNotification("") //TODO
+                        val initiator = getUserById(notification.initiatorUserId)
+                        val group = getGroupById(notification.groupId)
+                        notificationService.sendNotification("${initiator!!.nickname} added ${newUser.nickname} to ${group!!.name}")
                     }
                 }
                 ApiNotificationType.CurrentUserAddedToGroup -> {
                     if (!fetchGroupAndUsersAndExpenses(notification.groupId)) {
-                        notificationService.sendErrorNotification("") //TODO
+                        notificationService.sendErrorNotification("An error occurred while getting new group")
                     } else if (show) {
-                        notificationService.sendNotification("") //TODO
+                        val initiator = getUserById(notification.initiatorUserId)
+                        val group = getGroupById(notification.groupId)
+                        notificationService.sendNotification("${initiator!!.nickname} added you to ${group!!.name}")
                     }
                 }
                 ApiNotificationType.GroupCreated -> {
                     val newGroup = fetchGroupById(notification.groupId)
                     if (newGroup == null) {
-                        notificationService.sendErrorNotification("") //TODO
-                    } else if (show) {
-                        notificationService.sendNotification("") //TODO
+                        notificationService.sendErrorNotification("An error occurred while getting new group")
                     }
                 }
                 ApiNotificationType.GroupExpenseAdded -> {
                     val groupExpense =
                         fetchGroupExpenseById(notification.groupId, notification.expenseId, null)
                     if (groupExpense == null) {
-                        notificationService.sendErrorNotification("") //TODO
+                        notificationService.sendErrorNotification("An error occurred while getting group expense")
                     } else if (show) {
-                        notificationService.sendNotification("") //TODO
+                        val initiator = getUserById(notification.initiatorUserId)
+                        val userGroups = getUsersOfGroup(notification.groupId)
+                        if (userGroups.any { eg -> eg.userId == settings.user_id } || // if this user participated
+                            groupExpense.initiator_id == settings.user_id // if this user payed
+                        ) {
+                            val group = getGroupById(notification.groupId)
+                            notificationService.sendNotification("${initiator!!.nickname} added ${groupExpense.description} to ${group!!.name}")
+                        }
                     }
                 }
                 ApiNotificationType.GroupExpenseEdited -> {
@@ -198,21 +207,36 @@ class BackendService {
                             getExpenseByDbId(notification.expenseId)?.id
                         )
                     if (groupExpense == null) {
-                        notificationService.sendErrorNotification("") //TODO
+                        notificationService.sendErrorNotification("An error occurred while getting group expense")
                     } else if (show) {
-                        notificationService.sendNotification("") //TODO
+                        val initiator = getUserById(notification.initiatorUserId)
+                        val userGroups = getUsersOfGroup(notification.groupId)
+                        if (userGroups.any { eg -> eg.userId == settings.user_id } || // if this user participated
+                            groupExpense.initiator_id == settings.user_id // if this user payed
+                        ) {
+                            val group = getGroupById(notification.groupId)
+                            notificationService.sendNotification("${initiator!!.nickname} edited ${groupExpense.description} in ${group!!.name}")
+                        }
                     }
                 }
                 ApiNotificationType.GroupExpenseDeleted -> {
+                    val groupExpense = getExpenseByDbId(notification.expenseId)
                     deleteExpenseFromDbByDbId(notification.expenseId)
+
+                    val initiator = getUserById(notification.initiatorUserId)
+                    val userGroups = getUsersOfGroup(notification.groupId)
+                    if (groupExpense != null && (userGroups.any { eg -> eg.userId == settings.user_id } || // if this user participated
+                                groupExpense.initiator_id == settings.user_id // if this user payed
+                                )) {
+                        val group = getGroupById(notification.groupId)
+                        notificationService.sendNotification("${initiator!!.nickname} deleted ${groupExpense.description} from ${group!!.name}")
+                    }
                 }
                 ApiNotificationType.PersonalExpenseAdded -> {
                     val personalExpense =
                         fetchPersonalExpenseById(notification.expenseId, null)
                     if (personalExpense == null) {
-                        notificationService.sendErrorNotification("") //TODO
-                    } else if (show) {
-                        notificationService.sendNotification("") //TODO
+                        notificationService.sendErrorNotification("An error occurred while getting personal expense")
                     }
                 }
                 ApiNotificationType.PersonalExpenseEdited -> {
@@ -222,9 +246,7 @@ class BackendService {
                             getExpenseByDbId(notification.expenseId)?.id
                         )
                     if (personalExpense == null) {
-                        notificationService.sendErrorNotification("") //TODO
-                    } else if (show) {
-                        notificationService.sendNotification("") //TODO
+                        notificationService.sendErrorNotification("An error occurred while getting personal expense")
                     }
                 }
                 ApiNotificationType.PersonalExpenseDeleted -> {
