@@ -66,10 +66,15 @@ fun LoadingScreen() {
                             logoutFinished = backendService.logout(false)
                         }
                     }
-                    LoginResult.ServerUnreachable -> alertUser( //TODO: go to main screen with offline mode
-                        "Server unavailable. Please try again later",
-                        context
-                    )
+                    LoginResult.ServerUnreachable -> {
+                        alertUser( //TODO: go to main screen with offline mode
+                            "Server unavailable. Please try again later",
+                            context
+                        )
+                        if (backendService.getToken().isNotEmpty()) {
+                            switchActivityTo(context, MainActivity::class)
+                        }
+                    }
                     else -> CircularProgressIndicator()
                 }
 
