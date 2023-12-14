@@ -38,16 +38,25 @@ class BackendService {
     private lateinit var settings: Settings
     private lateinit var requestSender: RequestSender
     private lateinit var notificationService: NotificationService
+    private val update: MutableList<(() -> Unit)> = listOf<(() -> Unit)>().toMutableList()
 
     companion object {
         @Volatile
         private var INSTANCE: BackendService? = null
 
         // ensure that only one instance is used in all composables
-        fun get(): BackendService =
-            INSTANCE ?: synchronized(this) {
-                BackendService().also { INSTANCE = it }
+        fun get(update: (() -> Unit)? = null): BackendService {
+            return if (INSTANCE == null) {
+                synchronized(this) {
+                    BackendService().also { INSTANCE = it }
+                }
+            } else {
+                if (update != null) {
+                    INSTANCE!!.update.add(update)
+                }
+                INSTANCE as BackendService
             }
+        }
     }
 
     suspend fun initialize(context: Context, onInit: () -> Unit) {
@@ -258,6 +267,7 @@ class BackendService {
             }
             newLastUpdateDate = notification.date
         }
+        updateAll() //TODO: on screens show button to reload UI instead of reloading instantly
         updateLastUpdateDate(newLastUpdateDate)
         return true
     }
@@ -1361,4 +1371,8 @@ class BackendService {
         return Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
     }
     //endregion
+
+    private fun updateAll() {
+        update.forEach { u -> u() }
+    }
 }

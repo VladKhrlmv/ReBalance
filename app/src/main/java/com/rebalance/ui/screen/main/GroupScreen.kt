@@ -37,7 +37,8 @@ fun GroupScreen(
     navHostController: NavHostController,
     setOnPlusClick: (() -> Unit) -> Unit
 ) {
-    val backendService = remember { BackendService.get() }
+    var update by remember { mutableStateOf(false) }
+    val backendService = remember { BackendService.get(update = { update = !update }) }
     val groupScope = rememberCoroutineScope()
 
     val tabItems = listOf("Visual", "List")
@@ -57,7 +58,7 @@ fun GroupScreen(
         }
     }
 
-    LaunchedEffect(groupId) {
+    LaunchedEffect(groupId, update) {
         if (groupId != -1L) { // if group is selected
             group = backendService.getGroupById(groupId)
             if (selectedTabIndex == 0) { // if tab is visual

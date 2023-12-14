@@ -33,7 +33,8 @@ fun PersonalScreen(
     navHostController: NavHostController,
     setOnPlusClick: (() -> Unit) -> Unit
 ) {
-    val backendService = remember { BackendService.get() }
+    var update by remember { mutableStateOf(false) }
+    val backendService = remember { BackendService.get(update = { update = !update }) }
     val personalScope = rememberCoroutineScope()
 
     val scaleItems = remember { backendService.getScaleItems() }
@@ -63,7 +64,7 @@ fun PersonalScreen(
         }
     }
 
-    LaunchedEffect(selectedTabIndex) {// get new values on tab change
+    LaunchedEffect(selectedTabIndex, update) {// get new values on tab change
         if (selectedTabIndex != -1) {
             sumByCategories = backendService.getPieChartData(tabItems[selectedTabIndex])
         }

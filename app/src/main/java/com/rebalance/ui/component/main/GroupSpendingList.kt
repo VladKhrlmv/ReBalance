@@ -37,7 +37,8 @@ fun GroupSpendingList(
     context: Context,
     onDelete: (Long) -> Unit,
 ) {
-    val backendService = remember { BackendService.get() }
+    var update by remember { mutableStateOf(false) }
+    val backendService = remember { BackendService.get(update = { update = !update }) }
     val groupSpendingListScope = rememberCoroutineScope()
 
     val expensesLiveData = MutableLiveData<List<GroupExpenseItem>>()
@@ -66,7 +67,7 @@ fun GroupSpendingList(
     }
 
     // fetch first elements on start
-    LaunchedEffect(group) {
+    LaunchedEffect(group, update) {
         Log.d("group list", "${expenses.size}")
         currentPage = 0
         currentPageLast = false
