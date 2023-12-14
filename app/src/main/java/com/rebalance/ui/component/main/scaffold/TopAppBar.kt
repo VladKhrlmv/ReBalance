@@ -51,7 +51,7 @@ fun TopAppBar(
 
                 IconButton(onClick = {
                     topAppBarScope.launch {
-                        logoutResult = backendService.logout()
+                        logoutResult = backendService.logout(true)
                     }
                 }, modifier = Modifier.testTag("logout")) {
                     Icon(EvaIcons.Fill.LogOut, "Logout")

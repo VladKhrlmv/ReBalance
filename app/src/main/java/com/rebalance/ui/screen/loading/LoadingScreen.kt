@@ -63,7 +63,7 @@ fun LoadingScreen() {
                     }
                     LoginResult.TokenInspired -> { // if token inspired, logout
                         loadingScope.launch {
-                            logoutFinished = backendService.logout()
+                            logoutFinished = backendService.logout(false)
                         }
                     }
                     LoginResult.ServerUnreachable -> alertUser( //TODO: go to main screen with offline mode

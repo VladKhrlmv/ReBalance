@@ -763,8 +763,10 @@ class BackendService {
         }
     }
 
-    suspend fun logout(): Boolean {
-        val (_, _) = requestSender.sendPost("/user/logout", "")
+    suspend fun logout(checkToken: Boolean): Boolean {
+        if(checkToken) {
+            val (_, _) = requestSender.sendPost("/user/logout", "")
+        }
         // update settings in db
         val defaultSettings = Settings.getDefaultInstance()
         updateUserInSettings(
