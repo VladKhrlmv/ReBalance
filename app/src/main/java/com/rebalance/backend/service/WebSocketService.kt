@@ -57,6 +57,22 @@ class WebSocketService : Service() {
                 LifecycleEvent.Type.ERROR -> {
                     Log.d("websocket", "Error: ${lifecycleEvent.exception}")
                 }
+                LifecycleEvent.Type.OPENED -> {
+                    try {
+                        stompClient.topic("/user/notifications/new/all").subscribe { topicMessage ->
+                            serviceScope.launch {
+                                backendService.updateDbFromNotifications(
+                                    RequestParser.responseToNotificationAll(
+                                        topicMessage.payload
+                                    ),
+                                    true
+                                )
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.d("websocket", "Failed to subscribe")
+                    }
+                }
                 else -> {}
             }
         }
@@ -65,23 +81,6 @@ class WebSocketService : Service() {
             .withClientHeartbeat(60000)
             .withServerHeartbeat(60000)
             .connect(headers)
-
-        try {
-            if (stompClient.isConnected) {
-                stompClient.topic("/user/notifications/new/all").subscribe { topicMessage ->
-                    serviceScope.launch {
-                        backendService.updateDbFromNotifications(
-                            RequestParser.responseToNotificationAll(
-                                topicMessage.payload
-                            ),
-                            true
-                        )
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            Log.d("websocket", "Failed to subscribe")
-        }
 
         startForeground(1, createNotification())
         return START_STICKY
