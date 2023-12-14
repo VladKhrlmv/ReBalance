@@ -69,7 +69,7 @@ class BackendService {
             // initialize settings from db and requests sender
             settings = settingsFromDB as Settings
             requestSender = RequestSender(settings.server_ip, settings.token)
-            notificationService = NotificationService(context)
+            notificationService = NotificationService(context, settings.currNotificationChannel)
             onInit()
         }
     }
@@ -113,23 +113,16 @@ class BackendService {
             return@async
         }.await()
     }
-    //endregion
 
-    //region settings
-    fun getUserId(): Long {
-        return settings.user_id
-    }
-
-    fun getGroupId(): Long {
-        return settings.group_id
-    }
-
-    fun getPersonalCurrency(): String {
-        return settings.currency
-    }
-
-    fun isFirstLaunch(): Boolean {
-        return settings.first_launch
+    suspend fun updateCurrNotificationChannel(newChannel: String) {
+        this.settings.currNotificationChannel = newChannel
+        mainScope.async {
+            withContext(Dispatchers.IO) {
+                db.settingsDao().saveSettings(settings)
+            }
+            return@async
+        }.await()
+        notificationService.updateChannel(newChannel)
     }
     //endregion
 
