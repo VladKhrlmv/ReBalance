@@ -562,6 +562,16 @@ class BackendService {
         }.await()
     }
 
+    private suspend fun getExpenseById(expenseId: Long): Expense? {
+        return mainScope.async {
+            var groupExpense: Expense?
+            withContext(Dispatchers.IO) {
+                groupExpense = db.expenseDao().getExpenseById(expenseId)
+            }
+            return@async groupExpense
+        }.await()
+    }
+
     private suspend fun getExpenseByDbId(expenseId: Long): Expense? {
         return mainScope.async {
             var groupExpense: Expense?
@@ -979,19 +989,19 @@ class BackendService {
     /** Deletes personal expense from localdb and server, returns result of an operation **/
     suspend fun deletePersonalExpenseById(expenseId: Long): DeleteResult {
         // delete from server
-        val (responseCode, _) = requestSender.sendDelete("/personal/expenses/$expenseId")
+        val personalExpense = getExpenseById(expenseId) ?: return DeleteResult.NotFound
+        val (responseCode, _) = requestSender.sendDelete("/personal/expenses/${personalExpense.dbId}")
         return when (responseCode) {
             204 -> {
-                // if successful, delete from localdb
-                mainScope.async {
-                    withContext(Dispatchers.IO) {
-                        db.expenseDao().deleteById(expenseId)
-                    }
-                    return@async
-                }.await()
+//                // if successful, delete from notification
+//                mainScope.async {
+//                    withContext(Dispatchers.IO) {
+//                        db.expenseDao().deleteById(expenseId)
+//                    }
+//                    return@async
+//                }.await()
                 DeleteResult.Deleted
             }
-            //TODO: correctly handle other cases
             404 -> DeleteResult.NotFound
             409 -> DeleteResult.IncorrectId
             else -> DeleteResult.ServerError
@@ -1027,7 +1037,7 @@ class BackendService {
             request.toJson()
         )
         return when (responseCode) {
-            201 -> { //TODO: check if server available
+            201 -> {
                 val groupResponse = RequestParser.responseToGroup(responseBody)
                 // save new group in db
                 val group = Group(
@@ -1099,14 +1109,14 @@ class BackendService {
     }
 
     suspend fun deleteGroupExpenseById(expenseId: Long): DeleteResult {
-        val (responseCode, _) = requestSender.sendDelete("/group/expenses/$expenseId")
+        val groupExpense = getExpenseById(expenseId) ?: return DeleteResult.NotFound
+        val (responseCode, _) = requestSender.sendDelete("/group/expenses/${groupExpense.dbId}")
         return when (responseCode) {
             204 -> {
-                // if successful, delete from localdb
-                deleteExpenseFromDbById(expenseId)
+                // if successful, delete from notification
+//                deleteExpenseFromDbById(expenseId)
                 DeleteResult.Deleted
             }
-            //TODO: correctly handle other cases
             404 -> DeleteResult.NotFound
             409 -> DeleteResult.IncorrectId
             else -> DeleteResult.ServerError
@@ -1192,7 +1202,6 @@ class BackendService {
                 LocalDateTime.ofInstant(expense.date.toInstant(), ZoneId.of("UTC"))
             ).toJson()
         )
-        //TODO: remove adding to localdb, instead make request and add from notification
         when (responseCode) {
             200 -> {
                 // if backend successfully added personal expense, it will be added shortly from notification
