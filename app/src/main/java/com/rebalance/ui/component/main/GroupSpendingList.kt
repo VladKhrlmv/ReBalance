@@ -97,9 +97,17 @@ fun GroupSpendingList(
                 ) {
                     ListItem(
                         headlineContent = {
-                            Text("${expense.amount.setScale(2, RoundingMode.HALF_EVEN)} ${group.currency}")
                             Text(
-                                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").format(expense.date),
+                                "${
+                                    expense.amount.setScale(
+                                        2,
+                                        RoundingMode.HALF_EVEN
+                                    )
+                                } ${group.currency}"
+                            )
+                            Text(
+                                DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+                                    .format(expense.date),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.outline,
                             )
@@ -137,7 +145,10 @@ fun GroupSpendingList(
                                         title = { Text("Confirmation") },
                                         text = { Text("Are you sure you want to delete this expense?") },
                                         confirmButton = {
-                                            TextButton(onClick = { onDelete(expense.id) }) {
+                                            TextButton(onClick = {
+                                                onDelete(expense.id)
+                                                showDialog.value = false
+                                            }) {
                                                 Text("Yes")
                                             }
                                         },
@@ -214,16 +225,17 @@ fun GroupSpendingList(
                             }
 
                             Spacer(modifier = Modifier.padding(vertical = 4.dp))
-                            Divider(color = MaterialTheme.colorScheme.onPrimaryContainer, thickness = 1.dp)
+                            Divider(
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                thickness = 1.dp
+                            )
                             Spacer(modifier = Modifier.padding(vertical = 4.dp))
 
                             if (expenseDebtors[expense.id] == null) {
                                 CircularProgressIndicator(
                                     modifier = Modifier.align(Alignment.CenterHorizontally)
                                 )
-                            }
-
-                            else {
+                            } else {
                                 for (user in expenseDebtors[expense.id]!!) {
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
@@ -239,7 +251,12 @@ fun GroupSpendingList(
                                             color = MaterialTheme.colorScheme.onBackground
                                         )
                                         Text(
-                                            text = "${user.amount.setScale(2, RoundingMode.HALF_EVEN)} ${group.currency}",
+                                            text = "${
+                                                user.amount.setScale(
+                                                    2,
+                                                    RoundingMode.HALF_EVEN
+                                                )
+                                            } ${group.currency}",
                                             style = MaterialTheme.typography.bodyMedium,
                                             color = MaterialTheme.colorScheme.onBackground
                                         )
