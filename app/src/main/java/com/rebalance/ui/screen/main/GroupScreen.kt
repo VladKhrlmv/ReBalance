@@ -66,6 +66,10 @@ fun GroupScreen(
         }
     }
 
+    LaunchedEffect(selectedTabIndex) {
+        barChartData = backendService.getBarChartData(groupId)
+    }
+
     Column(
         modifier = Modifier
             .fillMaxSize()

@@ -2,6 +2,7 @@ package com.rebalance.ui.component.main
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -43,13 +44,18 @@ fun GroupSpendingList(
     val expenses by expensesLiveData.observeAsState(initial = emptyList())
     var currentPage by remember { mutableIntStateOf(0) }
     var currentPageLast by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
 
     val expenseDebtors = remember { mutableStateMapOf<Long, List<GroupExpenseItemUser>>() }
 
     fun loadExpenses() {
+        if (isLoading || currentPageLast) return
+
+        isLoading = true
         groupSpendingListScope.launch {
             val offset = currentPage * 20
             val newExpenses = backendService.getGroupExpenses(group.id, offset)
+            isLoading = false
             if (newExpenses.isNotEmpty()) {
                 expensesLiveData.postValue(expensesLiveData.value.orEmpty() + newExpenses)
                 currentPage++
@@ -60,7 +66,11 @@ fun GroupSpendingList(
     }
 
     // fetch first elements on start
-    LaunchedEffect(Unit) {
+    LaunchedEffect(group) {
+        Log.d("group list", "${expenses.size}")
+        currentPage = 0
+        currentPageLast = false
+        expensesLiveData.postValue(listOf())
         loadExpenses()
     }
 
@@ -207,7 +217,13 @@ fun GroupSpendingList(
                             Divider(color = MaterialTheme.colorScheme.onPrimaryContainer, thickness = 1.dp)
                             Spacer(modifier = Modifier.padding(vertical = 4.dp))
 
-                            if (expenseDebtors[expense.id] != null) {
+                            if (expenseDebtors[expense.id] == null) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                                )
+                            }
+
+                            else {
                                 for (user in expenseDebtors[expense.id]!!) {
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
@@ -238,7 +254,7 @@ fun GroupSpendingList(
         )
         item {
             // when at the end, fetch more
-            if (expenses.isNotEmpty()) {
+            if (expenses.isNotEmpty() && !isLoading) {
                 groupSpendingListScope.launch {
                     loadExpenses()
                 }

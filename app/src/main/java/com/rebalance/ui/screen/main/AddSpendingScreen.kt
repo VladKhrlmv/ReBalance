@@ -85,6 +85,12 @@ fun AddSpendingScreen(
     val focusManager = LocalFocusManager.current
     val scrollState = rememberScrollState()
 
+    var spendingNameCheck by remember { mutableStateOf(false) }
+    var categoryCheck by remember { mutableStateOf(false) }
+    var costCheck by remember { mutableStateOf(false) }
+    var memberSelectionCheck by remember { mutableStateOf(false) }
+    var payerCheck by remember { mutableStateOf(false) }
+
     // selecting image
     val galleryLauncher =
         rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri ->
@@ -115,16 +121,23 @@ fun AddSpendingScreen(
     // set action for floating button
     LaunchedEffect(Unit) {
         setOnPlusClick {
-            if (spendingName.isEmpty() || costValue.isEmpty() || selectedCategory.isEmpty()) {
-                alertUser("Fill in all data", context)
-                return@setOnPlusClick
+            if (spendingName.isEmpty()) {
+                spendingNameCheck = true
+            }
+            if (selectedCategory.isEmpty()) {
+                categoryCheck = true
+            }
+            if (costValue.isEmpty()) {
+                costCheck = true
             }
             if (isGroupExpense && membersSelection.all { debtor -> !debtor.selected }) {
-                alertUser("Choose at least one member", context)
-                return@setOnPlusClick
+                memberSelectionCheck = true
             }
             if (isGroupExpense && payer == null) {
-                alertUser("Set the payer", context)
+                payerCheck = true
+            }
+
+            if(spendingNameCheck || categoryCheck || costCheck || memberSelectionCheck || payerCheck) {
                 return@setOnPlusClick
             }
 
@@ -206,11 +219,19 @@ fun AddSpendingScreen(
                 value = spendingName,
                 onValueChange = { newSpendingName -> spendingName = newSpendingName },
                 label = {
-                    Text(text = "Title")
+                    Text(
+                        text = "Title",
+                        color =
+                            if (!spendingNameCheck)
+                                MaterialTheme.colorScheme.outline
+                            else
+                                Color.Red
+                    )
                 },
                 modifier = Modifier
                     .padding(horizontal = 10.dp, vertical = 5.dp)
-                    .weight(1f),
+                    .weight(1f)
+                    .onFocusChanged { spendingNameCheck = false },
                 colors = TextFieldDefaults.textFieldColors(
                     containerColor = Color.Transparent,
                 ),
@@ -287,11 +308,19 @@ fun AddSpendingScreen(
             value = selectedCategory,
             onValueChange = { selectedCategory = it },
             label = {
-                Text(text = "Category")
+                Text(
+                    text = "Category",
+                    color =
+                        if (!categoryCheck)
+                            MaterialTheme.colorScheme.outline
+                        else
+                            Color.Red
+                )
             },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 10.dp, vertical = 5.dp),
+                .padding(horizontal = 10.dp, vertical = 5.dp)
+                .onFocusChanged { categoryCheck = false },
             colors = TextFieldDefaults.textFieldColors(
                 containerColor = Color.Transparent,
             ),
@@ -319,12 +348,20 @@ fun AddSpendingScreen(
                 imeAction = ImeAction.Done
             ),
             label = {
-                Text(text = "Cost")
+                Text(
+                    text = "Cost",
+                    color =
+                        if (!costCheck)
+                            MaterialTheme.colorScheme.outline
+                        else
+                            Color.Red
+                )
             },
             modifier = Modifier
                 .padding(horizontal = 10.dp, vertical = 5.dp)
                 .fillMaxWidth()
                 .onFocusChanged {
+                    costCheck = false
                     if (!it.isFocused) {
                         costValue = costValue
                             .replace(",", ".")
@@ -367,6 +404,7 @@ fun AddSpendingScreen(
                 checked = isGroupExpense,
                 onCheckedChange = {
                     isGroupExpense = it
+                    if (it) focusManager.clearFocus()
                 },
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
@@ -379,6 +417,7 @@ fun AddSpendingScreen(
                     .fillMaxWidth()
                     .clickable {
                         isGroupExpense = !isGroupExpense
+                        focusManager.clearFocus()
                     }
             )
         }
@@ -424,14 +463,16 @@ fun AddSpendingScreen(
                 GroupMemberSelection(
                     members = membersSelection,
                     payer = payer,
+                    check = payerCheck,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 10.dp),
                     innerModifier = Modifier
-                        .fillMaxWidth(),
+                        .fillMaxWidth()
+                        .onFocusChanged { payerCheck = false },
                     onSwitch = {
                         payerId = it
-                    }
+                    },
                 )
                 // debtors choosing
                 for (member in membersSelection) {
@@ -443,9 +484,17 @@ fun AddSpendingScreen(
                             checked = member.selected,
                             onCheckedChange = { newValue ->
                                 updateSelection(member.userId, newValue)
+                                memberSelectionCheck = false
                             },
                             modifier = Modifier
-                                .align(Alignment.CenterVertically)
+                                .align(Alignment.CenterVertically),
+                            colors = CheckboxDefaults.colors(
+                                uncheckedColor =
+                                    if (!memberSelectionCheck)
+                                        MaterialTheme.colorScheme.outline
+                                    else
+                                        Color.Red
+                                )
                         )
                         Text(
                             text = member.nickname,
@@ -453,6 +502,7 @@ fun AddSpendingScreen(
                                 .weight(1f)
                                 .clickable {
                                     updateSelection(member.userId, !member.selected)
+                                    memberSelectionCheck = false
                                 }
                                 .align(Alignment.CenterVertically)
                                 .padding(end = 10.dp),
