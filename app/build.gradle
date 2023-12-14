@@ -77,6 +77,8 @@ dependencies {
 
     implementation "com.github.PhilJay:MPAndroidChart:v3.1.0"
     implementation 'br.com.devsrsouza.compose.icons.android:eva-icons:1.0.0'
+    implementation 'com.github.NaikSoftware:StompProtocolAndroid:1.6.6'
+    implementation 'io.reactivex.rxjava2:rxjava:2.2.8'
 
 
     testImplementation 'io.mockk:mockk-android:1.13.5'
