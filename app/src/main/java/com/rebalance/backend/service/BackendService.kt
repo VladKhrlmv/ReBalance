@@ -226,9 +226,11 @@ class BackendService {
 
                     val initiator = getUserById(notification.initiatorUserId)
                     val userGroups = getUsersOfGroup(notification.groupId)
-                    if (groupExpense != null && (userGroups.any { eg -> eg.userId == settings.user_id } || // if this user participated
+                    if (groupExpense != null && notification.initiatorUserId != settings.user_id &&
+                        (userGroups.any { eg -> eg.userId == settings.user_id } || // if this user participated
                                 groupExpense.initiator_id == settings.user_id // if this user payed
-                                )) {
+                                )
+                    ) {
                         val group = getGroupById(notification.groupId)
                         notificationService.sendNotification("${initiator!!.nickname} deleted ${groupExpense.description} from ${group!!.name}")
                     }
@@ -764,7 +766,7 @@ class BackendService {
     }
 
     suspend fun logout(checkToken: Boolean): Boolean {
-        if(checkToken) {
+        if (checkToken) {
             val (_, _) = requestSender.sendPost("/user/logout", "")
         }
         // update settings in db
