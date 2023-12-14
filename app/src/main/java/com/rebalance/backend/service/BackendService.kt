@@ -201,8 +201,9 @@ class BackendService {
                     } else if (show) {
                         val initiator = getUserById(notification.initiatorUserId)
                         val userGroups = getUsersOfGroup(notification.groupId)
-                        if (userGroups.any { eg -> eg.userId == settings.user_id } || // if this user participated
-                            groupExpense.initiator_id == settings.user_id // if this user payed
+                        if (notification.initiatorUserId != settings.user_id &&
+                            (userGroups.any { eg -> eg.userId == settings.user_id } || // if this user participated
+                            groupExpense.initiator_id == settings.user_id) // if this user payed
                         ) {
                             val group = getGroupById(notification.groupId)
                             notificationService.sendNotification("${initiator!!.nickname} added ${groupExpense.description} to ${group!!.name}")
@@ -221,8 +222,9 @@ class BackendService {
                     } else if (show) {
                         val initiator = getUserById(notification.initiatorUserId)
                         val userGroups = getUsersOfGroup(notification.groupId)
-                        if (userGroups.any { eg -> eg.userId == settings.user_id } || // if this user participated
-                            groupExpense.initiator_id == settings.user_id // if this user payed
+                        if (notification.initiatorUserId != settings.user_id &&
+                            (userGroups.any { eg -> eg.userId == settings.user_id } || // if this user participated
+                            groupExpense.initiator_id == settings.user_id) // if this user payed
                         ) {
                             val group = getGroupById(notification.groupId)
                             notificationService.sendNotification("${initiator!!.nickname} edited ${groupExpense.description} in ${group!!.name}")
