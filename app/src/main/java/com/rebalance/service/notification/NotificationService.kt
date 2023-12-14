@@ -1,10 +1,7 @@
 package com.rebalance.service.notification
 
 import android.Manifest
-import android.app.Activity
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.PendingIntent
+import android.app.*
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -18,6 +15,7 @@ import com.rebalance.R
 import com.rebalance.activity.LoadingActivity
 import com.rebalance.backend.service.WebSocketService
 import com.rebalance.util.alertUser
+
 
 class NotificationService(
     val context: Context,
@@ -33,8 +31,22 @@ class NotificationService(
         createNotificationChannels()
 
         // start background service
-        val intent = Intent(context, WebSocketService::class.java)
-        startForegroundService(context, intent)
+        if (!isServiceRunningInForeground(context, WebSocketService::class.java)) {
+            val intent = Intent(context, WebSocketService::class.java)
+            startForegroundService(context, intent)
+        }
+    }
+
+    private fun isServiceRunningInForeground(context: Context, serviceClass: Class<*>): Boolean {
+        val manager = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
+        for (service in manager.getRunningServices(Int.MAX_VALUE)) {
+            if (serviceClass.name == service.service.className) {
+                if (service.foreground) {
+                    return true
+                }
+            }
+        }
+        return false
     }
 
     private fun createNotificationChannels() {
