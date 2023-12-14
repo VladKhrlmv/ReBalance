@@ -66,15 +66,21 @@ class WebSocketService : Service() {
             .withServerHeartbeat(60000)
             .connect(headers)
 
-        stompClient.topic("/user/notifications/new/all").subscribe { topicMessage ->
-            serviceScope.launch {
-                backendService.updateDbFromNotifications(
-                    RequestParser.responseToNotificationAll(
-                        topicMessage.payload
-                    ),
-                    true
-                )
+        try {
+            if (stompClient.isConnected) {
+                stompClient.topic("/user/notifications/new/all").subscribe { topicMessage ->
+                    serviceScope.launch {
+                        backendService.updateDbFromNotifications(
+                            RequestParser.responseToNotificationAll(
+                                topicMessage.payload
+                            ),
+                            true
+                        )
+                    }
+                }
             }
+        } catch (e: Exception) {
+            Log.d("websocket", "Failed to subscribe")
         }
 
         startForeground(1, createNotification())
