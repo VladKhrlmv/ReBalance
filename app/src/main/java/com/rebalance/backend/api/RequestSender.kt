@@ -16,27 +16,30 @@ class RequestSender(
 
     suspend fun sendGet(url: String): Pair<Int, String> =
         coroutineScope.async(Dispatchers.IO) {
-            var respCode: Int
-            var respBody = ""
+            try {
+                var respCode: Int
+                var respBody = ""
 
-            val request = URL(baseUrl + url)
-            with(request.openConnection() as HttpURLConnection) {
-                requestMethod = "GET"
-                doInput = true
-                setRequestProperty("Content-Type", "application/json; utf-8")
-                setRequestProperty("Accept", "application/json")
-                setRequestProperty("Authorization", "Bearer $token")
+                val request = URL(baseUrl + url)
+                with(request.openConnection() as HttpURLConnection) {
+                    requestMethod = "GET"
+                    doInput = true
+                    setRequestProperty("Content-Type", "application/json; utf-8")
+                    setRequestProperty("Accept", "application/json")
+                    setRequestProperty("Authorization", "Bearer $token")
 
-                Log.d("net", "get to $url : $responseCode token $token")
-                respCode = responseCode
-                if (responseCode == 200) {
-                    inputStream.bufferedReader().use {
-                        respBody = it.readText()
+                    Log.d("net", "get to $url : $responseCode token $token")
+                    respCode = responseCode
+                    if (responseCode == 200) {
+                        inputStream.bufferedReader().use {
+                            respBody = it.readText()
+                        }
                     }
                 }
+                return@async Pair(respCode, respBody)
+            } catch (e: Exception) {
+                return@async Pair(503, "")
             }
-
-            return@async Pair(respCode, respBody)
         }.await()
 
     suspend fun sendPost(url: String, body: String): Pair<Int, String> =
