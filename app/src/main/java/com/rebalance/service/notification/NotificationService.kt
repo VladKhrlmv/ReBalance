@@ -10,59 +10,34 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.RingtoneManager
 import android.net.Uri
-import android.os.Handler
-import android.os.Looper
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
+import androidx.core.content.ContextCompat.startForegroundService
 import com.rebalance.R
 import com.rebalance.activity.LoadingActivity
-import com.rebalance.backend.service.BackendService
-import com.rebalance.service.Preferences
+import com.rebalance.backend.service.WebSocketService
 import com.rebalance.util.alertUser
 
 class NotificationService(
     val context: Context,
+    private var channelId: String
 ) {
-    private var notificationId = 0
-    val backendService = BackendService.get()
-    fun start() {
-        createNotificationChannel()
+    private var notificationId = 2
 
-        val mainLooper = Looper.getMainLooper()
-        val preferences = Preferences(context).read()
-
-        Thread {
-            try {
-                while (true) {
-//                    val notifications = backendService.getNotifications()
-//
-//                    if (notifications.isNotEmpty()) {
-//                        for (notification in notifications) {
-//                            if (notification.getUserId().toString() == preferences.userId &&
-//                                notification.getAmount() < 0 &&
-//                                notification.getUserFromId().toString() != preferences.userId
-//                            ) {
-//                                Handler(mainLooper).post {
-//                                    if (notification.getExpenseId() != -1L) {
-//                                        sendNotification("Added new expense")
-//                                    }
-//                                    if (notification.getGroupId() != -1L) {
-//                                        sendNotification("Added to new group")
-//                                    }
-//                                }
-//                            }
-//                        }
-//                    }
-
-                    Thread.sleep(5_000)
-                }
-            } catch (_: Exception) {
-            }
-        }.start()
+    fun updateChannel(newChannelId: String) {
+        channelId = newChannelId
     }
 
-    private fun createNotificationChannel() {
+    fun start() {
+        createNotificationChannels()
+
+        // start background service
+        val intent = Intent(context, WebSocketService::class.java)
+        startForegroundService(context, intent)
+    }
+
+    private fun createNotificationChannels() {
         val channel1 = NotificationChannel(
             "channel1",
             "Channel 1",
@@ -118,14 +93,52 @@ class NotificationService(
         val pendingIntent: PendingIntent =
             PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
-        val builder = NotificationCompat.Builder(context, "systemChannel")
-            .setSmallIcon(androidx.core.R.drawable.notification_template_icon_bg)
+        val notification = NotificationCompat.Builder(context, channelId)
             .setContentTitle("ReBalance")
             .setContentText(textContent)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
-            .setSmallIcon(R.drawable.mailicon)
+            .setSmallIcon(R.drawable.ic_launcher_round)
+            .setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL)
+            .build()
+
+        with(NotificationManagerCompat.from(context)) {
+            val activity = (context as Activity)
+            if (ContextCompat.checkSelfPermission(
+                    activity,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                // Permission already granted, you can show notifications or perform other actions
+                notify(notificationId++, notification)
+            } else {
+                alertUser(
+                    "Cannot show notification - no permission",
+                    context
+                ) //TODO: ask for notification permission
+            }
+        }
+    }
+
+    fun sendErrorNotification(
+        textContent: String
+    ) {
+        //TODO: update with normal channel
+        val intent = Intent(context, LoadingActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+
+        val pendingIntent: PendingIntent =
+            PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+
+        val builder = NotificationCompat.Builder(context, "systemChannel")
+            .setContentTitle("ReBalance")
+            .setContentText(textContent)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setContentIntent(pendingIntent)
+            .setAutoCancel(true)
+            .setSmallIcon(R.drawable.ic_launcher_round)
             .setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL)
 
         with(NotificationManagerCompat.from(context)) {

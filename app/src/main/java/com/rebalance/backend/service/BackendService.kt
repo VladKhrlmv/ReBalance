@@ -126,16 +126,9 @@ class BackendService {
     }
     //endregion
 
-    //region connection
-    suspend fun checkLogin(): LoginResult {
-        // when no token, go to auth screen
-        if (settings.token.isEmpty()) return LoginResult.TokenInspired
-        val (responseCode, _) = requestSender.sendGet("/user/info")
-        return when (responseCode) {
-            200 -> LoginResult.LoggedIn
-            401 -> LoginResult.TokenInspired
-            else -> LoginResult.ServerUnreachable
-        }
+    //region notifications
+    fun startPollingNotifications() {
+        notificationService.start()
     }
 
     suspend fun fetchDataForMissingNotifications(): Boolean {
@@ -242,6 +235,49 @@ class BackendService {
         }
         updateLastUpdateDate(newLastUpdateDate)
         return true
+    }
+    //endregion
+
+    //region settings
+    fun getUserId(): Long {
+        return settings.user_id
+    }
+
+    fun getGroupId(): Long {
+        return settings.group_id
+    }
+
+    fun getPersonalCurrency(): String {
+        return settings.currency
+    }
+
+    fun isFirstLaunch(): Boolean {
+        return settings.first_launch
+    }
+
+    fun getCurrNotificationChannel(): String {
+        return settings.currNotificationChannel
+    }
+
+    fun getStompEndpoint(): String {
+        return settings.stompEndpoint
+    }
+
+    fun getToken(): String {
+        return settings.token
+    }
+    //endregion
+
+    //region connection
+    suspend fun checkLogin(): LoginResult {
+        // when no token, go to auth screen
+        if (settings.token.isEmpty()) return LoginResult.TokenInspired
+        val (responseCode, _) = requestSender.sendGet("/user/info")
+        return when (responseCode) {
+            200 -> LoginResult.LoggedIn
+            401 -> LoginResult.TokenInspired
+            else -> LoginResult.ServerUnreachable
+        }
     }
     //endregion
 
