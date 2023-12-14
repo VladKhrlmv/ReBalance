@@ -1,6 +1,5 @@
 package com.rebalance.ui.screen.main
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
@@ -23,17 +22,23 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.rebalance.service.Preferences
 import com.rebalance.R
-import com.rebalance.ui.component.SoundPlayer
+import com.rebalance.backend.service.BackendService
+import com.rebalance.service.SoundPlayer
 import compose.icons.EvaIcons
 import compose.icons.evaicons.Fill
 import compose.icons.evaicons.fill.Collapse
 import compose.icons.evaicons.fill.Expand
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen() {
+    val backendService = remember { BackendService.get() }
+    val settingsScope = rememberCoroutineScope()
+
+    var selectedChannel by remember { mutableStateOf(backendService.getCurrNotificationChannel()) }
+
     var name by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var theme = remember { mutableStateOf("") }
@@ -41,7 +46,7 @@ fun SettingsScreen() {
     val context = LocalContext.current
     val focusManager: FocusManager = LocalFocusManager.current
 
-    Box (
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .padding(10.dp)
@@ -119,11 +124,7 @@ fun SettingsScreen() {
             }
 
             ExpandableSection(title = "Preferences", expanded = false) {
-
                 ThemeDropdown(theme = theme)
-
-                val selectedChannel =
-                    remember { mutableStateOf(Preferences(context).read().currNotificationChannel) }
 
                 Column(
                     modifier = Modifier
@@ -136,17 +137,40 @@ fun SettingsScreen() {
                         selectedChannel,
                         context,
                         "systemChannel",
-                        isSystemSound = true
+                        isSystemSound = true,
+                        changeSelectedSound = { selectedChannel = it }
                     )
-                    SoundPlayer(R.raw.sound1, "Sound 1", selectedChannel, context, "channel1")
-                    SoundPlayer(R.raw.sound2, "Sound 2", selectedChannel, context, "channel2")
-                    SoundPlayer(R.raw.sound3, "Sound 3", selectedChannel, context, "channel3")
+                    SoundPlayer(
+                        R.raw.sound1,
+                        "Sound 1",
+                        selectedChannel,
+                        context,
+                        "channel1",
+                        changeSelectedSound = { selectedChannel = it })
+                    SoundPlayer(
+                        R.raw.sound2,
+                        "Sound 2",
+                        selectedChannel,
+                        context,
+                        "channel2",
+                        changeSelectedSound = { selectedChannel = it })
+                    SoundPlayer(
+                        R.raw.sound3,
+                        "Sound 3",
+                        selectedChannel,
+                        context,
+                        "channel3",
+                        changeSelectedSound = { selectedChannel = it })
                 }
             }
         }
 
         Button(
-            onClick = {  },
+            onClick = {
+                settingsScope.launch {
+                    backendService.updateCurrNotificationChannel(selectedChannel)
+                }
+            },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .fillMaxWidth()
@@ -261,7 +285,9 @@ fun ThemeDropdown(
 ) {
     var expanded by remember { mutableStateOf(false) }
     ExposedDropdownMenuBox(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 10.dp),
         expanded = expanded,
         onExpandedChange = {
             expanded = !expanded
@@ -272,7 +298,9 @@ fun ThemeDropdown(
             onValueChange = { },
             readOnly = true,
             singleLine = true,
-            modifier = Modifier.fillMaxWidth().menuAnchor(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor(),
             label = {
                 Text(text = "Theme")
             },
