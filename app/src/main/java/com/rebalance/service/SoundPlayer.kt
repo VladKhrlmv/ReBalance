@@ -1,4 +1,4 @@
-package com.rebalance.ui.component
+package com.rebalance.service
 
 import android.content.Context
 import android.media.MediaPlayer
@@ -11,32 +11,29 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.rebalance.service.Preferences
-import com.rebalance.service.PreferencesData
 
 @Composable
 fun SoundPlayer(
     @RawRes soundResId: Int,
     soundName: String,
-    selectedSound: MutableState<String>,
+    selectedSound: String,
     context: Context,
     correspondingNotificationChannel: String,
-    isSystemSound: Boolean = false
+    isSystemSound: Boolean = false,
+    changeSelectedSound: (String) -> Unit
 ) {
     var mediaPlayer: MediaPlayer? = null
     val ringtoneManager = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION)
-    val preferences: PreferencesData = Preferences(context).read()
 
     val playSound = {
         mediaPlayer?.release()
-        if (isSystemSound) {
-            mediaPlayer = MediaPlayer.create(context, ringtoneManager)
+        mediaPlayer = if (isSystemSound) {
+            MediaPlayer.create(context, ringtoneManager)
         } else {
-            mediaPlayer = MediaPlayer.create(context, soundResId)
+            MediaPlayer.create(context, soundResId)
         }
         mediaPlayer?.start()
     }
@@ -55,19 +52,10 @@ fun SoundPlayer(
 
     Row(verticalAlignment = Alignment.CenterVertically) {
         RadioButton(
-            selected = selectedSound.value == correspondingNotificationChannel,
+            selected = selectedSound == correspondingNotificationChannel,
             onClick = {
-                selectedSound.value = correspondingNotificationChannel
+                changeSelectedSound(correspondingNotificationChannel)
                 playSound()
-                Preferences(context).write(
-                    PreferencesData(
-                        preferences.serverIp,
-                        preferences.userId,
-                        preferences.groupId,
-                        preferences.firstLaunch,
-                        correspondingNotificationChannel
-                    )
-                )
             }
         )
         Text(
@@ -75,17 +63,8 @@ fun SoundPlayer(
             modifier = Modifier
                 .padding(start = 8.dp)
                 .clickable {
-                    selectedSound.value = correspondingNotificationChannel
+                    changeSelectedSound(correspondingNotificationChannel)
                     playSound()
-                    Preferences(context).write(
-                        PreferencesData(
-                            preferences.serverIp,
-                            preferences.userId,
-                            preferences.groupId,
-                            preferences.firstLaunch,
-                            correspondingNotificationChannel
-                        )
-                    )
                 }
         )
     }
