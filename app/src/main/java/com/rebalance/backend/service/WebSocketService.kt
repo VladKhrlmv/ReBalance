@@ -2,12 +2,14 @@ package com.rebalance.backend.service
 
 import android.annotation.SuppressLint
 import android.app.Notification
+import android.app.Notification.FOREGROUND_SERVICE_DEFAULT
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.media.RingtoneManager
+import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
@@ -95,7 +97,7 @@ class WebSocketService : Service() {
         val notificationChannel = NotificationChannel(
             channelId,
             channelName,
-            NotificationManager.IMPORTANCE_HIGH
+            NotificationManager.IMPORTANCE_LOW
         ).apply {
             description = channelName
             setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION), null)
@@ -107,7 +109,7 @@ class WebSocketService : Service() {
     }
 
     private fun createNotification(): Notification {
-        return NotificationCompat.Builder(this, channelId)
+        val notification = NotificationCompat.Builder(this, channelId)
             .setContentText("We keep you updated")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
 //            .setContentIntent(pendingIntent) //TODO: on click launch app
@@ -115,6 +117,9 @@ class WebSocketService : Service() {
             .setBadgeIconType(NotificationCompat.BADGE_ICON_SMALL)
             .setOngoing(true) // do not allow to remove notification
             .setOnlyAlertOnce(true)
-            .build()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            notification.foregroundServiceBehavior = FOREGROUND_SERVICE_DEFAULT
+        }
+        return notification.build()
     }
 }
