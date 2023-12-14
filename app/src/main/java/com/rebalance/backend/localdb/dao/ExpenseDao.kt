@@ -75,4 +75,9 @@ interface ExpenseDao {
     suspend fun getExpenseByDbId(
         expenseId: Long
     ): Expense?
+
+    @Query("SELECT * FROM expenses WHERE id = :expenseId")
+    suspend fun getExpenseById(
+        expenseId: Long
+    ): Expense?
 }

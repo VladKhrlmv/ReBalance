@@ -17,5 +17,5 @@ interface ExpenseUserDao {
     suspend fun getGroupExpenseDeptors(expenseId: Long): List<GroupExpenseItemUser>
 
     @Insert
-    suspend fun saveExpenseUser(expenseUser: ExpenseUser)
+    suspend fun saveExpenseUser(expenseUser: ExpenseUser):Long
 }

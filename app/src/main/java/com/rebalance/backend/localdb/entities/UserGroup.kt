@@ -26,7 +26,7 @@ data class UserGroup(
     @PrimaryKey(autoGenerate = true)
     val id: Long,
     @ColumnInfo(name = "balance")
-    val balance: BigDecimal = BigDecimal.ZERO,
+    var balance: BigDecimal = BigDecimal.ZERO,
     @ColumnInfo(name = "user_id")
     val userId: Long,
     @ColumnInfo(name = "group_id")

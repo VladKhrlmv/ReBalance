@@ -28,6 +28,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
 
+
 class BackendService {
     private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
@@ -468,24 +469,64 @@ class BackendService {
             expenses[0].users.forEach { u ->
                 totalMultipliers = totalMultipliers.add(BigDecimal.valueOf(u.multiplier.toLong()))
             }
+            val expenseUsers: MutableList<ExpenseUser> = listOf<ExpenseUser>().toMutableList()
             withContext(Dispatchers.IO) {
                 newExpenseId = db.expenseDao().saveExpense(expense)
                 expenses[0].users.forEach { eu ->
-                    db.expenseUserDao().saveExpenseUser(
-                        ExpenseUser(
-                            0L,
-                            expense.amount.multiply( // calculate amount per user depending of multiplier
-                                BigDecimal.valueOf(eu.multiplier.toLong())
-                                    .divide(totalMultipliers, 100, RoundingMode.HALF_EVEN)
-                            ),
-                            eu.multiplier,
-                            eu.userId,
-                            newExpenseId
-                        )
+                    val expenseUser = ExpenseUser(
+                        0L,
+                        expense.amount.multiply( // calculate amount per user depending of multiplier
+                            BigDecimal.valueOf(eu.multiplier.toLong())
+                                .divide(totalMultipliers, 100, RoundingMode.HALF_EVEN)
+                        ),
+                        eu.multiplier,
+                        eu.userId,
+                        newExpenseId
                     )
+                    expenseUser.id = db.expenseUserDao().saveExpenseUser(expenseUser)
+                    expenseUsers.add(expenseUser)
                 }
+                val userChanges = getBalanceDiff(
+                    expenseUsers,
+                    expense.initiator_id,
+                    expense.amount
+                )
+                updateUsersBalanceInGroup(userChanges, expense.group_id)
             }
             return@async expense
+        }.await()
+    }
+
+    private fun getBalanceDiff(
+        expenseUsers: List<ExpenseUser>, initiatorId: Long,
+        expenseAmount: BigDecimal
+    ): HashMap<Long, BigDecimal> {
+        val userChanges: HashMap<Long, BigDecimal> = HashMap(expenseUsers.size + 1)
+        expenseUsers.forEach { u ->
+            userChanges[u.user_id] = u.amount.negate()
+        }
+        if (userChanges.containsKey(initiatorId)) {
+            userChanges[initiatorId] = expenseAmount.add(userChanges[initiatorId])
+        } else {
+            userChanges[initiatorId] = expenseAmount
+        }
+        return userChanges
+    }
+
+    private suspend fun updateUsersBalanceInGroup(
+        userChanges: Map<Long, BigDecimal>,
+        groupId: Long
+    ) {
+        mainScope.async {
+            withContext(Dispatchers.IO) {
+                val userGroups: List<UserGroup> =
+                    db.userGroupDao().getUsersByIds(groupId, userChanges.keys)
+                userGroups.forEach { ug: UserGroup ->
+                    ug.balance = ug.balance.add(userChanges[ug.userId])
+                    db.userGroupDao().saveUserGroup(ug)
+                }
+            }
+            return@async
         }.await()
     }
 

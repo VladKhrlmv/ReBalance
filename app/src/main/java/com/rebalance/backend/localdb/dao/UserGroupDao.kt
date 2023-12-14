@@ -19,4 +19,7 @@ interface UserGroupDao {
                 "WHERE ug.group_id = :groupId"
     )
     suspend fun getUserBalancesForGroup(groupId: Long): List<BarChartItem>
+
+    @Query("SELECT * FROM user_group WHERE group_id = :groupId AND user_id IN (:userIds)")
+    suspend fun getUsersByIds(groupId: Long, userIds: Set<Long>): List<UserGroup>
 }
